@@ -370,7 +370,7 @@ body{padding-bottom:54px}
 </div>
 
 <div class="sw">
-  <div class="sl" onclick="tog('vis')">Esame Visivo <span class="ar" id="ar-vis">&#9654;</span></div>
+  <div class="sl" id="sl-vis" onclick="tog('vis')">Esame Visivo <span class="sl-badge" id="badge-vis"></span><span class="ar" id="ar-vis">&#9654;</span></div>
   <div class="sb" id="sb-vis">
     <div class="ph2">Limpidezza</div>
     <div class="og c5">
@@ -533,7 +533,7 @@ body{padding-bottom:54px}
 </div>
 
 <div class="sw">
-  <div class="sl" onclick="tog('olf')">Esame Olfattivo <span class="ar" id="ar-olf">&#9654;</span></div>
+  <div class="sl" id="sl-olf" onclick="tog('olf')">Esame Olfattivo <span class="sl-badge" id="badge-olf"></span><span class="ar" id="ar-olf">&#9654;</span></div>
   <div class="sb" id="sb-olf">
     <div class="tw">
       <div class="tc2"><div class="ph2">Intensità</div><div class="og"><div class="o" data-g="iolf">Moderatamente intenso</div><div class="o" data-g="iolf">Intenso</div><div class="o" data-g="iolf">Molto intenso</div></div></div>
@@ -555,7 +555,7 @@ body{padding-bottom:54px}
 </div>
 
 <div class="sw">
-  <div class="sl" onclick="tog('gus')">Esame Gusto-Olfattivo <span class="ar" id="ar-gus">&#9654;</span></div>
+  <div class="sl" id="sl-gus" onclick="tog('gus')">Esame Gusto-Olfattivo <span class="sl-badge" id="badge-gus"></span><span class="ar" id="ar-gus">&#9654;</span></div>
   <div class="sb" id="sb-gus">
     <div class="tw">
       <div class="tc2"><div class="ph2">Dolcezza</div><div class="og"><div class="o" data-g="dolc">Secco</div><div class="o" data-g="dolc">Poco dolce</div><div class="o" data-g="dolc">Moderatamente dolce</div><div class="o" data-g="dolc">Dolce</div><div class="o" data-g="dolc">Molto dolce</div></div></div>
@@ -589,7 +589,7 @@ body{padding-bottom:54px}
 </div>
 
 <div class="sw">
-  <div class="sl" onclick="tog('fin')">Considerazioni Finali <span class="ar" id="ar-fin">&#9654;</span></div>
+  <div class="sl" id="sl-fin" onclick="tog('fin')">Considerazioni Finali <span class="sl-badge" id="badge-fin"></span><span class="ar" id="ar-fin">&#9654;</span></div>
   <div class="sb" id="sb-fin">
     <div class="ph2">Stato evolutivo</div>
     <div class="og c2"><div class="o" data-g="stat">Pronto</div><div class="o" data-g="stat">Maturo</div></div>
@@ -983,7 +983,7 @@ function famDaColore(col){var b=['Verdolino','Paglierino','Dorato','Ambrato','Mo
 
 let sc={},mx={},sv=0,curDenom=null;
 
-function tog(id){var b=document.getElementById('sb-'+id),a=document.getElementById('ar-'+id);var op=b.classList.toggle('op');a.classList.toggle('op',op);}
+function tog(id){var b=document.getElementById('sb-'+id),a=document.getElementById('ar-'+id);var op=b.classList.toggle('op');a.classList.toggle('op',op);aggiornaBarre();}
 // Gruppi con scala progressiva — supportano doppia selezione adiacente
 var SCALA_PROG=['limpidezza','int_colore','consistenza','iolf','colf','dolc','acid','alco','tann','roto','sapi','effg','igus','stru','equi','pers','armo','ncat','vasc','grb','pb'];
 
@@ -1028,6 +1028,8 @@ function pk(el){
       sc[g]=el.textContent.trim();
     }
   }
+  // Aggiorna stato barre dopo ogni selezione
+  aggiornaBarre();
   // NON chiamare agVisivo qui — la palette colori è gestita da pickColore in testata
   if(g==='metodo'){
     var bliev=document.getElementById('blk-lieviti');
@@ -1046,6 +1048,7 @@ function pkq(el){
   else{delete sc[g];}
   if(g==='qolf'||g==='qgus'||g==='qtot') controllaCoerenzaQtot();
   aggiornaAnteprima();
+  aggiornaBarre();
 }
 function ss(n){sv=n;document.querySelectorAll('#stars .st').forEach(function(s,i){s.classList.toggle('lit',i<n)});}
 
@@ -1207,6 +1210,7 @@ function pickBase(el){
   else selBase='';
   aggiornaSezioniVisive(selBase);
   up();
+  aggiornaBarre();
 }
 
 function pickColore(el){
@@ -1219,6 +1223,7 @@ function pickColore(el){
   aggiornaColoreVisivo(selColore);
   aggiornaTannicita(selColore);
   up();
+  aggiornaBarre();
 }
 
 function aggiornaTannicita(colore){
@@ -1356,6 +1361,7 @@ function nuovaScheda(){
   document.getElementById('btnAddNota').textContent='+ Aggiungi nota libera';
   document.getElementById('anteprima-punti').style.display='none';
   toast('Nuova scheda pronta');
+  aggiornaBarre();
 }
 
 
@@ -1691,6 +1697,133 @@ function gd(){
 
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none'},2500);}
 
+
+// ─── VALIDAZIONE SCHEDA ANALITICA ────────────────────────────────────────
+
+// Regole minime per sezione (gruppi obbligatori)
+function validaSezione(sezione){
+  var ok=[], mancanti=[];
+
+  function chk(gruppo, label){
+    // Cerca sia in sc (singola) che in mx (multipla)
+    var hasSc = sc[gruppo] && sc[gruppo]!=='';
+    var hasMx = mx[gruppo] && mx[gruppo].length>0;
+    if(hasSc||hasMx) ok.push(label);
+    else mancanti.push(label);
+  }
+
+  if(sezione==='vis'){
+    chk('limpidezza','Limpidezza');
+    chk('colore','Colore');
+    chk('int_colore','Intensità colore');
+    // Consistenza solo per fermi, effervescenza solo per spumanti/frizzanti
+    var t=(selBase||'').toLowerCase();
+    if(t==='fermo') chk('consistenza','Consistenza');
+    if(t==='spumante'||t==='frizzante'){
+      chk('ncat','Effervescenza (n. bollicine)');
+      chk('vasc','Effervescenza (velocità)');
+      chk('grb','Effervescenza (grandezza)');
+      chk('pb','Effervescenza (persistenza)');
+    }
+  }
+  if(sezione==='olf'){
+    chk('iolf','Intensità olfattiva');
+    chk('colf','Complessità olfattiva');
+    chk('qolf','Qualità olfattiva');
+  }
+  if(sezione==='gus'){
+    chk('dolc','Dolcezza');
+    chk('acid','Acidità');
+    chk('alco','Alcolicità');
+    chk('igus','Intensità gusto');
+    chk('equi','Equilibrio');
+    chk('pers','Persistenza');
+    chk('qgus','Qualità gusto-olfattiva');
+    // Tannicità obbligatoria solo per rossi
+    var col=(selColore||'').toLowerCase();
+    if(col==='rosso') chk('tann','Tannicità');
+    // Effervescenza gusto solo per spumanti/frizzanti
+    var t2=(selBase||'').toLowerCase();
+    if(t2==='spumante'||t2==='frizzante') chk('effg','Effervescenza gusto');
+  }
+  if(sezione==='fin'){
+    chk('stat','Stato evolutivo');
+    chk('armo','Armonia');
+    chk('qtot','Qualità complessiva');
+  }
+
+  return {ok:ok, mancanti:mancanti, completa: mancanti.length===0};
+}
+
+function validaDatiId(){
+  var mancanti=[];
+  if(!document.getElementById('wP').value.trim()) mancanti.push('Produttore');
+  if(!document.getElementById('wN').value.trim()) mancanti.push('Nome vino');
+  var reg=document.getElementById('wR').value;
+  if(!reg) mancanti.push('Regione');
+  if(!document.getElementById('dS').value.trim()) mancanti.push('Denominazione');
+  if(!selBase) mancanti.push('Modalità (fermo/frizzante/spumante)');
+  if(!selColore) mancanti.push('Colore (bianco/rosato/rosso)');
+  return mancanti;
+}
+
+function aggiornaBarre(){
+  var sezioni=['vis','olf','gus','fin'];
+  sezioni.forEach(function(s){
+    var sl=document.getElementById('sl-'+s);
+    var badge=document.getElementById('badge-'+s);
+    if(!sl||!badge) return;
+    var r=validaSezione(s);
+    // Controlla se la sezione è mai stata aperta (sb ha classe op)
+    var sb=document.getElementById('sb-'+s);
+    var aperta=sb&&sb.classList.contains('op');
+    if(r.completa){
+      sl.classList.add('stato-ok');
+      sl.classList.remove('stato-warn');
+      badge.textContent='✓';
+    } else if(aperta){
+      sl.classList.add('stato-warn');
+      sl.classList.remove('stato-ok');
+      badge.textContent=r.mancanti.length+' mancanti';
+    } else {
+      sl.classList.remove('stato-ok','stato-warn');
+      badge.textContent='';
+    }
+  });
+}
+
+function validaScheda(){
+  // Dati identificativi
+  var mId=validaDatiId();
+  if(mId.length){
+    toast('⚠ Dati mancanti: '+mId.join(', '));
+    window.scrollTo({top:0,behavior:'smooth'});
+    return false;
+  }
+  // Sezioni
+  var sezioni=['vis','olf','gus','fin'];
+  var tuttiMancanti=[];
+  sezioni.forEach(function(s){
+    var r=validaSezione(s);
+    if(!r.completa){
+      // Apri la sezione se chiusa
+      var sb=document.getElementById('sb-'+s);
+      var ar=document.getElementById('ar-'+s);
+      if(sb&&!sb.classList.contains('op')){
+        sb.classList.add('op');
+        if(ar) ar.classList.add('op');
+      }
+      r.mancanti.forEach(function(m){ tuttiMancanti.push(m); });
+    }
+  });
+  aggiornaBarre();
+  if(tuttiMancanti.length){
+    toast('⚠ Incompleta: '+tuttiMancanti.slice(0,3).join(', ')+(tuttiMancanti.length>3?' e altri...':''));
+    return false;
+  }
+  return true;
+}
+
 let editingId = null;
 let isSaving = false; // blocca doppi click
 
@@ -1699,8 +1832,8 @@ function savLocal(){
   isSaving = true;
   setTimeout(function(){isSaving=false;}, 1500);
 
+  if(!validaScheda()){isSaving=false;return;}
   var d=gd();
-  if(!d.nome&&!d.produttore){toast('Inserisci almeno produttore o nome');isSaving=false;return;}
   var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
   var now=new Date();
   var dt=now.toLocaleDateString('it-IT')+' '+now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -1963,6 +2096,7 @@ function loadS(id){
     controllaCoerenzaQtot();
   }, 150);
   toast('Scheda caricata — premi Aggiorna per salvare le modifiche');
+  setTimeout(aggiornaBarre, 200);
 }
 
 
@@ -2192,6 +2326,7 @@ const HINT_MAP={
 };
 
 let voti={aspetto:6,iolf:6,purez:6,compl:6,igus:6,equi:6,espr:6,pers:6,armo:6,qual:6};
+var votiConfermati=new Set(); // parametri toccati esplicitamente dall'utente
 let analiticaP=null;
 let editingIdP=null;
 let basePunti=80;
@@ -2296,13 +2431,17 @@ function aggiornaSlider(paramId){
   var v=voti[paramId];
   var wrap=document.getElementById('vw-'+paramId);
   if(!wrap) return;
+  var conf=votiConfermati.has(paramId);
   wrap.querySelectorAll('.voto-chip').forEach(function(c){
     c.classList.toggle('sel', parseInt(c.dataset.voto)===v);
+    c.classList.toggle('confermato', conf);
   });
 }
 
-function setVoto(paramId, v){
+function setVoto(paramId, v, fromLoad){
   voti[paramId]=v;
+  // Marca come confermato solo se click utente, non da caricamento automatico
+  if(!fromLoad) votiConfermati.add(paramId);
   var p=PARAMS.find(function(x){return x.id===paramId;});
   if(p){
     document.getElementById(p.vId).textContent=v;
@@ -2310,6 +2449,14 @@ function setVoto(paramId, v){
     document.getElementById(p.cId).textContent=contributo+' pt';
   }
   aggiornaSlider(paramId);
+  // Evidenzia chip: confermato = bordo verde, non confermato = opaco
+  var wrap=document.getElementById('vw-'+paramId);
+  if(wrap){
+    wrap.querySelectorAll('.voto-chip').forEach(function(c){
+      c.classList.toggle('confermato', votiConfermati.has(paramId));
+    });
+  }
+  aggiornaStatoPunti();
   calcolaTotale();
 }
 
@@ -2387,6 +2534,7 @@ function popolaSelectP(){
 
 function caricaDaAnalitica(){
   if(!analiticaP){toastP('Nessuna scheda analitica collegata');return;}
+  votiConfermati=new Set(); // reset: i voti ereditati non sono ancora confermati
   // Dati freschi dal localStorage
   var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
   var fresca=schede.find(function(s){return s.id===analiticaP.id;})||analiticaP;
@@ -2451,10 +2599,40 @@ function mostraScheda(){
   calcolaTotale();
 }
 
+
+// ─── STATO VISIVO SCHEDA PUNTI ────────────────────────────────────────────
+function aggiornaStatoPunti(){
+  var sezMap={V:['aspetto'], O:['iolf','purez','compl'], G:['igus','equi','espr','pers'], F:['armo','qual']};
+  var sezId={V:'sezV', O:'sezO', G:'sezG', F:'sezF'};
+  Object.keys(sezMap).forEach(function(k){
+    var params=sezMap[k];
+    var tuttiConf=params.every(function(p){return votiConfermati.has(p);});
+    var qualcuno=params.some(function(p){return votiConfermati.has(p);});
+    var el=document.getElementById(sezId[k]);
+    if(!el) return;
+    var hd=el.querySelector('.sez-hd');
+    if(!hd) return;
+    if(tuttiConf){
+      hd.style.background='#3a6b3a';
+    } else if(qualcuno){
+      hd.style.background='#b85000';
+    } else {
+      hd.style.background='var(--d)';
+    }
+  });
+}
+
 // ─── SALVATAGGIO ─────────────────────────────────────────────────────────
 function salvaPunti(){
   var tot=parseFloat(document.getElementById('heroNum').textContent)||0;
   if(!tot){toastP('Nessun punteggio da salvare');return;}
+  // Verifica che tutti i 10 parametri siano stati confermati almeno una volta
+  var nonConf=PARAMS.filter(function(p){return !votiConfermati.has(p.id);}).map(function(p){return p.id;});
+  if(nonConf.length){
+    toastP('⚠ Conferma tutti i parametri prima di salvare ('+nonConf.length+' mancanti)');
+    aggiornaStatoPunti();
+    return;
+  }
   var l=JSON.parse(localStorage.getItem('ais_punti')||'[]');
   var now=new Date();
   var dt=now.toLocaleDateString('it-IT')+' '+now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -2529,7 +2707,10 @@ function loadP(id){
     var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
     analiticaP=schede.find(function(x){return x.id===s.analiticaId;})||null;
   }
-  Object.keys(s.voti||{}).forEach(function(k){setVoto(k,s.voti[k]);});
+  votiConfermati=new Set();
+  Object.keys(s.voti||{}).forEach(function(k){setVoto(k,s.voti[k],true);});
+  // Una scheda già salvata ha tutti i parametri confermati per definizione
+  PARAMS.forEach(function(p){votiConfermati.add(p.id);});
   document.getElementById('notaP').value=s.nota||'';
   editingIdP=id;
   mostraScheda();
@@ -2555,6 +2736,7 @@ function vediAnaliticaCollegata(){
 
 function resetPunti(){
   analiticaP=null; editingIdP=null;
+  votiConfermati=new Set();
   voti={aspetto:6,iolf:6,purez:6,compl:6,igus:6,equi:6,espr:6,pers:6,armo:6,qual:6};
   PARAMS.forEach(function(p){aggiornaSlider(p.id);});
   document.getElementById('notaP').value='';
