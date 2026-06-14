@@ -243,7 +243,7 @@ body{padding-bottom:54px}
   <span style="color:var(--m);cursor:pointer;font-weight:700" onclick="doLogout()">Esci</span>
 </div>
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v18</span></div>
+  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v19</span></div>
   <div class="ais-hd-l">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 <div class="autore-bar">
@@ -644,7 +644,7 @@ body{padding-bottom:54px}
 <div class="page">
 
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v18</span></div>
+  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v19</span></div>
   <div class="ais-hd-r">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 
@@ -1458,9 +1458,33 @@ async function caricaValutazioniDB(){
 }
 
 async function salvaSuDB(scheda){
-  if(!currentUser) return;
-  var row=Object.assign({},scheda,{user_email:currentUser.email});
-  await supaInsertOrUpdate('schede_analitiche', row);
+  if(!currentUser||!accessToken) return;
+  // Manda solo i campi che esistono nella tabella
+  var row={
+    id: scheda.id,
+    user_email: currentUser.email,
+    autore: scheda.autore||'',
+    produttore: scheda.produttore||'',
+    nome: scheda.nome||'',
+    regione: scheda.regione||'',
+    denominazione: scheda.denominazione||'',
+    tipologia: scheda.tipologia||'',
+    vitigni: scheda.vitigni||'',
+    annata: scheda.annata||'',
+    gradazione: scheda.gradazione||'',
+    parametri: scheda.parametri||{},
+    descrittori: scheda.descrittori||[],
+    sfumature: scheda.sfumature||[],
+    desc_vis: scheda.desc_vis||[],
+    nota_olf: scheda.nota_olf||'',
+    nota_gus: scheda.nota_gus||'',
+    nota_vis: scheda.nota_vis||'',
+    nota_fin: scheda.nota_fin||'',
+    stelle: scheda.stelle||0,
+    dt: scheda.dt||''
+  };
+  var ok=await supaInsertOrUpdate('schede_analitiche', row);
+  if(ok) console.log('✓ Salvato su Supabase');
 }
 
 async function salvaValutazioneDB(val){
@@ -1910,8 +1934,8 @@ var currentUser=null, accessToken=null;
 
 function supaHeaders(withAuth){
   var h={'Content-Type':'application/json','apikey':SUPA_KEY};
-  if(withAuth&&accessToken) h['Authorization']='Bearer '+accessToken;
-  else h['Authorization']='Bearer '+SUPA_KEY;
+  // Usa sempre accessToken se disponibile, altrimenti anon key
+  h['Authorization']='Bearer '+(accessToken||SUPA_KEY);
   return h;
 }
 
@@ -1945,13 +1969,18 @@ async function supaGetSession(){
 }
 
 async function supaInsertOrUpdate(table, row){
-  var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?on_conflict=id',{
+  var r=await fetch(SUPA_URL+'/rest/v1/'+table,{
     method:'POST',
     headers:Object.assign(supaHeaders(true),{
-      'Prefer':'resolution=merge-duplicates'
+      'Prefer':'resolution=merge-duplicates,return=minimal',
+      'Content-Type':'application/json'
     }),
     body:JSON.stringify(row)
   });
+  if(!r.ok){
+    var err=await r.text();
+    console.error('Supabase error '+r.status+':', err);
+  }
   return r.ok;
 }
 
