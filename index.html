@@ -824,21 +824,6 @@ body{padding-bottom:54px}
 
 <div class="toast" id="toast"></div>
 
-<!-- Modale errore validazione -->
-<div id="modale-errore" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;background:rgba(0,0,0,.55);align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:6px;border-top:5px solid #c0006a;max-width:340px;width:90%;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,.3);overflow:hidden">
-    <div style="background:#c0006a;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px">
-      <span style="font-size:22px;line-height:1">⚠</span>
-      <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Scheda incompleta</span>
-    </div>
-    <div style="padding:14px 16px">
-      <div id="modale-errore-msg" style="font-size:12px;color:#3d3d3d;line-height:1.7"></div>
-    </div>
-    <div style="padding:0 16px 14px">
-      <button onclick="chiudiModaleErrore()" style="width:100%;padding:10px;background:#c0006a;color:#fff;border:none;border-radius:3px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">Ho capito — correggo</button>
-    </div>
-  </div>
-</div>
 
 <script>
 function mostraVista(v){
@@ -2854,5 +2839,24 @@ initPunti();
 
 </script>
 </div><!-- end app-screen -->
+
+<!-- Modale errore validazione — fuori da tutto per position:fixed corretto -->
+<div id="modale-errore" onclick="chiudiModaleErrore()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:20px">
+  <div onclick="event.stopPropagation()" style="background:#fff;border-radius:8px;max-width:380px;width:100%;margin:0 auto;box-shadow:0 12px 40px rgba(0,0,0,.4);overflow:hidden">
+    <div style="background:#c0006a;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:28px;line-height:1">⛔</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Scheda incompleta</div>
+        <div style="font-size:10px;opacity:.85;margin-top:2px">Correggi i campi evidenziati</div>
+      </div>
+    </div>
+    <div style="padding:16px">
+      <div id="modale-errore-msg" style="font-size:12px;color:#3d3d3d;line-height:1.8"></div>
+    </div>
+    <div style="padding:0 16px 16px">
+      <button onclick="chiudiModaleErrore()" style="width:100%;padding:12px;background:#c0006a;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">✓ Ho capito — correggo</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
