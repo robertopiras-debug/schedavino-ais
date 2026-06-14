@@ -1484,14 +1484,32 @@ async function caricaValutazioniDB(){
   if(data.length){
     var locale=JSON.parse(localStorage.getItem('ais_punti')||'[]');
     var dbMap={};
-    data.forEach(function(r){dbMap[r.id]=Object.assign({},r,{voti:r.voti||{}});});
+    // Rimappa snake_case DB → camelCase usato internamente
+    data.forEach(function(r){
+      var mapped={
+        id:           r.id,
+        analiticaId:  r.analitica_id||null,
+        user_email:   r.user_email,
+        produttore:   r.produttore||'',
+        nome:         r.nome||'',
+        annata:       r.annata||'',
+        tipologia:    r.tipologia||'',
+        punteggio:    r.punteggio||0,
+        fascia:       r.fascia||'',
+        baseAnalitica:r.base_analitica||null,
+        delta:        r.delta||null,
+        voti:         r.voti||{},
+        nota:         r.nota||'',
+        dt:           r.dt||''
+      };
+      dbMap[r.id]=mapped;
+    });
     locale.forEach(function(s){if(!dbMap[s.id]) dbMap[s.id]=s;});
     var merged=Object.values(dbMap).sort(function(a,b){
       return (b.dt||'').localeCompare(a.dt||'');
     });
     localStorage.setItem('ais_punti', JSON.stringify(merged));
   }
-  // Aggiorna UI valutazioni
   if(typeof rSavP==='function') rSavP();
 }
 
@@ -1527,10 +1545,23 @@ async function salvaSuDB(scheda){
 
 async function salvaValutazioneDB(val){
   if(!currentUser) return;
-  var row=Object.assign({},val,{
-    user_email:currentUser.email,
-    analitica_id:val.analiticaId||null
-  });
+  // Mappa esatta sui nomi colonna reali della tabella (snake_case)
+  var row={
+    id:             val.id,
+    user_email:     currentUser.email,
+    analitica_id:   val.analiticaId||null,
+    produttore:     val.produttore||'',
+    nome:           val.nome||'',
+    annata:         val.annata||'',
+    tipologia:      val.tipologia||'',
+    punteggio:      val.punteggio||0,
+    fascia:         val.fascia||'',
+    base_analitica: val.baseAnalitica||null,
+    delta:          val.delta||null,
+    voti:           val.voti||{},
+    nota:           val.nota||'',
+    dt:             val.dt||''
+  };
   await supaInsertOrUpdate('valutazioni_punti', row);
 }
 
