@@ -100,6 +100,27 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .blocked .ph2.gn{background:#aaa}
 .block-note{font-size:10px;color:#999;font-style:italic;text-align:center;padding:4px 8px 6px;background:#f5f5f0}
 
+/* ═══ STATO COMPILAZIONE BARRE ANALITICA ═══ */
+.sl.stato-ok{background:#2e6b2e}
+.sl.stato-ok .sl-badge{background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.3)}
+.sl.stato-warn{background:#b84a00}
+.sl.stato-warn .sl-badge{background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.3)}
+.sl-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;border:1px solid transparent;margin-right:6px;transition:all .2s;white-space:nowrap}
+
+/* ═══ CHIP VOTO SCHEDA PUNTI ═══ */
+/* Non confermato: sfondo giallino con bordo tratteggiato */
+.voto-chip:not(.confermato):not(.sel){background:#fffbe6;border:1px dashed #c8a000;opacity:.85}
+.voto-chip:not(.confermato):not(.sel) .vc-num{color:#8a6000}
+.voto-chip:not(.confermato):not(.sel) .vc-lbl{color:#b08000}
+/* Confermato non selezionato */
+.voto-chip.confermato:not(.sel){background:var(--r);border-color:var(--b);opacity:1}
+/* Confermato e selezionato: già gestito da .sel */
+
+/* Header sezione punti: stati */
+.sez-hd.stato-ok-p{background:#2e6b2e !important}
+.sez-hd.stato-warn-p{background:#b84a00 !important}
+.sez-hd.stato-inc-p{background:var(--d)}
+
 
 /* ═══ CSS SCHEDA PUNTI ═══ */
 
@@ -1686,6 +1707,7 @@ function up(){
   if(v)parts.push('· '+v+'% vol');
   var el=document.getElementById('prev');
   el.innerHTML=parts.length?parts.join(' '):'<span class="ph">L\'etichetta apparirà qui...</span>';
+  aggiornaBarre();
 }
 
 function gd(){
@@ -2604,6 +2626,7 @@ function mostraScheda(){
 function aggiornaStatoPunti(){
   var sezMap={V:['aspetto'], O:['iolf','purez','compl'], G:['igus','equi','espr','pers'], F:['armo','qual']};
   var sezId={V:'sezV', O:'sezO', G:'sezG', F:'sezF'};
+  var sezLabel={V:'Visivo', O:'Olfattivo', G:'Gusto-Olfattivo', F:'Finali'};
   Object.keys(sezMap).forEach(function(k){
     var params=sezMap[k];
     var tuttiConf=params.every(function(p){return votiConfermati.has(p);});
@@ -2612,12 +2635,22 @@ function aggiornaStatoPunti(){
     if(!el) return;
     var hd=el.querySelector('.sez-hd');
     if(!hd) return;
+    hd.classList.remove('stato-ok-p','stato-warn-p','stato-inc-p');
+    hd.style.background=''; // rimuove eventuali inline residui
     if(tuttiConf){
-      hd.style.background='#3a6b3a';
+      hd.classList.add('stato-ok-p');
     } else if(qualcuno){
-      hd.style.background='#b85000';
+      hd.classList.add('stato-warn-p');
     } else {
-      hd.style.background='var(--d)';
+      hd.classList.add('stato-inc-p');
+    }
+    // Badge testuale nel titolo sezione
+    var t=el.querySelector('.sez-hd-t');
+    if(t){
+      var nc=params.filter(function(p){return !votiConfermati.has(p);}).length;
+      var lbEl=t.querySelector('.sez-stato-lbl');
+      if(!lbEl){lbEl=document.createElement('span');lbEl.className='sez-stato-lbl';lbEl.style.cssText='font-size:9px;font-weight:400;opacity:.85;margin-left:6px';t.appendChild(lbEl);}
+      lbEl.textContent=tuttiConf?'✓ completo':qualcuno?(nc+' da confermare'):'da compilare';
     }
   });
 }
