@@ -109,14 +109,12 @@ input::placeholder,textarea::placeholder{color:#aaa}
 
 /* ═══ CHIP VOTO SCHEDA PUNTI — 3 STATI ═══ */
 
-/* STATO 1 — Non confermato (ereditato, non ancora toccato): giallo tratteggiato */
-.voto-chip:not(.confermato){background:#f5d800 !important;border:1px dashed #b8a000 !important;opacity:.9}
-.voto-chip:not(.confermato) .vc-num{color:#4a3800 !important}
-.voto-chip:not(.confermato) .vc-lbl{color:#6a5000 !important}
-/* Il chip selezionato non confermato: giallo pieno saturo */
-.voto-chip:not(.confermato).sel{background:#f5d800 !important;border:2px solid #8a7000 !important;opacity:1;box-shadow:0 0 0 2px #f5d80066}
+/* STATO 1 — Non confermato: solo il chip SELEZIONATO è giallo, gli altri neutri */
+.voto-chip:not(.confermato).sel{background:#f5d800 !important;border:2px solid #8a7000 !important;opacity:1;box-shadow:0 0 0 2px #f5d80055}
 .voto-chip:not(.confermato).sel .vc-num{color:#3a2800 !important;font-size:14px;font-weight:900}
 .voto-chip:not(.confermato).sel .vc-lbl{color:#5a4000 !important}
+/* Chip non selezionato non confermato: grigio normale — solo il selezionato è giallo */
+.voto-chip:not(.confermato):not(.sel){background:var(--r);border:1px solid var(--b);opacity:.75}
 
 /* STATO 2 — Confermato con valore uguale al base (confermato senza variare): magenta + bordo giallo */
 .voto-chip.conf-base{background:var(--m) !important;border:2px solid #f5d800 !important;opacity:1}
