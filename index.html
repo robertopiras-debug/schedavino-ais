@@ -243,7 +243,7 @@ body{padding-bottom:54px}
   <span style="color:var(--m);cursor:pointer;font-weight:700" onclick="doLogout()">Esci</span>
 </div>
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v19</span></div>
+  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v20</span></div>
   <div class="ais-hd-l">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 <div class="autore-bar">
@@ -644,7 +644,7 @@ body{padding-bottom:54px}
 <div class="page">
 
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v19</span></div>
+  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v20</span></div>
   <div class="ais-hd-r">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 
@@ -1318,8 +1318,7 @@ function apriInPunti(id, e){
     var s=schede.find(function(x){return x.id===id;});
     if(!s) return;
     analiticaP=s;
-    // Bypassa il selettore — pre-compila direttamente
-    precompila();
+    caricaDaAnalitica();
   }, 100);
 }
 
@@ -1370,7 +1369,12 @@ async function doLogin(){
     var res=await supaSignIn(email,pwd);
     if(res.error||res.error_code){showLoginMsg('Errore: '+(res.error_description||res.message||'credenziali errate'),'#c0006a');return;}
     accessToken=res.access_token;
-    localStorage.setItem('supa_session', JSON.stringify({access_token:res.access_token,user:res.user}));
+    refreshToken=res.refresh_token||null;
+    localStorage.setItem('supa_session', JSON.stringify({
+      access_token:res.access_token,
+      refresh_token:res.refresh_token||null,
+      user:res.user
+    }));
     onLogin(res.user);
   } catch(e){
     showLoginMsg('Errore connessione: '+e.message,'#c0006a');
@@ -1386,10 +1390,14 @@ async function doRegister(){
   try {
     var res=await supaSignUp(email,pwd);
     if(res.error||res.error_code){showLoginMsg('Errore: '+(res.error_description||res.msg||JSON.stringify(res)),'#c0006a');return;}
-    // Login automatico dopo registrazione
     if(res.access_token){
       accessToken=res.access_token;
-      localStorage.setItem('supa_session',JSON.stringify({access_token:res.access_token,user:res.user}));
+      refreshToken=res.refresh_token||null;
+      localStorage.setItem('supa_session',JSON.stringify({
+        access_token:res.access_token,
+        refresh_token:res.refresh_token||null,
+        user:res.user
+      }));
       showLoginMsg('✓ Registrato! Accesso automatico...','#5a8a5a');
       setTimeout(function(){ onLogin(res.user); }, 800);
     } else {
@@ -1401,8 +1409,8 @@ async function doRegister(){
 }
 
 function doLogout(){
-  localStorage.removeItem('supa_session'); accessToken=null;
-  currentUser=null;
+  localStorage.removeItem('supa_session');
+  accessToken=null; refreshToken=null; currentUser=null;
   document.getElementById('app-screen').style.display='none';
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('login-email').value='';
@@ -1425,36 +1433,66 @@ function onLogin(user){
   caricaSchedeDB();
 }
 
-// ─── SYNC SUPABASE ────────────────────────────────────────────────────────
+// ─── SYNC SUPABASE — v20 ─────────────────────────────────────────────────
 async function caricaSchedeDB(){
   if(!currentUser) return;
   var data=await supaSelect('schede_analitiche',{user_email:currentUser.email});
-  // Salva in localStorage come cache locale
-  if(data&&data.length){
-    var schede=data.map(function(r){
-      return Object.assign({},r,{
-        parametri: r.parametri||{},
-        descrittori: r.descrittori||[],
-        sfumature: r.sfumature||[],
-        desc_vis: r.desc_vis||[]
-      });
+
+  if(data===null){
+    // Errore di rete o auth — non toccare la cache locale, avvisa
+    console.warn('caricaSchedeDB: errore fetch, uso cache locale');
+    toast('DB non raggiunto — uso dati locali');
+    rSav();
+    caricaValutazioniDB();
+    return;
+  }
+
+  if(data.length){
+    // Merge: il DB vince sul locale per le schede condivise (stessa id)
+    // ma non cancella schede locali che non sono ancora su DB
+    var locale=JSON.parse(localStorage.getItem('ais_s')||'[]');
+    var dbMap={};
+    data.forEach(function(r){dbMap[r.id]=Object.assign({},r,{
+      parametri:r.parametri||{},
+      descrittori:r.descrittori||[],
+      sfumature:r.sfumature||[],
+      desc_vis:r.desc_vis||[]
+    });});
+    // Aggiunge le schede locali che non esistono ancora su DB
+    locale.forEach(function(s){
+      if(!dbMap[s.id]) dbMap[s.id]=s;
     });
-    localStorage.setItem('ais_s', JSON.stringify(schede));
+    var merged=Object.values(dbMap).sort(function(a,b){
+      return (b.dt||'').localeCompare(a.dt||'');
+    });
+    localStorage.setItem('ais_s', JSON.stringify(merged));
   }
   rSav();
-  // Carica anche valutazioni
   caricaValutazioniDB();
 }
 
 async function caricaValutazioniDB(){
   if(!currentUser) return;
   var data=await supaSelect('valutazioni_punti',{user_email:currentUser.email});
-  if(data&&data.length){
-    var vp=data.map(function(r){
-      return Object.assign({},r,{voti:r.voti||{}});
-    });
-    localStorage.setItem('ais_punti', JSON.stringify(vp));
+
+  if(data===null){
+    console.warn('caricaValutazioniDB: errore fetch, uso cache locale');
+    rSavP();
+    return;
   }
+
+  if(data.length){
+    var locale=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+    var dbMap={};
+    data.forEach(function(r){dbMap[r.id]=Object.assign({},r,{voti:r.voti||{}});});
+    locale.forEach(function(s){if(!dbMap[s.id]) dbMap[s.id]=s;});
+    var merged=Object.values(dbMap).sort(function(a,b){
+      return (b.dt||'').localeCompare(a.dt||'');
+    });
+    localStorage.setItem('ais_punti', JSON.stringify(merged));
+  }
+  // Aggiorna UI valutazioni
+  if(typeof rSavP==='function') rSavP();
 }
 
 async function salvaSuDB(scheda){
@@ -1927,21 +1965,22 @@ document.addEventListener('click', function(e){
 
 
 
-// ─── SUPABASE via fetch REST (no CDN) ────────────────────────────────────
+// ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzdHhuY3VzaHJsdmpobHh1bHR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjQzNzcsImV4cCI6MjA5NzAwMDM3N30.SLC-z84TDdBlQPCbQ8WPhM0zr_nG3VFVue2EqdNtQrQ';
-var currentUser=null, accessToken=null;
+var currentUser=null, accessToken=null, refreshToken=null;
 
-function supaHeaders(withAuth){
-  var h={'Content-Type':'application/json','apikey':SUPA_KEY};
-  // Usa sempre accessToken se disponibile, altrimenti anon key
-  h['Authorization']='Bearer '+(accessToken||SUPA_KEY);
-  return h;
+function supaHeaders(){
+  return {
+    'Content-Type':'application/json',
+    'apikey':SUPA_KEY,
+    'Authorization':'Bearer '+(accessToken||SUPA_KEY)
+  };
 }
 
 async function supaSignUp(email,pwd){
   var r=await fetch(SUPA_URL+'/auth/v1/signup',{
-    method:'POST',headers:supaHeaders(false),
+    method:'POST',headers:supaHeaders(),
     body:JSON.stringify({email:email,password:pwd})
   });
   return r.json();
@@ -1949,57 +1988,129 @@ async function supaSignUp(email,pwd){
 
 async function supaSignIn(email,pwd){
   var r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=password',{
-    method:'POST',headers:supaHeaders(false),
+    method:'POST',headers:supaHeaders(),
     body:JSON.stringify({email:email,password:pwd})
   });
   return r.json();
 }
 
+// Verifica scadenza JWT senza librerie: decodifica il payload base64
+function jwtScaduto(token){
+  try{
+    var payload=JSON.parse(atob(token.split('.')[1]));
+    // exp è in secondi, Date.now() in ms — aggiungi 60s di margine
+    return payload.exp && (payload.exp - 60) < (Date.now()/1000);
+  }catch(e){return true;}
+}
+
+async function supaRefreshToken(){
+  if(!refreshToken) return false;
+  try{
+    var r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token',{
+      method:'POST',headers:supaHeaders(),
+      body:JSON.stringify({refresh_token:refreshToken})
+    });
+    if(!r.ok) return false;
+    var res=await r.json();
+    if(res.access_token){
+      accessToken=res.access_token;
+      if(res.refresh_token) refreshToken=res.refresh_token;
+      localStorage.setItem('supa_session',JSON.stringify({
+        access_token:accessToken,
+        refresh_token:refreshToken,
+        user:currentUser
+      }));
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+// Garantisce che il token sia valido prima di ogni chiamata API
+async function supaEnsureToken(){
+  if(!accessToken) return false;
+  if(jwtScaduto(accessToken)){
+    var ok=await supaRefreshToken();
+    if(!ok){
+      // Token non rinnovabile: forza logout silenzioso
+      console.warn('Token scaduto e non rinnovabile — richiesto nuovo login');
+      doLogout();
+      return false;
+    }
+  }
+  return true;
+}
+
 async function supaGetSession(){
   var stored=localStorage.getItem('supa_session');
   if(!stored) return null;
-  try {
+  try{
     var s=JSON.parse(stored);
     if(s&&s.access_token&&s.user){
       accessToken=s.access_token;
+      refreshToken=s.refresh_token||null;
+      // Se il token è già scaduto prova subito a rinnovarlo
+      if(jwtScaduto(accessToken)){
+        var ok=await supaRefreshToken();
+        if(!ok) return null;
+      }
       return s.user;
     }
-  } catch(e){}
+  }catch(e){}
   return null;
 }
 
+// upsert corretto: on_conflict=id nella query string + Prefer header
+// Funziona con PostgREST >=9 e richiede che 'id' sia PK o UNIQUE nella tabella
 async function supaInsertOrUpdate(table, row){
-  var r=await fetch(SUPA_URL+'/rest/v1/'+table,{
+  var ok=await supaEnsureToken();
+  if(!ok) return false;
+  var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?on_conflict=id',{
     method:'POST',
-    headers:Object.assign(supaHeaders(true),{
-      'Prefer':'resolution=merge-duplicates,return=minimal',
-      'Content-Type':'application/json'
+    headers:Object.assign(supaHeaders(),{
+      'Prefer':'resolution=merge-duplicates,return=minimal'
     }),
     body:JSON.stringify(row)
   });
   if(!r.ok){
     var err=await r.text();
-    console.error('Supabase error '+r.status+':', err);
+    console.error('Supabase upsert error '+r.status+' ['+table+']:', err);
   }
   return r.ok;
 }
 
+// supaSelect con error handling esplicito: non sovrascrive mai il localStorage con array vuoto per errore
 async function supaSelect(table, filters){
-  var q=Object.entries(filters||{}).map(function(kv){return kv[0]+'=eq.'+encodeURIComponent(kv[1]);}).join('&');
-  var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?'+q+'&order=created_at.desc',{
-    headers:supaHeaders(true)
-  });
-  return r.ok?r.json():[];
+  var ok=await supaEnsureToken();
+  if(!ok) return null; // null = errore auth, [] = trovato ma vuoto
+  var q=Object.entries(filters||{}).map(function(kv){
+    return kv[0]+'=eq.'+encodeURIComponent(kv[1]);
+  }).join('&');
+  try{
+    var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?'+q+'&order=created_at.desc',{
+      headers:supaHeaders()
+    });
+    if(!r.ok){
+      console.error('Supabase select error '+r.status+' ['+table+']:', await r.text());
+      return null; // errore HTTP — non sovrascrivere la cache locale
+    }
+    return r.json();
+  }catch(e){
+    console.error('Supabase select network error ['+table+']:', e);
+    return null;
+  }
 }
 
 async function supaDelete(table, id){
+  var ok=await supaEnsureToken();
+  if(!ok) return;
   await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{
-    method:'DELETE', headers:supaHeaders(true)
+    method:'DELETE', headers:supaHeaders()
   });
 }
 
 function initSupabase(){
-  // Controlla sessione salvata
+  // Controlla sessione salvata — verifica scadenza e tenta refresh se necessario
   supaGetSession().then(function(user){
     if(user){ currentUser=user; onLogin(user); }
   });
