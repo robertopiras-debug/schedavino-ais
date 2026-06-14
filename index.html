@@ -1025,6 +1025,7 @@ function pk(el){
     sc[g]=rimasti.length?rimasti.map(function(c){return c.textContent.trim();}).join(' / '):'';
     if(!sc[g]) delete sc[g];
   } else {
+    _schedaToccata=true;
     if(isScala && selezionati.length===1){
       // Scala progressiva: consenti secondo chip solo se adiacente
       var idxSel=chips.indexOf(selezionati[0]);
@@ -1062,6 +1063,7 @@ function pk(el){
 }
 function pkm(el){var g=el.dataset.g;el.classList.toggle('sel');if(!mx[g])mx[g]=[];var v=el.textContent.trim(),i=mx[g].indexOf(v);if(i>-1)mx[g].splice(i,1);else mx[g].push(v);}
 function pkq(el){
+  _schedaToccata=true;
   var g=el.dataset.g;
   var wasSelected=el.classList.contains('sel');
   el.closest('.qr').querySelectorAll('.qo').forEach(function(e){e.classList.remove('sel')});
@@ -1349,6 +1351,7 @@ function apriInPunti(id, e){
 }
 
 function nuovaScheda(){
+  _schedaToccata=false;
   editingId=null;
   selBase='';selColore='';selMenzione='';selVitigni=[];sv=0;sc={};mx={};
   document.getElementById('wAutore').value='';
@@ -1691,6 +1694,7 @@ function aggiornaSezioniVisive(tipol){
 }
 
 function up(){
+  _schedaToccata=true;
   var p=document.getElementById('wP').value.trim(),n=document.getElementById('wN').value.trim();
   var y=document.getElementById('wY').value.trim(),v=document.getElementById('wV').value.trim();
   var d=document.getElementById('dS').value.trim();
@@ -1789,6 +1793,8 @@ function validaDatiId(){
   return mancanti;
 }
 
+var _schedaToccata=false; // diventa true al primo input utente
+
 function aggiornaBarre(){
   var sezioni=['vis','olf','gus','fin'];
   sezioni.forEach(function(s){
@@ -1796,14 +1802,14 @@ function aggiornaBarre(){
     var badge=document.getElementById('badge-'+s);
     if(!sl||!badge) return;
     var r=validaSezione(s);
-    // Controlla se la sezione è mai stata aperta (sb ha classe op)
     var sb=document.getElementById('sb-'+s);
     var aperta=sb&&sb.classList.contains('op');
     if(r.completa){
       sl.classList.add('stato-ok');
       sl.classList.remove('stato-warn');
       badge.textContent='✓';
-    } else if(aperta){
+    } else if(_schedaToccata || aperta){
+      // Arancione se l'utente ha già interagito con la scheda, o se la sezione è aperta
       sl.classList.add('stato-warn');
       sl.classList.remove('stato-ok');
       badge.textContent=r.mancanti.length+' mancanti';
@@ -2110,6 +2116,7 @@ function loadS(id){
 
   // Imposta sempre modalità aggiornamento quando si carica una scheda
   editingId=id;
+  _schedaToccata=true;
   document.getElementById('btnSav').textContent='Aggiorna scheda';
   up();
   // Aggiorna anteprima e coerenza dopo che tutti i valori sono stati ripristinati
