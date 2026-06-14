@@ -2119,13 +2119,13 @@ function loadS(id){
   _schedaToccata=true;
   document.getElementById('btnSav').textContent='Aggiorna scheda';
   up();
-  // Aggiorna anteprima e coerenza dopo che tutti i valori sono stati ripristinati
+  // Aggiorna anteprima, coerenza e barre DOPO che tutti i chip sono ripristinati (80-90ms)
   setTimeout(function(){
     aggiornaAnteprima();
     controllaCoerenzaQtot();
-  }, 150);
+    aggiornaBarre(); // sc è ora completo — barre colorate correttamente
+  }, 250);
   toast('Scheda caricata — premi Aggiorna per salvare le modifiche');
-  setTimeout(aggiornaBarre, 200);
 }
 
 
