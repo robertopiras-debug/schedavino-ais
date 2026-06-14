@@ -2796,16 +2796,20 @@ function rSavP(){
   if(!l.length){el.innerHTML='';return;}
   el.innerHTML='<div class="svt">Valutazione a punti collegata</div>'+
     l.map(function(s){
-      var deltaStr=s.delta?(s.delta>0?'+'+s.delta:s.delta):'—';
-      var deltaCol=!s.delta?'#aaa':s.delta>0?'var(--m)':'#e0a030';
+      // Normalizza record vecchi: punteggio/base/delta sempre interi
+      var pt=Math.round(s.punteggio||0);
+      var ba=s.baseAnalitica?Math.round(s.baseAnalitica):null;
+      var dl=ba!==null?pt-ba:null;
+      var deltaStr=dl!==null?(dl>0?'+'+dl:String(dl)):'—';
+      var deltaCol=dl===null?'#aaa':dl>0?'var(--m)':'#e0a030';
       return'<div class="svc" onclick="loadP('+s.id+')">'
         +'<div style="flex:1">'
         +'<div class="scn">'+(s.produttore||'')+(s.nome?' — '+s.nome:'')+'</div>'
         +'<div class="scs">'+(s.annata||'')+(s.tipologia?' · '+s.tipologia:'')+'</div>'
         +'<div class="scs">'
-        +'<strong style="color:var(--m);font-size:14px">'+s.punteggio+'</strong>'
+        +'<strong style="color:var(--m);font-size:14px">'+pt+'</strong>'
         +' '+s.fascia
-        +(s.baseAnalitica?' · base: '+s.baseAnalitica+' <span style="color:'+deltaCol+';font-weight:700">('+deltaStr+')</span>':'')
+        +(ba!==null?' · base: '+ba+' <span style="color:'+deltaCol+';font-weight:700">('+deltaStr+')</span>':'')
         +' · '+s.dt
         +'</div>'
         +'</div>'
