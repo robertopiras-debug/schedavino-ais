@@ -1,0 +1,2206 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Scheda AIS — Degustazione</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--d:#3d3d3d;--m:#c0006a;--s:#5a6b5a;--hb:#d4d4cc;--gl:#c8d4b8;--b:#b0b0a0;--t:#222;--r:#f5f5f0;--r2:#eaeae4}
+body{font-family:Arial,sans-serif;background:#f0f0e8;color:var(--t);padding-bottom:2rem}
+.page{max-width:500px;margin:0 auto}
+.ais-hd{background:#fff;padding:10px 14px 8px;border-bottom:3px solid var(--m);display:flex;align-items:center;justify-content:space-between}
+.ais-hd-t{font-size:12px;font-weight:700;color:var(--d);line-height:1.3;text-transform:uppercase;letter-spacing:.03em;border-left:4px solid var(--m);padding-left:8px}
+.ais-hd-l{font-size:8px;color:var(--d);text-align:right;font-weight:700;line-height:1.4}
+.bar{background:var(--d);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:5px 10px}
+.wf{background:#fff;padding:9px 10px;border-bottom:2px solid var(--m)}
+.row{display:flex;gap:6px;margin-bottom:6px}
+.row:last-child{margin-bottom:0}
+.lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--d);margin-bottom:3px}
+.f{display:flex;flex-direction:column;flex:1}
+input,select,textarea{border:1px solid var(--b);border-radius:3px;padding:6px 7px;font-size:12px;background:#fafaf6;color:var(--t);width:100%}
+input::placeholder,textarea::placeholder{color:#aaa}
+.abw{display:flex;align-items:center;gap:5px}
+.abw input{width:60px;flex:none}
+.abu{font-size:11px;color:var(--d);font-weight:700}
+.dw{position:relative}
+.dc{position:absolute;right:6px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:14px;background:none;border:none;padding:0}
+.dd{display:none;position:absolute;z-index:100;background:#fff;border:1px solid var(--b);border-top:none;border-radius:0 0 3px 3px;width:100%;max-height:160px;overflow-y:auto;box-shadow:0 3px 8px rgba(0,0,0,.1)}
+.di{padding:6px 9px;font-size:11px;cursor:pointer;border-bottom:.5px solid #eee;display:flex;align-items:center;gap:5px}
+.di:hover{background:#f5f0f8}
+.dbg{font-size:8px;font-weight:700;padding:2px 4px;border-radius:2px;flex-shrink:0}
+.bdocg{background:var(--m);color:#fff}.bdoc{background:var(--d);color:#fff}.bigt{background:var(--s);color:#fff}
+.prev{background:var(--r);border:1px solid var(--b);border-radius:3px;padding:6px 9px;font-size:11px;color:var(--d);margin-top:7px;min-height:28px;line-height:1.5}
+.prev .ph{color:#aaa;font-style:italic}
+.tipol-wrap{margin-top:3px}
+.tipol-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.tipol-row:last-child{margin-bottom:0}
+.tipol-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#999;margin-bottom:2px}
+.tc-chip{padding:5px 10px;font-size:11px;font-weight:700;border:1px solid var(--b);border-radius:3px;background:var(--r);color:var(--t);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s}
+.tc-ph{font-size:11px;color:#aaa;font-style:italic;padding:5px 0}
+.tipol-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;min-height:28px}
+.sw{margin-bottom:2px}
+.sl{background:var(--d);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:6px 10px;display:flex;align-items:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.sl .ar{font-size:9px;margin-left:auto;transition:transform .2s}
+.sl .ar.op{transform:rotate(90deg)}
+.sb{display:none;background:#fff}
+.sb.op{display:block}
+.ph2{background:var(--hb);padding:4px 9px;font-size:11px;font-weight:700;color:var(--d);border-bottom:1px solid var(--b);text-align:center}
+.ph2.mg{background:var(--m);color:#fff}
+.ph2.gn{background:var(--s);color:#fff;font-size:10px}
+.og{display:grid;padding:3px 7px 7px;gap:3px}
+.og.c2{grid-template-columns:1fr 1fr}
+.og.c3{grid-template-columns:1fr 1fr 1fr}
+.og.c4{grid-template-columns:1fr 1fr 1fr 1fr}
+.og.c5{grid-template-columns:1fr 1fr 1fr 1fr 1fr}
+.o{background:var(--r);border:1px solid var(--b);border-radius:3px;padding:6px 3px;font-size:10px;text-align:center;cursor:pointer;color:var(--t);line-height:1.3;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.o:nth-child(even){background:var(--r2)}
+.o.sel{background:var(--m);color:#fff;border-color:#8a0050;font-weight:700}
+.o.borderline{background:#d4507a;color:#fff;border-color:#a0004a;font-weight:700;border-style:dashed}
+.tw{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--b)}
+.tc2+.tc2{border-left:1px solid var(--b)}
+.dv{height:2px;background:var(--m)}
+.dt{height:1px;background:var(--b)}
+.qr{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding:3px 7px 7px}
+.qo{background:var(--gl);border:1px solid #8a9a7a;border-radius:3px;padding:6px 3px;font-size:10px;text-align:center;cursor:pointer;color:var(--d);font-weight:600;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.qo.sel{background:var(--m);color:#fff;border-color:#8a0050}
+.nw{padding:5px 7px}
+.nw textarea{min-height:50px;resize:vertical;font-size:11px}
+.str{display:flex;gap:7px;padding:5px 7px 7px;justify-content:center}
+.st{font-size:26px;cursor:pointer;color:#ccc;transition:color .12s}
+.st.lit{color:var(--m)}
+.acts{display:flex;gap:7px;padding:10px 7px 0}
+.btn{flex:1;padding:10px;font-size:12px;font-weight:700;border:none;border-radius:3px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+.bs{background:var(--d);color:#fff}
+.ba{background:var(--m);color:#fff}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(0,0,0,.15);border-top-color:var(--m);border-radius:50%;animation:sp .7s linear infinite;margin-right:6px;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+.svsec{padding:4px 7px 0}
+.svt{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--d);margin-bottom:5px;border-left:3px solid var(--m);padding-left:5px}
+.svc{background:#fff;border:1px solid var(--b);border-radius:3px;padding:7px 9px;margin-bottom:4px;display:flex;align-items:center}
+.scn{font-size:12px;font-weight:700;color:var(--d)}
+.scs{font-size:10px;color:#666;margin-top:2px}
+.scd{font-size:18px;color:#aaa;padding:2px 7px;cursor:pointer;margin-left:auto}
+.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--d);color:#fff;padding:8px 18px;border-radius:3px;font-size:12px;font-weight:700;display:none;z-index:999}
+.autore-bar{background:#fff;padding:6px 10px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:8px}
+.autore-bar label{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--d);white-space:nowrap}
+.autore-bar input{flex:1;font-size:12px}
+.tc-chip.on-base{background:var(--d);color:#fff;border-color:var(--d)}
+.tc-chip.on-colore{background:#378ADD;color:#fff;border-color:#185FA5}
+.tc-chip.on-menzione{background:var(--s);color:#fff;border-color:#3a4a3a}
+.vis-note{font-size:10px;color:#aaa;font-style:italic;text-align:center;padding:8px 0}
+.extra-ais{background:#fff8e8;border:2px solid #e8a020;border-radius:4px;margin:8px 7px 0;overflow:hidden}
+.extra-ais-hd{background:#e8a020;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:5px 10px;display:flex;align-items:center;gap:6px}
+.extra-ais-body{padding:6px 8px 8px}
+.extra-ais .qr{padding:4px 0 0}
+.extra-ais .qo{background:#fff3d0;border-color:#c8800a;color:#7a4a00}
+.extra-ais .qo.sel{background:#e8a020;color:#fff;border-color:#c87000}
+.blocked{opacity:.32;pointer-events:none;user-select:none}
+.blocked .ph2.gn{background:#aaa}
+.block-note{font-size:10px;color:#999;font-style:italic;text-align:center;padding:4px 8px 6px;background:#f5f5f0}
+
+
+/* ═══ CSS SCHEDA PUNTI ═══ */
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--d:#3d3d3d;--m:#c0006a;--s:#5a6b5a;--b:#b0b0a0;--t:#222;--r:#f5f5f0}
+body{font-family:Arial,sans-serif;background:#f0f0e8;color:var(--t);padding-bottom:60px}
+.page{max-width:500px;margin:0 auto}
+
+.ais-hd{background:#fff;padding:10px 14px 8px;border-bottom:3px solid var(--m);display:flex;align-items:center;justify-content:space-between}
+.ais-hd-t{font-size:12px;font-weight:700;color:var(--d);line-height:1.3;text-transform:uppercase;letter-spacing:.03em;border-left:4px solid var(--m);padding-left:8px}
+.ais-hd-r{font-size:8px;color:var(--d);text-align:right;font-weight:700;line-height:1.4}
+
+/* Selezione scheda */
+select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-radius:3px;margin-bottom:8px;background:#fafaf6}
+.btn-row{display:flex;gap:7px}
+.btn{padding:9px 14px;font-size:11px;font-weight:700;border:none;border-radius:3px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;flex:1}
+.btn-m{background:var(--m);color:#fff}
+.btn-d{background:var(--d);color:#fff}
+.btn-w{background:#fff;border:1px solid var(--b);color:var(--d)}
+
+/* Testata */
+.testata{background:#fff;padding:9px 12px;border-bottom:2px solid var(--m);display:none}
+.t-row{display:flex;gap:8px;margin-bottom:4px;font-size:11px}
+.t-row:last-child{margin-bottom:0}
+.tf{flex:1}
+.tl{font-size:9px;font-weight:700;text-transform:uppercase;color:#999;letter-spacing:.05em;margin-bottom:1px}
+.tv{font-size:12px;font-weight:700;color:var(--d)}
+
+/* Totale hero */
+.hero{background:#fff;margin:8px 7px;border-radius:6px;border:2px solid var(--m);padding:14px 12px;text-align:center;display:none}
+.hero-label{font-size:10px;font-weight:700;text-transform:uppercase;color:#999;letter-spacing:.06em}
+.hero-num{font-size:72px;font-weight:900;color:var(--m);line-height:1;margin:4px 0}
+.hero-fascia{font-size:15px;font-weight:700;color:var(--d);margin-bottom:8px}
+.hero-breakdown{font-size:10px;color:#888;line-height:1.8}
+
+/* Feedback coerenza */
+.feedback{margin:3px 7px;padding:6px 10px;border-radius:4px;font-size:10px;line-height:1.4;display:none}
+.fb-ok{background:#eef5e8;border:1px solid #8aaa6a;color:#2a4a1a}
+.fb-su{background:#e8f0ff;border:1px solid #7090d0;color:#1a3060}
+.fb-giu{background:#fff3e0;border:1px solid #e0a030;color:#5a3000}
+
+/* Sezioni parametri */
+.sez{background:#fff;margin:2px 7px;border-radius:3px;overflow:hidden;display:none}
+.sez-hd{background:var(--d);color:#fff;padding:4px 10px;display:flex;justify-content:space-between;align-items:center}
+.sez-hd-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.sez-sub{font-size:18px;font-weight:900}
+
+.param{padding:10px 12px;border-bottom:1px solid #f0f0e8}
+.param:last-child{border-bottom:none}
+.p-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.p-name{font-size:12px;font-weight:700;color:var(--d)}
+.p-peso{font-size:8px;color:#bbb;margin-left:3px}
+.p-voto{font-size:22px;font-weight:900;color:var(--m)}
+.p-contributo{font-size:11px;color:var(--s);text-align:right;line-height:1;font-weight:700}
+
+/* Slider 4 step */
+.voto-wrap{display:flex;gap:2px;margin:2px 0 3px}
+.voto-chip{flex:1;text-align:center;padding:4px 1px 3px;border:1px solid var(--b);border-radius:3px;cursor:pointer;background:var(--r);transition:all .12s;-webkit-tap-highlight-color:transparent}
+.voto-chip .vc-num{font-size:12px;font-weight:900;color:var(--d);line-height:1}
+.voto-chip .vc-lbl{font-size:7px;color:#aaa;margin-top:1px;line-height:1}
+.voto-chip.sel{background:var(--m);border-color:#8a0050}
+.voto-chip.sel .vc-num{color:#fff}
+.voto-chip.sel .vc-lbl{color:rgba(255,255,255,.8)}
+/* Hero sticky */
+.hero{position:sticky;top:0;z-index:100;background:#fff;border:2px solid var(--m);border-radius:0;margin:0;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+/* Param compatto */
+.param{padding:3px 10px;border-bottom:1px solid #f0f0e8}
+.param:last-child{border-bottom:none}
+.p-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.p-name{font-size:10px;font-weight:700;color:var(--d)}
+.p-peso{font-size:8px;color:#bbb;margin-left:3px}
+.p-voto{display:none}
+.p-contributo{font-size:11px;color:var(--s);text-align:right;line-height:1;font-weight:700}
+/* Hero compatto */
+.hero-num{font-size:42px;font-weight:900;color:var(--m);line-height:1;margin:1px 0}
+.hero-fascia{font-size:11px;font-weight:700;color:var(--d);margin-bottom:2px}
+.hero-breakdown{font-size:9px;color:#888;line-height:1.4}
+
+/* Hint analitica */
+.hint{font-size:8px;color:#aaa;font-style:italic;margin-top:0;line-height:1.2}
+.hint strong{color:var(--s)}
+
+/* Note */
+.note-wrap{margin:3px 7px;display:none}
+.note-wrap textarea{width:100%;min-height:60px;resize:vertical;font-size:11px;border:1px solid var(--b);border-radius:3px;padding:7px;background:#fff}
+
+/* Azioni */
+.acts-p{display:none;gap:5px;padding:5px 7px 0;margin:0}
+
+/* Salvate */
+.svsec{padding:4px 7px 0}
+.svt{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--d);margin-bottom:5px;border-left:3px solid var(--m);padding-left:5px}
+.svc{background:#fff;border:1px solid var(--b);border-radius:3px;padding:7px 9px;margin-bottom:4px;display:flex;align-items:center;cursor:pointer}
+.scn{font-size:12px;font-weight:700;color:var(--d)}
+.scs{font-size:10px;color:#666;margin-top:2px}
+
+
+/* ═══ NAVIGAZIONE ═══ */
+.vista{display:none}
+.vista.attiva{display:block}
+.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;display:flex;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.15)}
+.nav-btn{flex:1;padding:13px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nav-btn.an{background:var(--d);color:#fff}
+.nav-btn.pt{background:var(--m);color:#fff}
+.nav-btn:not(.attivo){opacity:.5}
+body{padding-bottom:54px}
+</style>
+</head>
+<body>
+
+<div class="vista attiva" id="vista-analitica">
+<div class="page">
+<div class="ais-hd">
+  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v11</span></div>
+  <div class="ais-hd-l">Associazione<br>Italiana<br>Sommelier</div>
+</div>
+<div class="autore-bar">
+  <label>Sommelier</label>
+  <input id="wAutore" type="text" placeholder="Il tuo nome...">
+</div>
+<div class="bar">Dati identificativi</div>
+<div class="wf">
+  <div class="row"><div class="f"><div class="lbl">Produttore / Azienda</div><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." oninput="up()"></div></div>
+  <div class="row"><div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." oninput="up()"></div></div>
+  <div class="row">
+    <div class="f" style="max-width:145px;flex:none"><div class="lbl">Regione</div>
+      <select id="wR" onchange="onReg()">
+        <option value="">scegli...</option>
+        <option value="__tavola__">Vino da tavola (non DOP/IGP)</option>
+        <option disabled>──────────────</option>
+        <option>Abruzzo</option><option>Basilicata</option><option>Calabria</option><option>Campania</option>
+        <option>Emilia Romagna</option><option>Friuli Venezia Giulia</option><option>Lazio</option>
+        <option>Liguria</option><option>Lombardia</option><option>Marche</option><option>Molise</option>
+        <option>Piemonte</option><option>Puglia</option><option selected>Sardegna</option>
+        <option>Sicilia</option><option>Toscana</option><option>Trentino Alto Adige</option>
+        <option>Umbria</option><option>Valle d'Aosta</option><option>Veneto</option>
+      </select>
+    </div>
+    <div class="f"><div class="lbl">Denominazione (DOC/DOCG/IGT)</div>
+      <div class="dw">
+        <input id="dS" type="text" placeholder="Cerca..." oninput="fDen()" onfocus="sDen()" autocomplete="off" style="padding-right:22px">
+        <button class="dc" onclick="clDen()">&#215;</button>
+        <div class="dd" id="dD"></div>
+      </div>
+    </div>
+  </div>
+  <div class="row"><div class="f">
+    <div class="lbl">Base ampelografica</div>
+    <div id="vitigni-wrap" style="margin-top:3px">
+      <div id="vitigni-chips" class="tipol-chips"><span class="tc-ph">seleziona prima la denominazione</span></div>
+      <input id="vitigni-custom" type="text" placeholder="Indica i vitigni..." style="display:none;margin-top:4px;font-size:11px">
+      <div id="vitigni-libero-wrap" style="display:none;margin-top:3px">
+        <span style="font-size:10px;color:var(--s);cursor:pointer;font-weight:700;text-decoration:underline" onclick="toggleVitigniLibero()">+ Aggiungi vitigno non in lista</span>
+        <input id="vitigni-extra" type="text" placeholder="es. Cagnulari, Torbato..." style="display:none;margin-top:4px;font-size:11px">
+      </div>
+    </div>
+  </div></div>
+
+  <div class="row"><div class="f">
+    <div class="lbl">Tipologia</div>
+    <div style="margin-top:3px">
+
+      <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Modalità</div>
+      <div class="tipol-chips" id="tipolBase">
+        <div class="tc-chip">Fermo</div>
+        <div class="tc-chip">Frizzante</div>
+        <div class="tc-chip">Spumante</div>
+      </div>
+
+      <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:7px;margin-bottom:3px">Colore</div>
+      <div class="tipol-chips" id="tipolColore">
+        <div class="tc-chip">Bianco</div>
+        <div class="tc-chip">Rosato</div>
+        <div class="tc-chip">Rosso</div>
+      </div>
+
+      <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:7px;margin-bottom:3px">Menzione da disciplinare</div>
+      <div class="tipol-chips" id="tipolMenzione"><span class="tc-ph">seleziona prima la denominazione</span></div>
+      <div style="margin-top:5px">
+        <span id="btnAddNota" style="font-size:10px;color:var(--s);cursor:pointer;font-weight:700;text-decoration:underline" onclick="toggleNotaTipol()">+ Aggiungi nota libera</span>
+        <div id="notaTipolWrap" style="display:none;margin-top:4px">
+          <input id="notaTipol" type="text" placeholder="es. vendemmia tardiva, affinato in legno, metodo classico 24 mesi, fortificato..." style="font-size:11px">
+        </div>
+      </div>
+
+    </div>
+  </div></div>
+  <div class="row">
+    <div class="f" style="max-width:88px;flex:none"><div class="lbl">Annata</div><input id="wY" type="number" placeholder="2021" min="1900" max="2026" oninput="up()"></div>
+    <div class="f" style="max-width:130px;flex:none"><div class="lbl">Gradazione</div>
+      <div class="abw"><input id="wV" type="number" placeholder="13.5" min="5" max="25" step="0.5" oninput="up()"><span class="abu">% vol</span></div>
+    </div>
+  </div>
+  <div class="prev" id="prev"><span class="ph">L'etichetta apparirà qui...</span></div>
+</div>
+
+<!-- SEZIONE SPUMANTE — appare solo con Spumante/Frizzante -->
+<div id="blk-spumante" style="display:none;margin-bottom:2px">
+  <div style="background:var(--m);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:6px 10px">Caratteristiche spumante</div>
+  <div style="background:#fff;border-bottom:1px solid var(--b)">
+
+    <!-- Metodo — solo per Spumante -->
+    <div id="blk-metodo" style="display:none">
+      <div class="ph2">Metodo di produzione</div>
+      <div class="og c3">
+        <div class="o" data-g="metodo">Metodo Classico</div>
+        <div class="o" data-g="metodo">Charmat</div>
+        <div class="o" data-g="metodo">Ancestrale</div>
+      </div>
+      <div class="dt"></div>
+    </div>
+
+    <!-- Dosaggio -->
+    <div class="ph2">Dosaggio</div>
+    <div class="og c4" id="dosaggio-wrap">
+      <div class="o" data-g="dosaggio">Pas Dosé / Zero</div>
+      <div class="o" data-g="dosaggio">Extra Brut</div>
+      <div class="o" data-g="dosaggio">Brut</div>
+      <div class="o" data-g="dosaggio">Extra Dry</div>
+      <div class="o" data-g="dosaggio">Dry / Sec</div>
+      <div class="o" data-g="dosaggio">Demi-Sec</div>
+      <div class="o" data-g="dosaggio">Dolce</div>
+    </div>
+
+    <!-- Anni sui lieviti — solo Metodo Classico -->
+    <div id="blk-lieviti" style="display:none">
+      <div class="dt"></div>
+      <div class="ph2">Permanenza sui lieviti</div>
+      <div class="og c4">
+        <div class="o" data-g="lieviti">&lt; 18 mesi</div>
+        <div class="o" data-g="lieviti">18 – 36 mesi</div>
+        <div class="o" data-g="lieviti">36 – 60 mesi</div>
+        <div class="o" data-g="lieviti">&gt; 60 mesi</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="sw">
+  <div class="sl" onclick="tog('vis')">Esame Visivo <span class="ar" id="ar-vis">&#9654;</span></div>
+  <div class="sb" id="sb-vis">
+    <div class="ph2">Limpidezza</div>
+    <div class="og c5">
+      <div class="o" data-g="limpidezza">Velato</div><div class="o" data-g="limpidezza">Abbastanza limpido</div><div class="o" data-g="limpidezza">Limpido</div><div class="o" data-g="limpidezza">Cristallino</div><div class="o" data-g="limpidezza">Brillante</div>
+    </div>
+    <div class="dt"></div>
+
+    <!-- COLORI BIANCHI -->
+    <div id="grp-bianco" style="display:none">
+      <div class="ph2">Colore — Bianchi</div>
+      <div class="og c5">
+        <div class="o" data-g="colore">Verdolino</div>
+        <div class="o" data-g="colore">Paglierino</div>
+        <div class="o" data-g="colore">Dorato</div>
+        <div class="o" data-g="colore">Ambrato</div>
+        <div class="o" data-g="colore">Mogano</div>
+      </div>
+    </div>
+
+    <!-- COLORI ROSATI -->
+    <div id="grp-rosato" style="display:none">
+      <div class="ph2">Colore — Rosati</div>
+      <div class="og c5">
+        <div class="o" data-g="colore">Fiore di pesco</div>
+        <div class="o" data-g="colore">Ramato</div>
+        <div class="o" data-g="colore">Salmone</div>
+        <div class="o" data-g="colore">Corallo</div>
+        <div class="o" data-g="colore">Peonia</div>
+      </div>
+    </div>
+
+    <!-- COLORI ROSSI -->
+    <div id="grp-rosso" style="display:none">
+      <div class="ph2">Colore — Rossi</div>
+      <div class="og c5">
+        <div class="o" data-g="colore">Amaranto</div>
+        <div class="o" data-g="colore">Rubino</div>
+        <div class="o" data-g="colore">Carminio</div>
+        <div class="o" data-g="colore">Granato</div>
+        <div class="o" data-g="colore">Aranciato</div>
+      </div>
+    </div>
+
+    <div id="grp-colore-vuoto" class="vis-note" style="padding:8px 0">Seleziona il colore nella testata (Bianco / Rosato / Rosso)</div>
+
+    <div class="dt"></div>
+    <div class="ph2">Intensità del colore</div>
+    <div class="og c4">
+      <div class="o" data-g="int_colore">Tenue</div>
+      <div class="o" data-g="int_colore">Abbastanza intensa</div>
+      <div class="o" data-g="int_colore">Intensa</div>
+      <div class="o" data-g="int_colore">Molto intensa</div>
+    </div>
+
+    <div class="dt"></div>
+    <div class="ph2">Sfumature</div>
+    <!-- SFUMATURE BIANCHI -->
+    <div id="sf-bianco" style="display:none">
+      <div class="og c4">
+        <div class="o" data-g="sfumatura">Verdolini</div>
+        <div class="o" data-g="sfumatura">Dorati</div>
+        <div class="o" data-g="sfumatura">Ambrati</div>
+        <div class="o" data-g="sfumatura">Ramati</div>
+      </div>
+    </div>
+    <!-- SFUMATURE ROSATI -->
+    <div id="sf-rosato" style="display:none">
+      <div class="og c4">
+        <div class="o" data-g="sfumatura">Aranciati</div>
+        <div class="o" data-g="sfumatura">Ramati</div>
+        <div class="o" data-g="sfumatura">Cerasuolo</div>
+        <div class="o" data-g="sfumatura">Chiaretti</div>
+      </div>
+    </div>
+    <!-- SFUMATURE ROSSI -->
+    <div id="sf-rosso" style="display:none">
+      <div class="og c4">
+        <div class="o" data-g="sfumatura">Violacei</div>
+        <div class="o" data-g="sfumatura">Granati</div>
+        <div class="o" data-g="sfumatura">Aranciati</div>
+        <div class="o" data-g="sfumatura">Mattone</div>
+      </div>
+    </div>
+    <div id="sf-vuoto" class="vis-note">Seleziona il colore nella testata</div>
+
+    <div class="dt"></div>
+    <div class="ph2">Descrittori / riconoscimenti visivi</div>
+    <!-- DESCRITTORI BIANCHI -->
+    <div id="dv-bianco" style="display:none">
+      <div class="og c2">
+        <div class="o" data-g="desc_vis">Brillante e luminoso</div>
+        <div class="o" data-g="desc_vis">Velato</div>
+        <div class="o" data-g="desc_vis">Con riflessi verdolini</div>
+        <div class="o" data-g="desc_vis">Con riflessi dorati</div>
+        <div class="o" data-g="desc_vis">Con riflessi ambrati</div>
+        <div class="o" data-g="desc_vis">Con sfumature ramé</div>
+        <div class="o" data-g="desc_vis">Limpido e cristallino</div>
+        <div class="o" data-g="desc_vis">Opaco</div>
+      </div>
+    </div>
+    <!-- DESCRITTORI ROSATI -->
+    <div id="dv-rosato" style="display:none">
+      <div class="og c2">
+        <div class="o" data-g="desc_vis">Tenue e brillante</div>
+        <div class="o" data-g="desc_vis">Vivace</div>
+        <div class="o" data-g="desc_vis">Buccia di cipolla</div>
+        <div class="o" data-g="desc_vis">Con riflessi aranciati</div>
+        <div class="o" data-g="desc_vis">Con riflessi violacei</div>
+        <div class="o" data-g="desc_vis">Cerasuolo</div>
+        <div class="o" data-g="desc_vis">Chiaretto</div>
+        <div class="o" data-g="desc_vis">Brillante e cristallino</div>
+      </div>
+    </div>
+    <!-- DESCRITTORI ROSSI -->
+    <div id="dv-rosso" style="display:none">
+      <div class="og c2">
+        <div class="o" data-g="desc_vis">Con riflessi violacei</div>
+        <div class="o" data-g="desc_vis">Con riflessi granati</div>
+        <div class="o" data-g="desc_vis">Con riflessi aranciati</div>
+        <div class="o" data-g="desc_vis">Rubino brillante</div>
+        <div class="o" data-g="desc_vis">Denso e impenetrabile</div>
+        <div class="o" data-g="desc_vis">Con unghia aranciata</div>
+        <div class="o" data-g="desc_vis">Granato profondo</div>
+        <div class="o" data-g="desc_vis">Con bordo mattone</div>
+      </div>
+    </div>
+    <div id="dv-vuoto" class="vis-note">Seleziona il colore nella testata</div>
+
+    <div class="dt"></div>
+    <div class="ph2">Note visive libere</div>
+    <div class="nw"><textarea id="nota-vis" placeholder="Osservazioni visive aggiuntive..."></textarea></div>
+
+    <!-- Qualità visiva extra-AIS -->
+    <div class="extra-ais" style="margin:6px 7px 8px">
+      <div style="background:#e8a020;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:5px 10px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:13px">⚠</span>
+        <span>Qualità visiva complessiva</span>
+        <span style="font-size:9px;font-weight:400;opacity:.85;margin-left:auto">extra-AIS</span>
+      </div>
+      <div style="padding:5px 8px 8px">
+        <div style="font-size:10px;color:#8a5000;margin-bottom:5px">Non fa parte della scheda AIS ufficiale — usato dalla scheda a punti per suggerire il voto Aspetto.</div>
+        <div class="qr" style="padding:0">
+          <div class="qo" data-g="qvis">Accettabile</div>
+          <div class="qo" data-g="qvis">Buono</div>
+          <div class="qo" data-g="qvis">Distinto</div>
+          <div class="qo" data-g="qvis">Ottimo</div>
+          <div class="qo" data-g="qvis">Eccellente</div>
+        </div>
+      </div>
+    </div>
+    <div class="dt"></div>
+    <div class="tw">
+      <div class="tc2" id="blk-consistenza"><div class="ph2 gn">Consistenza<br><span style="font-weight:400">(vini fermi)</span></div><div id="note-consistenza"></div><div class="og"><div class="o" data-g="consistenza">Scorrevole</div><div class="o" data-g="consistenza">Consistente</div><div class="o" data-g="consistenza">Viscoso</div></div></div>
+      <div class="tc2" id="blk-effervescenza"><div class="ph2 gn">Effervescenza<br><span style="font-weight:400">(spumanti/frizzanti)</span></div><div id="note-effervescenza"></div>
+        <div class="og c2" style="padding-bottom:2px"><div class="o" data-g="ncat">Scarse</div><div class="o" data-g="vasc">Rapida</div><div class="o" data-g="ncat">Med. numerose</div><div class="o" data-g="vasc">Media</div><div class="o" data-g="ncat">Numerose</div><div class="o" data-g="vasc">Lenta</div></div>
+        <div class="og c2" style="padding-top:0"><div class="o" data-g="grb">Grossolane</div><div class="o" data-g="pb">Evanescenti</div><div class="o" data-g="grb">Med. fini</div><div class="o" data-g="pb">Med. persistenti</div><div class="o" data-g="grb">Fini</div><div class="o" data-g="pb">Persistenti</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sw">
+  <div class="sl" onclick="tog('olf')">Esame Olfattivo <span class="ar" id="ar-olf">&#9654;</span></div>
+  <div class="sb" id="sb-olf">
+    <div class="tw">
+      <div class="tc2"><div class="ph2">Intensità</div><div class="og"><div class="o" data-g="iolf">Moderatamente intenso</div><div class="o" data-g="iolf">Intenso</div><div class="o" data-g="iolf">Molto intenso</div></div></div>
+      <div class="tc2"><div class="ph2">Complessità</div><div class="og"><div class="o" data-g="colf">Moderatamente complesso</div><div class="o" data-g="colf">Complesso</div><div class="o" data-g="colf">Ampio</div></div></div>
+    </div>
+    <div class="dt"></div>
+    <div class="ph2">Descrittori (selezione multipla)</div>
+    <div class="og c3">
+      <div class="o" data-g="dolf">Aromatico</div><div class="o" data-g="dolf">Floreale</div><div class="o" data-g="dolf">Speziato</div>
+      <div class="o" data-g="dolf">Varietale</div><div class="o" data-g="dolf">Vegetale</div><div class="o" data-g="dolf">Pasticceria/Panificazione</div>
+      <div class="o" data-g="dolf">Fruttato</div><div class="o" data-g="dolf">Fragrante</div><div class="o" data-g="dolf">Empireumatico</div>
+      <div class="o" data-g="dolf">Minerale</div><div class="o" data-g="dolf">Balsamico</div><div class="o" data-g="dolf">Etereo</div>
+    </div>
+    <div class="dv"></div>
+    <div class="ph2 mg">Qualità olfattiva</div>
+    <div class="qr"><div class="qo" data-g="qolf">Accettabile</div><div class="qo" data-g="qolf">Buono</div><div class="qo" data-g="qolf">Distinto</div><div class="qo" data-g="qolf">Ottimo</div><div class="qo" data-g="qolf">Eccellente</div></div>
+    <div class="nw"><textarea id="nolf" placeholder="Note libere olfattive..."></textarea></div>
+  </div>
+</div>
+
+<div class="sw">
+  <div class="sl" onclick="tog('gus')">Esame Gusto-Olfattivo <span class="ar" id="ar-gus">&#9654;</span></div>
+  <div class="sb" id="sb-gus">
+    <div class="tw">
+      <div class="tc2"><div class="ph2">Dolcezza</div><div class="og"><div class="o" data-g="dolc">Secco</div><div class="o" data-g="dolc">Poco dolce</div><div class="o" data-g="dolc">Moderatamente dolce</div><div class="o" data-g="dolc">Dolce</div><div class="o" data-g="dolc">Molto dolce</div></div></div>
+      <div class="tc2"><div class="ph2">Acidità</div><div class="og"><div class="o" data-g="acid">Poco fresco</div><div class="o" data-g="acid">Moderatamente fresco</div><div class="o" data-g="acid">Fresco</div><div class="o" data-g="acid">Vibrante</div><div class="o" data-g="acid">Acidulo</div></div></div>
+    </div>
+    <div class="dt"></div>
+    <div class="tw">
+      <div class="tc2"><div class="ph2">Alcolicità</div><div class="og"><div class="o" data-g="alco">Poco caldo</div><div class="o" data-g="alco">Moderatamente caldo</div><div class="o" data-g="alco">Caldo</div><div class="o" data-g="alco">Molto caldo</div><div class="o" data-g="alco">Alcolico</div></div></div>
+      <div class="tc2" id="blk-tann"><div class="ph2">Tannicità</div><div id="note-tann"></div><div class="og"><div class="o" data-g="tann">Poco tannico</div><div class="o" data-g="tann">Moderatamente tannico</div><div class="o" data-g="tann">Tannico</div><div class="o" data-g="tann">Tenace</div><div class="o" data-g="tann">Astringente</div></div></div>
+    </div>
+    <div class="dt"></div>
+    <div class="tw">
+      <div class="tc2"><div class="ph2">Rotondità</div><div class="og"><div class="o" data-g="roto">Poco morbido</div><div class="o" data-g="roto">Moderatamente morbido</div><div class="o" data-g="roto">Morbido</div><div class="o" data-g="roto">Vellutato</div><div class="o" data-g="roto">Pastoso</div></div></div>
+      <div class="tc2"><div class="ph2">Sapidità</div><div class="og"><div class="o" data-g="sapi">Poco sapido</div><div class="o" data-g="sapi">Moderatamente sapido</div><div class="o" data-g="sapi">Sapido</div><div class="o" data-g="sapi">Saporito</div><div class="o" data-g="sapi">Salato</div></div></div>
+    </div>
+    <div class="dt"></div>
+    <div id="blk-effg"><div class="ph2 gn">Effervescenza — solo spumanti / frizzanti</div><div id="note-effg"></div>
+    <div class="og c5"><div class="o" data-g="effg">Delicata</div><div class="o" data-g="effg">Moderata</div><div class="o" data-g="effg">Vivace</div><div class="o" data-g="effg">Esuberante</div><div class="o" data-g="effg">Incisiva</div></div></div>
+    <div class="dt"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr">
+      <div><div class="ph2" style="font-size:10px">Intensità</div><div class="og"><div class="o" data-g="igus">Mod. intenso</div><div class="o" data-g="igus">Intenso</div><div class="o" data-g="igus">Molto intenso</div></div></div>
+      <div style="border-left:1px solid var(--b)"><div class="ph2" style="font-size:10px">Struttura</div><div class="og"><div class="o" data-g="stru">Medio corpo</div><div class="o" data-g="stru">Corpo pieno</div><div class="o" data-g="stru">Robusto</div></div></div>
+      <div style="border-left:1px solid var(--b)"><div class="ph2" style="font-size:10px">Equilibrio</div><div class="og"><div class="o" data-g="equi">Poco equil.</div><div class="o" data-g="equi">Med. equil.</div><div class="o" data-g="equi">Equilibrato</div></div></div>
+      <div style="border-left:1px solid var(--b)"><div class="ph2" style="font-size:10px">Persistenza</div><div class="og"><div class="o" data-g="pers">Mod. pers.</div><div class="o" data-g="pers">Persistente</div><div class="o" data-g="pers">Molto pers.</div></div></div>
+    </div>
+    <div class="dv"></div>
+    <div class="ph2 mg">Qualità gusto-olfattiva</div>
+    <div class="qr"><div class="qo" data-g="qgus">Accettabile</div><div class="qo" data-g="qgus">Buono</div><div class="qo" data-g="qgus">Distinto</div><div class="qo" data-g="qgus">Ottimo</div><div class="qo" data-g="qgus">Eccellente</div></div>
+    <div class="nw"><textarea id="ngus" placeholder="Note libere gusto-olfattive..."></textarea></div>
+  </div>
+</div>
+
+<div class="sw">
+  <div class="sl" onclick="tog('fin')">Considerazioni Finali <span class="ar" id="ar-fin">&#9654;</span></div>
+  <div class="sb" id="sb-fin">
+    <div class="ph2">Stato evolutivo</div>
+    <div class="og c2"><div class="o" data-g="stat">Pronto</div><div class="o" data-g="stat">Maturo</div></div>
+    <div class="dt"></div>
+    <div class="ph2">Armonia</div>
+    <div class="og c3"><div class="o" data-g="armo">Poco armonico</div><div class="o" data-g="armo">Mediamente armonico</div><div class="o" data-g="armo">Armonico</div></div>
+    <div class="dv"></div>
+    <div class="ph2 mg">Qualità complessiva</div>
+    <div class="qr"><div class="qo" data-g="qtot">Accettabile</div><div class="qo" data-g="qtot">Buono</div><div class="qo" data-g="qtot">Distinto</div><div class="qo" data-g="qtot">Ottimo</div><div class="qo" data-g="qtot">Eccellente</div></div>
+    <div id="avviso-coerenza" style="display:none;margin:5px 7px;padding:8px 10px;border-radius:4px;font-size:11px;line-height:1.5"></div>
+    <div class="str" id="stars"><span class="st">&#9733;</span><span class="st">&#9733;</span><span class="st">&#9733;</span><span class="st">&#9733;</span><span class="st">&#9733;</span></div>
+    <div class="nw"><textarea id="nfin" placeholder="Considerazioni finali, abbinamenti, potenziale..."></textarea></div>
+  </div>
+</div>
+
+<!-- ANTEPRIMA PUNTEGGIO TEORICO -->
+<div id="anteprima-punti" style="display:none;margin:10px 7px 0;background:#fff;border:2px solid var(--d);border-radius:4px;overflow:hidden">
+  <div style="background:var(--d);color:#fff;padding:7px 12px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Anteprima punteggio teorico</span>
+    <span style="font-size:9px;opacity:.7">calcolato dai giudizi qualitativi inseriti</span>
+  </div>
+  <div style="padding:10px 12px">
+    <!-- Barre sezioni -->
+    <div id="ap-sezioni"></div>
+    <!-- Totale -->
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--d);margin-top:8px;padding-top:8px">
+      <span style="font-size:12px;font-weight:700;color:var(--d)">Punteggio totale stimato</span>
+      <span style="font-size:24px;font-weight:900;color:var(--m)" id="ap-totale">—</span>
+    </div>
+    <div style="font-size:10px;color:#888;margin-top:3px;font-style:italic">
+      Basato sui giudizi qualitativi inseriti. Nella scheda a punti potrai affinare ogni parametro.
+    </div>
+  </div>
+</div>
+
+<div class="acts">
+  <button class="btn bs" id="btnSav" onclick="savLocal()">Salva</button>
+</div>
+<div style="padding:6px 7px 0">
+  <button class="btn" style="background:#fff;border:1px solid var(--b);color:var(--d);width:100%" onclick="nuovaScheda()">+ Nuova scheda vuota</button>
+</div>
+
+</div>
+
+
+
+<div class="svsec" id="svsec"></div>
+</div>
+</div>
+
+<div class="vista" id="vista-punti">
+<div class="page">
+
+<div class="ais-hd">
+  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v11</span></div>
+  <div class="ais-hd-r">Associazione<br>Italiana<br>Sommelier</div>
+</div>
+
+<!-- caricaBox rimosso — sync automatica -->
+
+<!-- Testata -->
+<div class="testata" id="testata">
+  <div class="t-row">
+    <div class="tf"><div class="tl">Degustatore</div><div class="tv" id="t-autore">—</div></div>
+    <div class="tf"><div class="tl">Data</div><div class="tv" id="t-data">—</div></div>
+  </div>
+  <div class="t-row">
+    <div class="tf" style="flex:2"><div class="tl">Produttore / Vino</div><div class="tv" id="t-vino">—</div></div>
+    <div class="tf"><div class="tl">Annata</div><div class="tv" id="t-annata">—</div></div>
+  </div>
+  <div class="t-row">
+    <div class="tf"><div class="tl">Tipologia</div><div class="tv" id="t-tipol">—</div></div>
+    <div class="tf"><div class="tl">Denominazione</div><div class="tv" id="t-denom">—</div></div>
+  </div>
+  <div style="margin-top:7px">
+    <button class="btn btn-m" id="btnVediAnalitica" onclick="vediAnaliticaCollegata()" style="width:100%;font-size:11px;padding:7px">
+      📋 Apri scheda analitica collegata
+    </button>
+  </div>
+</div>
+
+<!-- Totale hero -->
+<div class="hero" id="hero" style="padding:8px 12px;text-align:center">
+  <div class="hero-label">Punteggio totale</div>
+  <div class="hero-num" id="heroNum">—</div>
+  <div class="hero-fascia" id="heroFascia">—</div>
+  <div class="hero-breakdown" id="heroBreak"></div>
+</div>
+
+<!-- Feedback -->
+<div class="feedback" id="feedback"></div>
+
+<!-- VISIVO -->
+<div class="sez" id="sezV">
+  <div class="sez-hd"><span class="sez-hd-t">Esame Visivo<span id="lbV" style="font-weight:400;opacity:.7;margin-left:5px;font-size:9px"></span></span><span class="sez-sub" id="subV">—</span></div>
+  <div class="param" id="paramAspetto">
+    <div class="p-top">
+      <div><span class="p-name">Aspetto</span><span class="p-peso">peso 1 · max 10 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vAspetto">7</div><div class="p-contributo" id="cAspetto">7 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-aspetto"></div>
+    <div class="hint" id="hAspetto">Inserimento manuale</div>
+  </div>
+</div>
+
+<!-- OLFATTIVO -->
+<div class="sez" id="sezO">
+  <div class="sez-hd"><span class="sez-hd-t">Esame Olfattivo<span id="lbO" style="font-weight:400;opacity:.7;margin-left:5px;font-size:9px"></span></span><span class="sez-sub" id="subO">—</span></div>
+  <div class="param">
+    <div class="p-top">
+      <div><span class="p-name">Intensità</span><span class="p-peso">peso 0.5 · max 5 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vIolf">7</div><div class="p-contributo" id="cIolf">3.5 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-iolf"></div>
+    <div class="hint" id="hIolf">—</div>
+  </div>
+  <div class="param">
+    <div class="p-top">
+      <div><span class="p-name">Purezza / Eleganza</span><span class="p-peso">peso 1 · max 10 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vPurez">7</div><div class="p-contributo" id="cPurez">7 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-purez"></div>
+    <div class="hint" id="hPurez">—</div>
+  </div>
+  <div class="param">
+    <div class="p-top">
+      <div><span class="p-name">Complessità / Attrattiva</span><span class="p-peso">peso 1.5 · max 15 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vCompl">7</div><div class="p-contributo" id="cCompl">10.5 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-compl"></div>
+    <div class="hint" id="hCompl">—</div>
+  </div>
+</div>
+
+<!-- GUSTO -->
+<div class="sez" id="sezG">
+  <div class="sez-hd"><span class="sez-hd-t">Gusto-Olfattivo<span id="lbG" style="font-weight:400;opacity:.7;margin-left:5px;font-size:9px"></span></span><span class="sez-sub" id="subG">—</span></div>
+  <div class="param">
+    <div class="p-top">
+      <div><span class="p-name">Intensità / Struttura</span><span class="p-peso">peso 0.5 · max 5 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vIgus">7</div><div class="p-contributo" id="cIgus">3.5 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-igus"></div>
+    <div class="hint" id="hIgus">—</div>
+  </div>
+  <div class="param">
+    <div class="p-top">
+      <div><span class="p-name">Equilibrio</span><span class="p-peso">peso 1 · max 10 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vEqui">7</div><div class="p-contributo" id="cEqui">7 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-equi"></div>
+    <div class="hint" id="hEqui">—</div>
+  </div>
+  <div class="param">
+    <div class="p-top">
+      <div><span class="p-name">Espressività / Eleganza</span><span class="p-peso">peso 1 · max 10 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vEspr">7</div><div class="p-contributo" id="cEspr">7 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-espr"></div>
+    <div class="hint" id="hEspr">—</div>
+  </div>
+  <div class="param">
+    <div class="p-top">
+      <div><span class="p-name">Persistenza / Attrattiva</span><span class="p-peso">peso 1.5 · max 15 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vPers">7</div><div class="p-contributo" id="cPers">10.5 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-pers"></div>
+    <div class="hint" id="hPers">—</div>
+  </div>
+</div>
+
+<!-- FINALI -->
+<div class="sez" id="sezF">
+  <div class="sez-hd"><span class="sez-hd-t">Considerazioni Finali<span id="lbF" style="font-weight:400;opacity:.7;margin-left:5px;font-size:9px"></span></span><span class="sez-sub" id="subF">—</span></div>
+  <div class="param">
+    <div class="p-top">
+      <div><span class="p-name">Armonia complessiva</span><span class="p-peso">peso 0.5 · max 5 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vArmo">7</div><div class="p-contributo" id="cArmo">3.5 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-armo"></div>
+    <div class="hint" id="hArmo">—</div>
+  </div>
+  <div class="param">
+    <div class="p-top">
+      <div><span class="p-name">Qualità / Carattere</span><span class="p-peso">peso 1.5 · max 15 pt</span></div>
+      <div style="text-align:right"><div class="p-voto" id="vQual">7</div><div class="p-contributo" id="cQual">10.5 pt</div></div>
+    </div>
+    <div class="sl-wrap" id="slw-qual"></div>
+    <div class="hint" id="hQual">—</div>
+  </div>
+  <div style="padding:8px 12px">
+    <textarea id="notaP" placeholder="Note libere — motivazioni, divergenze, contesto..." style="width:100%;min-height:55px;resize:vertical;font-size:11px;border:1px solid #b0b0a0;border-radius:3px;padding:6px;background:#fafaf6"></textarea>
+  </div>
+</div>
+
+<!-- Azioni -->
+<div class="acts-p" id="actsP" style="display:none">
+  <button class="btn btn-d" style="flex:1" onclick="salvaPunti()">Aggiorna</button>
+</div>
+
+<!-- Salvate -->
+<div class="svsec" id="svsecP"></div>
+
+</div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-btn an attivo" id="btn-an" onclick="mostraVista('analitica')">📋 Scheda Analitica</button>
+  <button class="nav-btn pt" id="btn-pt" onclick="mostraVista('punti')">🎯 Valutazione Punti</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function mostraVista(v){
+  document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva')});
+  document.getElementById('vista-'+v).classList.add('attiva');
+  document.getElementById('btn-an').classList.toggle('attivo',v==='analitica');
+  document.getElementById('btn-pt').classList.toggle('attivo',v==='punti');
+  if(v==='punti'){
+    // Sync automatica: usa la scheda analitica in modifica o l'ultima salvata
+    sincronizzaConAnalitica();
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function toast(m){
+  var t=document.getElementById('toast');
+  t.textContent=m; t.style.display='block';
+  setTimeout(function(){t.style.display='none'},2500);
+}
+
+/* ═══ SCRIPT ANALITICA ═══ */
+
+const DN={
+  'Sardegna':[
+    {n:"Vermentino di Gallura",t:"DOCG",tip:["Superiore","Spumante"]},
+    {n:"Alghero",t:"DOC",tip:["Bianco","Rosso","Rosato","Torbato","Cagnulari","Chardonnay","Sauvignon","Frizzante","Spumante","Liquoroso","Vendemmia tardiva","Da uve stramature"]},
+    {n:"Arborea",t:"DOC",tip:["Trebbiano","Sangiovese","Sangiovese Rosato","Frizzante"]},
+    {n:"Campidano di Terralba",t:"DOC",tip:["Rosso","Rosato","Frizzante"]},
+    {n:"Cannonau di Sardegna",t:"DOC",tip:["Rosso","Rosato","Riserva","Classico Oliena","Classico Capo Ferrato","Classico Jerzu","Da uve stramature","Liquoroso secco","Liquoroso dolce naturale"]},
+    {n:"Carignano del Sulcis",t:"DOC",tip:["Rosso","Rosato","Riserva","Novello","Passito","Superiore","Da uve stramature"]},
+    {n:"Girò di Cagliari",t:"DOC",tip:["Secco","Amabile","Dolce naturale","Liquoroso secco","Liquoroso dolce naturale"]},
+    {n:"Malvasia di Bosa",t:"DOC",tip:["Secco","Amabile","Dolce naturale","Liquoroso secco","Liquoroso dolce naturale","Riserva","Da uve stramature"]},
+    {n:"Malvasia di Cagliari",t:"DOC",tip:["Secco","Amabile","Dolce naturale","Liquoroso secco","Liquoroso dolce naturale"]},
+    {n:"Mandrolisai",t:"DOC",tip:["Rosso","Rosato","Superiore"]},
+    {n:"Monica di Cagliari",t:"DOC",tip:["Secco","Amabile","Dolce naturale","Liquoroso secco","Liquoroso dolce naturale"]},
+    {n:"Monica di Sardegna",t:"DOC",tip:["Secco","Amabile","Frizzante","Superiore"]},
+    {n:"Moscato di Cagliari",t:"DOC",tip:["Dolce naturale","Liquoroso"]},
+    {n:"Moscato di Sardegna",t:"DOC",tip:["Spumante","Passito","Tempio Pausania","Gallura"]},
+    {n:"Moscato di Sorso-Sennori",t:"DOC",tip:["Dolce naturale","Liquoroso"]},
+    {n:"Nasco di Cagliari",t:"DOC",tip:["Secco","Amabile","Dolce naturale","Liquoroso secco","Liquoroso dolce naturale"]},
+    {n:"Nuragus di Cagliari",t:"DOC",tip:["Secco","Abboccato","Amabile","Frizzante"]},
+    {n:"Sardegna Semidano",t:"DOC",tip:["Secco","Amabile","Dolce","Superiore","Superiore Mogoro","Spumante"]},
+    {n:"Vermentino di Sardegna",t:"DOC",tip:["Secco","Frizzante","Spumante"]},
+    {n:"Vernaccia di Oristano",t:"DOC",tip:["Secco","Amabile","Dolce","Superiore","Riserva","Liquoroso secco","Liquoroso dolce","Da uve stramature","Vendemmia tardiva"]},
+    {n:"Barbagia",t:"IGT",tip:["Bianco","Rosso","Rosato"]},{n:"Colli del Limbara",t:"IGT",tip:["Bianco","Rosso","Rosato"]},
+    {n:"Isola dei Nuraghi",t:"IGT",tip:["Bianco","Rosso","Rosato","Passito","Vendemmia tardiva","Da uve stramature","Appassimento","Affinato in legno"]},
+    {n:"Marmilla",t:"IGT",tip:["Bianco","Rosso","Rosato"]},{n:"Nurra",t:"IGT",tip:["Bianco","Rosso","Rosato"]},
+    {n:"Ogliastra",t:"IGT",tip:["Bianco","Rosso","Rosato"]},{n:"Parteolla",t:"IGT",tip:["Bianco","Rosso","Rosato"]},
+    {n:"Planargia",t:"IGT",tip:["Bianco","Rosso","Rosato"]},{n:"Provincia di Nuoro",t:"IGT",tip:["Bianco","Rosso","Rosato"]},
+    {n:"Romangia",t:"IGT",tip:["Bianco","Rosso","Rosato"]},{n:"Sibiola",t:"IGT",tip:["Bianco","Rosso","Rosato"]},
+    {n:"Tharros",t:"IGT",tip:["Bianco","Rosso","Rosato"]},{n:"Trexenta",t:"IGT",tip:["Bianco","Rosso","Rosato"]},
+    {n:"Valle del Tirso",t:"IGT",tip:["Bianco","Rosso","Rosato"]},{n:"Valli di Porto Pino",t:"IGT",tip:["Bianco","Rosso","Rosato"]}
+  ],
+  'Piemonte':[{n:"Barolo",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Barbaresco",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Asti / Moscato d'Asti",t:"DOCG",tip:["Spumante dolce","Moscato d'Asti","Vendemmia tardiva"]},{n:"Barbera d'Asti",t:"DOCG",tip:["Rosso","Superiore","Nizza"]},{n:"Alta Langa",t:"DOCG",tip:["Blanc de Blancs","Blanc de Noirs","Rosé","Riserva"]},{n:"Gattinara",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Gavi",t:"DOCG",tip:["Bianco","Frizzante","Spumante","Riserva"]},{n:"Roero",t:"DOCG",tip:["Bianco","Rosso","Riserva"]},{n:"Brachetto d'Acqui",t:"DOCG",tip:["Rosso","Spumante","Passito"]},{n:"Barbera d'Alba",t:"DOC",tip:["Rosso","Superiore"]},{n:"Dolcetto d'Alba",t:"DOC",tip:["Rosso","Superiore"]},{n:"Langhe",t:"DOC",tip:["Bianco","Rosso","Nebbiolo","Arneis","Chardonnay"]},{n:"Nebbiolo d'Alba",t:"DOC",tip:["Rosso","Spumante"]},{n:"Piemonte",t:"DOC",tip:["Bianco","Rosso","Rosato","Spumante"]}],
+  'Toscana':[{n:"Brunello di Montalcino",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Chianti",t:"DOCG",tip:["Rosso","Riserva","Superiore","Colli Fiorentini","Colli Senesi","Rufina"]},{n:"Chianti Classico",t:"DOCG",tip:["Annata","Riserva","Gran Selezione"]},{n:"Morellino di Scansano",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Vernaccia di San Gimignano",t:"DOCG",tip:["Bianco","Riserva"]},{n:"Vino Nobile di Montepulciano",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Bolgheri",t:"DOC",tip:["Bianco","Rosso","Rosato","Superiore"]},{n:"Bolgheri Sassicaia",t:"DOC",tip:["Rosso"]},{n:"Maremma Toscana",t:"DOC",tip:["Bianco","Rosso","Rosato"]},{n:"Rosso di Montalcino",t:"DOC",tip:["Rosso"]},{n:"Toscana",t:"IGT",tip:["Bianco","Rosso","Rosato","Passito","Vin Santo"]}],
+  'Veneto':[{n:"Amarone della Valpolicella",t:"DOCG",tip:["Rosso","Riserva","Classico","Valpantena"]},{n:"Conegliano Valdobbiadene Prosecco",t:"DOCG",tip:["Extra Brut","Brut","Extra Dry","Dry","Frizzante","Cartizze","Rive"]},{n:"Soave Superiore",t:"DOCG",tip:["Classico","Riserva"]},{n:"Bardolino",t:"DOC",tip:["Rosso","Chiaretto","Novello","Superiore"]},{n:"Lugana",t:"DOC",tip:["Bianco","Superiore","Riserva","Vendemmia tardiva","Spumante"]},{n:"Prosecco",t:"DOC",tip:["Extra Brut","Brut","Extra Dry","Dry","Frizzante","Tranquillo"]},{n:"Soave",t:"DOC",tip:["Classico","Classico Superiore","Spumante"]},{n:"Valpolicella",t:"DOC",tip:["Rosso","Classico","Ripasso","Superiore"]}],
+  'Sicilia':[{n:"Cerasuolo di Vittoria",t:"DOCG",tip:["Rosso","Classico"]},{n:"Etna",t:"DOC",tip:["Bianco","Rosso","Rosato","Bianco Superiore","Riserva","Spumante"]},{n:"Marsala",t:"DOC",tip:["Fine","Superiore","Superiore Riserva","Vergine","Vergine Stravecchio"]},{n:"Moscato di Pantelleria",t:"DOC",tip:["Naturale","Naturalmente dolce","Passito","Passito Riserva"]},{n:"Sicilia",t:"IGT",tip:["Bianco","Rosso","Rosato","Passito","Vendemmia tardiva"]}],
+  'Campania':[{n:"Fiano di Avellino",t:"DOCG",tip:["Bianco","Spumante","Vendemmia tardiva"]},{n:"Greco di Tufo",t:"DOCG",tip:["Bianco","Spumante"]},{n:"Taurasi",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Campi Flegrei",t:"DOC",tip:["Bianco","Rosso","Rosato","Falanghina","Piedirosso"]},{n:"Ischia",t:"DOC",tip:["Bianco","Rosso","Rosato","Superiore"]},{n:"Vesuvio",t:"DOC",tip:["Bianco","Rosso","Rosato","Lacryma Christi Bianco","Lacryma Christi Rosso"]}],
+  'Puglia':[{n:"Primitivo di Manduria Dolce Naturale",t:"DOCG",tip:["Dolce naturale","Liquoroso"]},{n:"Castel del Monte",t:"DOC",tip:["Rosso","Bianco","Rosato","Nero di Troia","Riserva"]},{n:"Primitivo di Manduria",t:"DOC",tip:["Rosso","Dolce naturale","Riserva"]},{n:"Salice Salentino",t:"DOC",tip:["Rosso","Rosato","Bianco","Aleatico dolce","Riserva"]},{n:"Salento",t:"IGT",tip:["Bianco","Rosso","Rosato","Primitivo","Negroamaro"]}],
+  'Lombardia':[{n:"Franciacorta",t:"DOCG",tip:["Non dosato","Extra Brut","Brut","Extra Dry","Sec","Demi-Sec","Rosé","Satèn","Riserva"]},{n:"Sforzato di Valtellina",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Valtellina Superiore",t:"DOCG",tip:["Grumello","Inferno","Maroggia","Sassella","Valgella","Riserva"]},{n:"Lugana",t:"DOC",tip:["Bianco","Superiore","Riserva","Vendemmia tardiva","Spumante"]},{n:"Oltrepò Pavese",t:"DOC",tip:["Bianco","Rosso","Rosato","Barbera","Bonarda","Pinot nero","Spumante"]}],
+  'Trentino Alto Adige':[{n:"Trentino",t:"DOC",tip:["Bianco","Rosso","Rosato","Chardonnay","Pinot grigio","Gewürztraminer","Marzemino","Teroldego","Spumante"]},{n:"Alto Adige / Südtirol",t:"DOC",tip:["Bianco","Rosso","Pinot grigio","Gewürztraminer","Pinot bianco","Pinot nero","Lagrein","Spumante"]},{n:"Trento",t:"DOC",tip:["Brut","Extra Brut","Brut Nature","Demi-Sec","Rosé","Riserva"]}],
+  'Umbria':[{n:"Montefalco Sagrantino",t:"DOCG",tip:["Rosso","Passito"]},{n:"Torgiano Rosso Riserva",t:"DOCG",tip:["Riserva"]},{n:"Montefalco",t:"DOC",tip:["Rosso","Bianco","Riserva","Grechetto"]},{n:"Orvieto",t:"DOC",tip:["Classico","Classico Superiore","Amabile"]},{n:"Umbria",t:"IGT",tip:["Bianco","Rosso","Rosato"]}],
+  'Marche':[{n:"Conero",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Verdicchio dei Castelli di Jesi",t:"DOC",tip:["Classico","Classico Superiore","Riserva","Spumante","Passito"]},{n:"Verdicchio di Matelica",t:"DOC",tip:["Bianco","Riserva","Spumante"]},{n:"Rosso Piceno",t:"DOC",tip:["Rosso","Superiore"]}],
+  'Abruzzo':[{n:"Montepulciano d'Abruzzo Colline Teramane",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Montepulciano d'Abruzzo",t:"DOC",tip:["Rosso","Riserva","Cerasuolo"]},{n:"Trebbiano d'Abruzzo",t:"DOC",tip:["Bianco","Superiore","Riserva"]}],
+  'Basilicata':[{n:"Aglianico del Vulture Superiore",t:"DOCG",tip:["Rosso","Riserva"]},{n:"Aglianico del Vulture",t:"DOC",tip:["Rosso","Rosato","Spumante"]}],
+  'Friuli Venezia Giulia':[{n:"Colli Orientali del Friuli Picolit",t:"DOCG",tip:["Bianco","Cialla"]},{n:"Ramandolo",t:"DOCG",tip:["Bianco"]},{n:"Collio Goriziano",t:"DOC",tip:["Bianco","Friulano","Pinot grigio","Sauvignon","Chardonnay"]},{n:"Friuli Grave",t:"DOC",tip:["Bianco","Rosso","Friulano","Pinot grigio","Merlot","Cabernet"]}],
+  'Emilia Romagna':[{n:"Albana di Romagna",t:"DOCG",tip:["Secco","Amabile","Dolce","Passito"]},{n:"Lambrusco di Sorbara",t:"DOC",tip:["Secco","Amabile","Dolce","Rosato"]},{n:"Sangiovese di Romagna",t:"DOC",tip:["Rosso","Superiore","Riserva"]}],
+  'Lazio':[{n:"Cesanese del Piglio",t:"DOCG",tip:["Secco","Amabile","Dolce","Spumante","Superiore","Riserva"]},{n:"Frascati",t:"DOC",tip:["Bianco","Superiore","Spumante","Cannellino"]},{n:"Orvieto",t:"DOC",tip:["Classico","Classico Superiore","Amabile"]}],
+  'Calabria':[{n:"Cirò",t:"DOC",tip:["Rosso","Rosso Classico","Rosso Classico Superiore Riserva","Bianco","Rosato"]},{n:"Greco di Bianco",t:"DOC",tip:["Passito"]}],
+  'Molise':[{n:"Biferno",t:"DOC",tip:["Bianco","Rosso","Rosato","Riserva"]},{n:"Tintilia del Molise",t:"DOC",tip:["Rosso","Rosato","Riserva"]}],
+  'Liguria':[{n:"Cinque Terre",t:"DOC",tip:["Bianco","Sciacchetrà"]},{n:"Riviera Ligure di Ponente",t:"DOC",tip:["Vermentino","Pigato","Rossese","Ormeasco","Ormeasco Superiore"]},{n:"Rossese di Dolceacqua",t:"DOC",tip:["Rosso","Superiore"]}],
+  "Valle d'Aosta":[{n:"Valle d'Aosta / Vallée d'Aoste",t:"DOC",tip:["Blanc de Morgex","Enfer d'Arvier","Torrette","Nus Rosso","Chambave Muscat","Donnas","Chardonnay"]}]
+};
+
+const SFUMATURE={bianco:['Verdolini','Dorati','Ambrati','Ramati'],rosato:['Aranciati','Ramati','Cerasuolo','Chiaretti'],rosso:['Violacei','Granati','Aranciati','Mattone']};
+const DESC_VIS={bianco:['Brillante e luminoso','Velato','Opaco','Con riflessi verdolini','Con riflessi dorati','Con riflessi ambrati','Con sfumature ramé','Limpido e cristallino'],rosato:['Tenue e brillante','Vivace','Buccia di cipolla','Con riflessi aranciati','Con riflessi violacei','Cerasuolo','Chiaretto','Brillante e cristallino'],rosso:['Con riflessi violacei','Con riflessi granati','Con riflessi aranciati','Rubino brillante','Denso e impenetrabile','Con unghia aranciata','Granato profondo','Con bordo mattone']};
+
+
+// ─── VITIGNI PER DENOMINAZIONE ───────────────────────────────────────────
+const VIT={
+  "Vermentino di Gallura":["Vermentino"],
+  "Cannonau di Sardegna":["Cannonau","Bovale grande","Carignano","Pascale"],
+  "Vermentino di Sardegna":["Vermentino"],
+  "Carignano del Sulcis":["Carignano","Bovaleddu","Pascale","Monica"],
+  "Alghero":["Torbato","Cagnulari","Sangiovese","Cabernet Sauvignon","Cabernet Franc","Chardonnay","Sauvignon","Merlot","Syrah"],
+  "Vernaccia di Oristano":["Vernaccia"],
+  "Malvasia di Bosa":["Malvasia di Sardegna"],
+  "Malvasia di Cagliari":["Malvasia di Sardegna"],
+  "Monica di Sardegna":["Monica"],
+  "Monica di Cagliari":["Monica"],
+  "Nuragus di Cagliari":["Nuragus","Semidano","Ansonica","Clairette"],
+  "Mandrolisai":["Bovale sardo","Cannonau","Monica"],
+  "Moscato di Sardegna":["Moscato bianco"],
+  "Moscato di Cagliari":["Moscato bianco"],
+  "Moscato di Sorso-Sennori":["Moscato bianco"],
+  "Nasco di Cagliari":["Nasco"],
+  "Girò di Cagliari":["Girò"],
+  "Sardegna Semidano":["Semidano"],
+  "Campidano di Terralba":["Bovale grande","Bovale sardo"],
+  "Arborea":["Trebbiano toscano","Sangiovese"],
+  "Isola dei Nuraghi":["Cannonau","Carignano","Vermentino","Cagnulari","Nuragus","Monica","Semidano","Sangiovese","Cabernet Sauvignon","Merlot","Syrah","Chardonnay","Sauvignon"],
+  "Barolo":["Nebbiolo"],
+  "Barbaresco":["Nebbiolo"],
+  "Brunello di Montalcino":["Sangiovese"],
+  "Chianti Classico":["Sangiovese","Canaiolo","Colorino","Cabernet Sauvignon","Merlot","Syrah"],
+  "Chianti":["Sangiovese","Canaiolo","Trebbiano","Malvasia"],
+  "Amarone della Valpolicella":["Corvina","Corvinone","Rondinella","Molinara","Oseleta"],
+  "Barolo":["Nebbiolo"],
+  "Franciacorta":["Chardonnay","Pinot nero","Pinot bianco"],
+  "Prosecco":["Glera"],
+  "Taurasi":["Aglianico"],
+  "Fiano di Avellino":["Fiano"],
+  "Greco di Tufo":["Greco"],
+  "Primitivo di Manduria":["Primitivo"],
+  "Cerasuolo di Vittoria":["Nero d'Avola","Frappato"],
+  "Etna":["Nerello mascalese","Nerello cappuccio","Carricante","Catarratto"],
+  "Aglianico del Vulture":["Aglianico"],
+  "Sagrantino di Montefalco":["Sagrantino"],
+  "Verdicchio dei Castelli di Jesi":["Verdicchio","Trebbiano","Malvasia"],
+  "Montepulciano d'Abruzzo":["Montepulciano","Sangiovese"]
+};
+
+let selVitigni=[];
+
+function renderVitigni(denomName){
+  var wrap=document.getElementById('vitigni-chips');
+  var custom=document.getElementById('vitigni-custom');
+  var libroWrap=document.getElementById('vitigni-libero-wrap');
+  var extraInp=document.getElementById('vitigni-extra');
+  selVitigni=[];
+  extraInp.style.display='none';
+
+  if(!denomName||denomName==='__tavola__'){
+    // Vino da tavola o nessuna denominazione: campo libero
+    wrap.innerHTML='';
+    custom.style.display='block';
+    custom.placeholder=denomName==='__tavola__'?'Indica i vitigni utilizzati...':'Indica i vitigni...';
+    libroWrap.style.display='none';
+    return;
+  }
+  var vits=VIT[denomName]||[];
+  if(!vits.length){
+    wrap.innerHTML='<span class="tc-ph">disciplinare non codificato — scrivi sotto</span>';
+    custom.style.display='block';
+    custom.placeholder='Indica i vitigni...';
+    libroWrap.style.display='none';
+    return;
+  }
+  custom.style.display='none';
+  wrap.innerHTML=vits.map(function(v){
+    return'<div class="tc-chip">'+v+'</div>';
+  }).join('');
+  libroWrap.style.display='block';
+}
+
+function pickVitigno(el){
+  el.classList.toggle('on-menzione');
+  selVitigni=Array.from(document.querySelectorAll('#vitigni-chips .tc-chip.on-menzione'))
+    .map(function(c){return c.textContent});
+  up();
+}
+
+function toggleVitigniLibero(){
+  var inp=document.getElementById('vitigni-extra');
+  inp.style.display=inp.style.display==='none'?'block':'none';
+  if(inp.style.display==='block') inp.focus();
+}
+
+function getVitigni(){
+  var custom=document.getElementById('vitigni-custom').value.trim();
+  var extra=document.getElementById('vitigni-extra').value.trim();
+  if(custom) return custom;
+  var tutti=selVitigni.slice();
+  if(extra) tutti.push(extra);
+  return tutti.join(', ');
+}
+
+function famDaColore(col){var b=['Verdolino','Paglierino','Dorato','Ambrato','Mogano'],r=['Fiore di pesco','Ramato','Salmone','Corallo','Peonia'];if(b.includes(col))return'bianco';if(r.includes(col))return'rosato';return'rosso';}
+
+let sc={},mx={},sv=0,curDenom=null;
+
+function tog(id){var b=document.getElementById('sb-'+id),a=document.getElementById('ar-'+id);var op=b.classList.toggle('op');a.classList.toggle('op',op);}
+// Gruppi con scala progressiva — supportano doppia selezione adiacente
+var SCALA_PROG=['limpidezza','int_colore','consistenza','iolf','colf','dolc','acid','alco','tann','roto','sapi','effg','igus','stru','equi','pers','armo','ncat','vasc','grb','pb'];
+
+function pk(el){
+  var g=el.dataset.g;
+  var wasSelected=el.classList.contains('sel');
+  var isScala=SCALA_PROG.indexOf(g)>-1;
+  var chips=Array.from(el.closest('.og').querySelectorAll('.o[data-g="'+g+'"]'));
+  var selezionati=chips.filter(function(c){return c.classList.contains('sel');});
+
+  if(wasSelected){
+    // Deseleziona questo chip
+    el.classList.remove('sel');
+    el.classList.remove('borderline');
+    var rimasti=chips.filter(function(c){return c.classList.contains('sel');});
+    // Se rimane uno solo, non è più border-line
+    rimasti.forEach(function(c){c.classList.remove('borderline');});
+    sc[g]=rimasti.length?rimasti.map(function(c){return c.textContent.trim();}).join(' / '):'';
+    if(!sc[g]) delete sc[g];
+  } else {
+    if(isScala && selezionati.length===1){
+      // Scala progressiva: consenti secondo chip solo se adiacente
+      var idxSel=chips.indexOf(selezionati[0]);
+      var idxNew=chips.indexOf(el);
+      if(Math.abs(idxNew-idxSel)===1){
+        // Adiacente — seleziona entrambi in ordine
+        el.classList.add('sel');
+        var ordered=chips.filter(function(c){return c.classList.contains('sel');});
+        // Evidenzia entrambi come border-line (bordo tratteggiato)
+        ordered.forEach(function(c){c.classList.add('borderline');});
+        sc[g]=ordered.map(function(c){return c.textContent.trim();}).join(' / ');
+      } else {
+        // Non adiacente — sostituisci e rimuovi borderline
+        chips.forEach(function(c){c.classList.remove('sel');c.classList.remove('borderline');});
+        el.classList.add('sel');
+        sc[g]=el.textContent.trim();
+      }
+    } else {
+      // Selezione singola (o scala con 2 già selezionati — sostituisce)
+      chips.forEach(function(c){c.classList.remove('sel');c.classList.remove('borderline');});
+      el.classList.add('sel');
+      sc[g]=el.textContent.trim();
+    }
+  }
+  // NON chiamare agVisivo qui — la palette colori è gestita da pickColore in testata
+  if(g==='metodo'){
+    var bliev=document.getElementById('blk-lieviti');
+    if(bliev) bliev.style.display=(sc.metodo==='Metodo Classico')?'block':'none';
+    if(sc.metodo!=='Metodo Classico') delete sc['lieviti'];
+  }
+  // Aggiorna anteprima se cambiano parametri che influenzano la stima
+  if(['iolf','colf','igus','equi','pers','armo'].indexOf(g)>-1) aggiornaAnteprima();
+}
+function pkm(el){var g=el.dataset.g;el.classList.toggle('sel');if(!mx[g])mx[g]=[];var v=el.textContent.trim(),i=mx[g].indexOf(v);if(i>-1)mx[g].splice(i,1);else mx[g].push(v);}
+function pkq(el){
+  var g=el.dataset.g;
+  var wasSelected=el.classList.contains('sel');
+  el.closest('.qr').querySelectorAll('.qo').forEach(function(e){e.classList.remove('sel')});
+  if(!wasSelected){el.classList.add('sel');sc[g]=el.textContent.trim();}
+  else{delete sc[g];}
+  if(g==='qolf'||g==='qgus'||g==='qtot') controllaCoerenzaQtot();
+  aggiornaAnteprima();
+}
+function ss(n){sv=n;document.querySelectorAll('#stars .st').forEach(function(s,i){s.classList.toggle('lit',i<n)});}
+
+// ─── ANTEPRIMA PUNTEGGIO TEORICO ─────────────────────────────────────────
+var QORD=['Accettabile','Buono','Distinto','Ottimo','Eccellente'];
+var Q2PT={'Accettabile':6,'Buono':7,'Distinto':8,'Ottimo':9,'Eccellente':10};
+
+// Pesi massimi per sezione
+var SEZIONI_AP=[
+  {id:'vis',  label:'Visivo',           maxPt:10,  pesoTeo:10,  colore:'#5a8a5a'},
+  {id:'olf',  label:'Olfattivo',         maxPt:30,  pesoTeo:30,  colore:'#7a6aaa'},
+  {id:'gus',  label:'Gusto-olfattivo',   maxPt:40,  pesoTeo:40,  colore:'#c0006a'},
+  {id:'fin',  label:'Considerazioni finali', maxPt:20, pesoTeo:20, colore:'#b8860b'}
+];
+
+// ─── CALCOLO TEORICO CONDIVISO (usato da anteprima analitica E scheda a punti) ───
+function calcolaTeoricoAIS(par){
+  // par = oggetto sc dell'analitica (par.qvis, par.qolf, par.qgus, par.qtot, par.iolf, ecc.)
+  var Q={'Accettabile':6,'Buono':7,'Distinto':8,'Ottimo':9,'Eccellente':10};
+  var vm={'Moderatamente intenso':7,'Intenso':8,'Molto intenso':9};
+  var vc={'Moderatamente complesso':7,'Complesso':8,'Ampio':9};
+  var ve={'Poco equil.':7,'Med. equil.':8,'Equilibrato':9};
+  var vp={'Mod. pers.':7,'Persistente':8,'Molto pers.':9};
+  var va={'Poco armonico':7,'Mediamente armonico':8,'Armonico':9};
+
+  var pVis=0, pOlf=0, pGus=0, pFin=0;
+
+  // VISIVO — Aspetto (peso 1)
+  if(par.qvis) pVis=parseFloat((Q[par.qvis]*1).toFixed(1));
+
+  // OLFATTIVO — Intensità 0.5 + Purezza/Eleganza 1 + Complessità/Attrattiva 1.5
+  if(par.qolf){
+    var vOlf=Q[par.qolf];
+    var vIolf=par.iolf&&vm[par.iolf]?vm[par.iolf]:vOlf;
+    var vColf=par.colf&&vc[par.colf]?vc[par.colf]:vOlf;
+    pOlf=parseFloat((vIolf*0.5 + vOlf*1 + vColf*1.5).toFixed(1));
+  }
+
+  // GUSTO — Int/Str 0.5 + Equilibrio 1 + Espressività 1 + Persistenza 1.5
+  if(par.qgus){
+    var vGus=Q[par.qgus];
+    var vIgus=par.igus&&vm[par.igus]?vm[par.igus]:vGus;
+    var vEqui=par.equi&&ve[par.equi]?ve[par.equi]:vGus;
+    var vPers=par.pers&&vp[par.pers]?vp[par.pers]:vGus;
+    pGus=parseFloat((vIgus*0.5 + vEqui*1 + vGus*1 + vPers*1.5).toFixed(1));
+  }
+
+  // FINALE — Armonia 0.5 + Qualità/Carattere 1.5
+  if(par.qtot){
+    var vFin=Q[par.qtot];
+    var vArmo=par.armo&&va[par.armo]?va[par.armo]:vFin;
+    pFin=parseFloat((vArmo*0.5 + vFin*1.5).toFixed(1));
+  }
+
+  return {pVis:pVis, pOlf:pOlf, pGus:pGus, pFin:pFin,
+          totale:parseFloat((pVis+pOlf+pGus+pFin).toFixed(1))};
+}
+
+function aggiornaAnteprima(){
+  var qvis=sc['qvis']||'', qolf=sc['qolf']||'', qgus=sc['qgus']||'', qtot=sc['qtot']||'';
+  if(!qvis&&!qolf&&!qgus&&!qtot){
+    document.getElementById('anteprima-punti').style.display='none';
+    return;
+  }
+  document.getElementById('anteprima-punti').style.display='block';
+
+  var r=calcolaTeoricoAIS(sc);
+  var pVis=r.pVis, pOlf=r.pOlf, pGus=r.pGus, pFin=r.pFin;
+  var totale=r.totale;
+
+  // Renderizza barre
+  var html='';
+  var vals=[
+    {s:SEZIONI_AP[0], pt:pVis,  attivo:!!qvis},
+    {s:SEZIONI_AP[1], pt:pOlf,  attivo:!!qolf},
+    {s:SEZIONI_AP[2], pt:pGus,  attivo:!!qgus},
+    {s:SEZIONI_AP[3], pt:pFin,  attivo:!!qtot}
+  ];
+
+  vals.forEach(function(v){
+    var s=v.s, pt=v.pt;
+    if(!v.attivo){
+      html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;opacity:.35">'
+        +'<div style="width:110px;font-size:10px;font-weight:700;color:#888">'+s.label+'</div>'
+        +'<div style="flex:1;height:14px;background:#f0f0e8;border-radius:3px"></div>'
+        +'<div style="width:80px;font-size:10px;color:#aaa;text-align:right">— / '+s.maxPt+' pt</div>'
+        +'</div>';
+      return;
+    }
+    var pct=Math.min(100,(pt/s.maxPt*100)).toFixed(1);
+    var teoPct=s.pesoTeo; // percentuale teorica sul totale 100
+    var realPct=totale>0?(pt/totale*100).toFixed(1):0;
+    var delta=parseFloat(realPct)-teoPct;
+    var deltaStr=delta>=0?'+'+delta.toFixed(1)+'%':delta.toFixed(1)+'%';
+    var deltaCol=Math.abs(delta)<=2?'#5a8a5a':delta>0?'#c0006a':'#e0a030';
+    html+='<div style="margin-bottom:8px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
+      +'<span style="font-size:10px;font-weight:700;color:var(--d)">'+s.label+'</span>'
+      +'<span style="font-size:11px;font-weight:900;color:'+s.colore+'">'+Math.round(pt)+' / '+s.maxPt+' pt</span>'
+      +'</div>'
+      +'<div style="position:relative;height:16px;background:#f0f0e8;border-radius:3px;overflow:hidden">'
+      +'<div style="position:absolute;left:0;top:0;height:100%;width:'+pct+'%;background:'+s.colore+';border-radius:3px;opacity:.85;transition:width .3s"></div>'
+      // Linea del peso teorico
+      +'<div style="position:absolute;left:'+teoPct+'%;top:0;height:100%;width:2px;background:rgba(0,0,0,.25)"></div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;margin-top:2px">'
+      +'<span style="font-size:9px;color:#aaa">peso teorico: '+teoPct+'% · tuo contributo: '+parseFloat((pt/totale*100).toFixed(1))+'%'+(Math.abs(delta)>2?' <strong style=\'color:'+deltaCol+'\'>'+deltaStr+'</strong>':'')+'</span>'
+      +'</div>'
+      +'</div>';
+  });
+
+  document.getElementById('ap-sezioni').innerHTML=html;
+  document.getElementById('ap-totale').textContent=totale>0?Math.round(totale):'—';
+}
+
+// ─── CONTROLLO COERENZA QTOT ─────────────────────────────────────────────
+var QORD=['Accettabile','Buono','Distinto','Ottimo','Eccellente'];
+function controllaCoerenzaQtot(){
+  var av=document.getElementById('avviso-coerenza');
+  if(!av) return;
+  var qolf=sc['qolf']||'', qgus=sc['qgus']||'', qtot=sc['qtot']||'';
+  // Se non ci sono ancora tutti e tre, nascondi
+  if(!qtot){av.style.display='none';return;}
+  var iQolf=QORD.indexOf(qolf), iQgus=QORD.indexOf(qgus), iQtot=QORD.indexOf(qtot);
+  // Media suggerita dai parziali (qolf pesa 30%, qgus 50% — proporzione relativa 3:5)
+  var media=-1;
+  if(iQolf>=0 && iQgus>=0) media=Math.round((iQolf*3+iQgus*5)/8);
+  else if(iQolf>=0) media=iQolf;
+  else if(iQgus>=0) media=iQgus;
+  if(media<0){av.style.display='none';return;}
+  var diff=iQtot-media;
+  if(diff===0){
+    av.style.display='block';
+    av.style.cssText='display:block;margin:5px 7px;padding:8px 10px;border-radius:4px;font-size:11px;line-height:1.5;background:#eef5e8;border:1px solid #8aaa6a;color:#2a4a1a';
+    av.innerHTML='✓ <strong>'+qtot+'</strong> è coerente con i giudizi parziali (olfattivo: '+( qolf||'—')+', gusto: '+(qgus||'—')+')';
+  } else {
+    var atteso=QORD[media];
+    var segno=diff>0?'superiore':'inferiore';
+    av.style.cssText='display:block;margin:5px 7px;padding:8px 10px;border-radius:4px;font-size:11px;line-height:1.5;background:#fff3e0;border:1px solid #e0a030;color:#7a4a00';
+    av.innerHTML='⚠ Stai sintetizzando <strong>'+qtot+'</strong> ma i giudizi parziali suggerirebbero <strong>'+atteso+'</strong>'
+      +' (olfattivo: '+(qolf||'—')+' · gusto-olfattivo: '+(qgus||'—')+').'
+      +'<br>La sintesi è <strong>'+Math.abs(diff)+' livell'+(Math.abs(diff)===1?'o':'i')+' '+segno+'</strong> alla media ponderata. Sei sicuro?';
+  }
+}
+
+// ─── TIPOLOGIE: tre variabili indipendenti ────────────────────────────────
+let selBase='', selColore='', selMenzione='';
+
+const COLORI_VIS={
+  'bianco':{label:'Colore (bianchi)',items:['Verdolino','Paglierino','Dorato','Ambrato','Mogano'],cols:5},
+  'rosato':{label:'Colore (rosati)',items:['Fiore di pesco','Ramato','Salmone','Corallo','Peonia'],cols:5},
+  'rosso': {label:'Colore (rossi)', items:['Amaranto','Rubino','Carminio','Granato','Aranciato'],cols:5}
+};
+
+function pickBase(el){
+  var was=el.classList.contains('on-base');
+  document.querySelectorAll('#tipolBase .tc-chip').forEach(function(c){c.classList.remove('on-base')});
+  if(!was){el.classList.add('on-base');selBase=el.textContent;}
+  else selBase='';
+  aggiornaSezioniVisive(selBase);
+  up();
+}
+
+function pickColore(el){
+  var was=el.classList.contains('on-colore');
+  document.querySelectorAll('#tipolColore .tc-chip').forEach(function(c){c.classList.remove('on-colore')});
+  if(!was){el.classList.add('on-colore');selColore=el.textContent.trim();}
+  else selColore='';
+  delete sc['colore']; delete sc['int_colore'];
+  mx.sfumatura=[]; mx.desc_vis=[];
+  aggiornaColoreVisivo(selColore);
+  aggiornaTannicita(selColore);
+  up();
+}
+
+function aggiornaTannicita(colore){
+  var bt=document.getElementById('blk-tann');
+  var nt=document.getElementById('note-tann');
+  if(!bt)return;
+  var fam=(colore||'').toLowerCase();
+  if(fam==='bianco'||fam==='rosato'){
+    bt.classList.add('blocked');
+    nt.innerHTML='<div class="block-note">Non pertinente — vino '+fam+'</div>';
+    delete sc['tann'];
+    bt.querySelectorAll('.o').forEach(function(o){o.classList.remove('sel');});
+  } else {
+    bt.classList.remove('blocked');
+    nt.innerHTML='';
+  }
+}
+
+function toggleNotaTipol(){
+  var w=document.getElementById('notaTipolWrap');
+  var b=document.getElementById('btnAddNota');
+  if(w.style.display==='none'){
+    w.style.display='block';
+    b.textContent='- Nascondi nota libera';
+    document.getElementById('notaTipol').focus();
+  } else {
+    w.style.display='none';
+    b.textContent='+ Aggiungi nota libera';
+  }
+}
+
+function pickMenzione(el){
+  el.classList.toggle('on-menzione');
+  selMenzione=Array.from(document.querySelectorAll('#tipolMenzione .tc-chip.on-menzione'))
+    .map(function(c){return c.textContent}).join(' ');
+  up();
+}
+
+function renderMenzioni(tip){
+  var wrap=document.getElementById('tipolMenzione');
+  // Filtra: togli modalità e colori base, tieni solo le menzioni vere
+  var skip=['secco','fermo','frizzante','spumante','bianco','rosato','rosso'];
+  var menzioni=tip.filter(function(t){return skip.indexOf(t.toLowerCase())<0;});
+  if(!menzioni.length){
+    wrap.innerHTML='<span class="tc-ph">nessuna menzione per questa denominazione</span>';
+    return;
+  }
+  wrap.innerHTML=menzioni.map(function(t){
+    return'<div class="tc-chip">'+t+'</div>';
+  }).join('');
+}
+
+function aggiornaColoreVisivo(colore, preserva){
+  var fam=(colore||'').trim().toLowerCase();
+  var fammi=['bianco','rosato','rosso'];
+
+  fammi.forEach(function(f){
+    var g=document.getElementById('grp-'+f);
+    if(g) g.style.display=(f===fam)?'block':'none';
+  });
+  var gv=document.getElementById('grp-colore-vuoto');
+  if(gv) gv.style.display=fam?'none':'block';
+
+  fammi.forEach(function(f){
+    var s=document.getElementById('sf-'+f);
+    if(s) s.style.display=(f===fam)?'block':'none';
+  });
+  var sv=document.getElementById('sf-vuoto');
+  if(sv) sv.style.display=fam?'none':'block';
+
+  fammi.forEach(function(f){
+    var d=document.getElementById('dv-'+f);
+    if(d) d.style.display=(f===fam)?'block':'none';
+  });
+  var dv=document.getElementById('dv-vuoto');
+  if(dv) dv.style.display=fam?'none':'block';
+
+  // Azzera selezioni SOLO se l'utente cambia colore interattivamente (non in loadS)
+  if(fam && !preserva){
+    document.querySelectorAll('.o[data-g="int_colore"]').forEach(function(o){o.classList.remove('sel');});
+    delete sc['int_colore'];
+    document.querySelectorAll('.o[data-g="sfumatura"],.o[data-g="desc_vis"],.o[data-g="colore"]').forEach(function(o){o.classList.remove('sel');});
+    mx.sfumatura=[]; mx.desc_vis=[];
+    delete sc['colore'];
+  }
+}
+
+
+function agVisivo(fam){ aggiornaColoreVisivo(fam); }
+function mkOg(items,gruppo,cols,multi){var fn=multi?'pkm':'pk';return'<div class="og c'+cols+'">'+items.map(function(v){return'<div class="o" data-g="'+gruppo+'" onclick="'+fn+'(this)">'+v+'</div>'}).join('')+'</div>';}
+
+function apriInPunti(id, e){
+  e.stopPropagation();
+  mostraVista('punti');
+  setTimeout(function(){
+    var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+    var s=schede.find(function(x){return x.id===id;});
+    if(!s) return;
+    analiticaP=s;
+    // Bypassa il selettore — pre-compila direttamente
+    precompila();
+  }, 100);
+}
+
+function nuovaScheda(){
+  editingId=null;
+  selBase='';selColore='';selMenzione='';selVitigni=[];sv=0;sc={};mx={};
+  document.getElementById('wAutore').value='';
+  document.getElementById('wP').value='';
+  document.getElementById('wN').value='';
+  document.getElementById('wY').value='';
+  document.getElementById('wV').value='';
+  document.getElementById('nolf').value='';
+  document.getElementById('nota-vis').value='';
+  document.getElementById('ngus').value='';
+  document.getElementById('nfin').value='';
+  document.getElementById('dS').value='';
+  document.querySelectorAll('.o.sel,.qo.sel').forEach(function(e){e.classList.remove('sel')});
+  document.getElementById('vitigni-custom').value='';
+  document.getElementById('vitigni-extra').value='';
+  renderVitigni('');
+  document.querySelectorAll('.tc-chip').forEach(function(c){c.classList.remove('on-base','on-colore','on-menzione')});
+  document.querySelectorAll('#stars .st').forEach(function(s){s.classList.remove('lit')});
+  document.getElementById('btnSav').textContent='Salva';
+  curDenom=null;
+  renderMenzioni([]);
+  aggiornaSezioniVisive('');
+  var bs=document.getElementById('blk-spumante');
+  if(bs)bs.style.display='none';
+  aggiornaColoreVisivo('');
+  aggiornaTannicita('');
+  up();
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('notaTipol').value='';
+  document.getElementById('notaTipolWrap').style.display='none';
+  document.getElementById('btnAddNota').textContent='+ Aggiungi nota libera';
+  document.getElementById('anteprima-punti').style.display='none';
+  toast('Nuova scheda pronta');
+}
+
+function onReg(){
+  var reg=document.getElementById('wR').value;
+  document.getElementById('dS').value='';
+  curDenom=null;selBase='';selColore='';selMenzione='';selVitigni=[];
+  renderMenzioni([]);
+  aggiornaSezioniVisive('');
+  if(reg==='__tavola__'){
+    // Vino da tavola: nascondi denominazione, mostra campo libero vitigni
+    document.getElementById('dS').style.display='none';
+    document.querySelector('.dw button.dc').style.display='none';
+    renderVitigni('__tavola__');
+  } else {
+    document.getElementById('dS').style.display='';
+    document.querySelector('.dw button.dc').style.display='';
+    renderVitigni('');
+    rDen('');
+  }
+  up();
+}
+function fDen(){rDen(document.getElementById('dS').value);sDen();up();}
+function rDen(q){var reg=document.getElementById('wR').value,dd=document.getElementById('dD'),list=DN[reg]||[],ql=q.toLowerCase(),fil=q?list.filter(function(d){return d.n.toLowerCase().indexOf(ql)>-1}):list;if(!fil.length){dd.innerHTML='<div class="di" style="color:#aaa;font-style:italic;cursor:default">Nessuna denominazione trovata</div>';return;}dd.innerHTML=fil.map(function(d){return'<div class="di" onclick="pdDen(\''+d.n.replace(/'/g,"\\'")+"','"+d.t+"')\"><span class=\"dbg b"+d.t.toLowerCase()+'">'+d.t+'</span>'+d.n+'</div>'}).join('');}
+function sDen(){var r=document.getElementById('wR').value;if(!r)return;rDen(document.getElementById('dS').value);document.getElementById('dD').style.display='block';setTimeout(function(){document.addEventListener('click',clOut,{once:true})},10);}
+function clOut(e){if(!e.target.closest('.dw'))document.getElementById('dD').style.display='none';}
+function pdDen(n,t){
+  document.getElementById('dS').value=n+' ('+t+')';
+  document.getElementById('dD').style.display='none';
+  var reg=document.getElementById('wR').value;
+  curDenom=(DN[reg]||[]).find(function(d){return d.n===n})||null;
+  // Svuota menzioni correnti e ricarica dal nuovo disciplinare
+  selMenzione=''; selVitigni=[];
+  document.querySelectorAll('#tipolMenzione .tc-chip.on-menzione').forEach(function(c){c.classList.remove('on-menzione')});
+  renderMenzioni(curDenom?curDenom.tip:[]);
+  // Aggiorna vitigni da disciplinare
+  var nomeDen=n;
+  renderVitigni(nomeDen);
+  up();
+}
+function clDen(){document.getElementById('dS').value='';document.getElementById('dD').style.display='none';curDenom=null;selBase='';selColore='';selMenzione='';renderMenzioni([]);aggiornaSezioniVisive('');up();}
+
+// Abilita/disabilita Consistenza ed Effervescenza (visivo e gusto) in base alla modalità
+function aggiornaSezioniVisive(tipol){
+  var t=(tipol||'').toLowerCase();
+  var bc=document.getElementById('blk-consistenza');
+  var be=document.getElementById('blk-effervescenza');
+  var bg=document.getElementById('blk-effg');
+  var nc=document.getElementById('note-consistenza');
+  var ne=document.getElementById('note-effervescenza');
+  var ng=document.getElementById('note-effg');
+  var bspu=document.getElementById('blk-spumante');
+  var bmet=document.getElementById('blk-metodo');
+  var bliev=document.getElementById('blk-lieviti');
+
+  if(!tipol){
+    bc.classList.add('blocked'); be.classList.add('blocked'); bg.classList.add('blocked');
+    nc.innerHTML='<div class="block-note">Seleziona modalità</div>';
+    ne.innerHTML='<div class="block-note">Seleziona modalità</div>';
+    ng.innerHTML='<div class="block-note">Seleziona modalità</div>';
+    bspu.style.display='none';
+  } else if(t==='fermo'){
+    bc.classList.remove('blocked'); be.classList.add('blocked'); bg.classList.add('blocked');
+    nc.innerHTML='';
+    ne.innerHTML='<div class="block-note">Non pertinente — vino fermo</div>';
+    ng.innerHTML='<div class="block-note">Non pertinente — vino fermo</div>';
+    ['ncat','vasc','grb','pb','effg','metodo','dosaggio','lieviti'].forEach(function(g){delete sc[g];});
+    bspu.style.display='none';
+  } else if(t==='spumante'){
+    bc.classList.add('blocked'); be.classList.remove('blocked'); bg.classList.remove('blocked');
+    nc.innerHTML='<div class="block-note">Non pertinente — vino spumante</div>';
+    ne.innerHTML=''; ng.innerHTML='';
+    delete sc['consistenza'];
+    bspu.style.display='block';
+    bmet.style.display='block';
+    // mostra lieviti solo se metodo classico già selezionato
+    if(sc.metodo==='Metodo Classico') bliev.style.display='block';
+    else bliev.style.display='none';
+  } else {
+    // frizzante
+    bc.classList.add('blocked'); be.classList.remove('blocked'); bg.classList.remove('blocked');
+    nc.innerHTML='<div class="block-note">Non pertinente — vino '+t+'</div>';
+    ne.innerHTML=''; ng.innerHTML='';
+    delete sc['consistenza'];
+    bspu.style.display='block';
+    bmet.style.display='none'; // no metodo per frizzante
+    bliev.style.display='none';
+    delete sc['metodo']; delete sc['lieviti'];
+  }
+}
+
+function up(){
+  var p=document.getElementById('wP').value.trim(),n=document.getElementById('wN').value.trim();
+  var y=document.getElementById('wY').value.trim(),v=document.getElementById('wV').value.trim();
+  var d=document.getElementById('dS').value.trim();
+  // Anteprima: Colore + Menzione + Modalità (es. "Rosso Riserva Fermo")
+  var notaLib=(document.getElementById('notaTipol').value||'').trim();
+  var vitigniStr=getVitigni();
+  var tipCombinata=[selColore,selMenzione,selBase,notaLib].filter(Boolean).join(' ');
+  var parts=[];
+  if(p)parts.push('<strong>'+p+'</strong>');
+  if(n)parts.push(n);
+  if(tipCombinata)parts.push('<em>'+tipCombinata+'</em>');
+  if(y)parts.push('· '+y);
+  if(d)parts.push('· '+d);
+  if(v)parts.push('· '+v+'% vol');
+  var el=document.getElementById('prev');
+  el.innerHTML=parts.length?parts.join(' '):'<span class="ph">L\'etichetta apparirà qui...</span>';
+}
+
+function gd(){
+  var notaLib=(document.getElementById('notaTipol').value||'').trim();
+  var vitigniStr=getVitigni();
+  var tipCombinata=[selColore,selMenzione,selBase,notaLib].filter(Boolean).join(' ');
+  return{autore:document.getElementById('wAutore').value,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,stelle:sv};
+}
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none'},2500);}
+
+let editingId = null;
+let isSaving = false; // blocca doppi click
+
+function savLocal(){
+  if(isSaving) return;
+  isSaving = true;
+  setTimeout(function(){isSaving=false;}, 1500);
+
+  var d=gd();
+  if(!d.nome&&!d.produttore){toast('Inserisci almeno produttore o nome');isSaving=false;return;}
+  var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var now=new Date();
+  var dt=now.toLocaleDateString('it-IT')+' '+now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+
+  if(editingId){
+    // Aggiorna la scheda esistente — non crea mai un duplicato
+    var trovata=false;
+    l=l.map(function(s){
+      if(s.id===editingId){
+        trovata=true;
+        d.id=editingId;
+        d.dt=dt;
+        d.dt_crea=s.dt_crea||s.dt;
+        return d;
+      }
+      return s;
+    });
+    if(!trovata){
+      // sicurezza: se non trovata aggiunge
+      d.id=editingId; d.dt=dt; d.dt_crea=dt;
+      l.unshift(d);
+    }
+    toast('Scheda aggiornata ✓');
+    // editingId resta impostato: ulteriori salvataggi aggiornano sempre la stessa scheda
+  } else {
+    d.id=Date.now();
+    d.dt=dt;
+    d.dt_crea=dt;
+    l.unshift(d);
+    toast('Scheda salvata');
+  }
+  localStorage.setItem('ais_s',JSON.stringify(l));
+  rSav();
+}
+
+function rSav(){
+  var l=JSON.parse(localStorage.getItem('ais_s')||'[]'),el=document.getElementById('svsec');
+  if(!l.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="svt">Schede salvate ('+l.length+')</div>'+
+    l.map(function(s){
+      return'<div class="svc"><div style="flex:1;cursor:pointer" onclick="loadS('+s.id+')">' +
+        '<div class="scn">'+(s.produttore||'')+(s.produttore&&s.nome?' — ':'')+( s.nome||'')+(s.tipologia?' · '+s.tipologia:'')+'</div>'+(s.vitigni?'<div class="scs" style="font-style:italic">'+s.vitigni+'</div>':'')+
+        '<div class="scs">'+(s.annata||'')+(s.denominazione?' · '+s.denominazione:'')+'</div>'+
+        '<div class="scs" style="color:#999">Salvata: '+s.dt+(s.stelle?' · '+'★'.repeat(s.stelle):'')+'</div>'+
+      '</div>'+
+      '<span style="font-size:12px;color:var(--s);padding:4px 7px;cursor:pointer;font-weight:700;flex-shrink:0" onclick="editS('+s.id+',event)">✏️</span>'+
+      '<span title="Valuta a punti" style="font-size:12px;color:var(--m);padding:4px 6px;cursor:pointer;font-weight:700;flex-shrink:0" onclick="apriInPunti('+s.id+',event)">🎯</span>'+
+      '<span style="font-size:20px;color:#aaa;padding:2px 8px;cursor:pointer;flex-shrink:0" onclick="delS('+s.id+',event)">&#215;</span></div>';
+    }).join('');
+}
+
+function delS(id,e){
+  e.stopPropagation();
+  e.preventDefault();
+  var l=JSON.parse(localStorage.getItem('ais_s')||'[]').filter(function(s){return s.id!==id});
+  localStorage.setItem('ais_s',JSON.stringify(l));
+  if(editingId===id){editingId=null;document.getElementById('btnSav').textContent='Salva';}
+  rSav();
+  toast('Scheda eliminata');
+}
+
+function editS(id,e){
+  e.stopPropagation();
+  loadS(id);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function loadS(id){
+  var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var s=l.find(function(x){return x.id===id});
+  if(!s)return;
+
+  // ── Campi testo ──
+  document.getElementById('wAutore').value=s.autore||'';
+  document.getElementById('wP').value=s.produttore||'';
+  document.getElementById('wN').value=s.nome||'';
+  document.getElementById('wY').value=s.annata||'';
+  document.getElementById('wV').value=s.gradazione||'';
+  document.getElementById('nolf').value=s.nota_olf||'';
+  document.getElementById('ngus').value=s.nota_gus||'';
+  document.getElementById('nfin').value=s.nota_fin||'';
+  document.getElementById('nota-vis').value=s.nota_vis||'';
+
+  // ── Stelle ──
+  sv=s.stelle||0;
+  document.querySelectorAll('#stars .st').forEach(function(st,i){st.classList.toggle('lit',i<sv)});
+
+  // ── Stato interno ──
+  sc=Object.assign({},s.parametri||{});
+  mx={dolf:s.descrittori||[],sfumatura:s.sfumature||[],desc_vis:s.desc_vis||[]};
+
+  // ── Regione e denominazione ──
+  if(s.regione){document.getElementById('wR').value=s.regione;rDen('');}
+  curDenom=null;
+  if(s.denominazione){
+    document.getElementById('dS').value=s.denominazione;
+    var reg=s.regione||'';
+    var nomeDenom=s.denominazione.replace(/\s*\(.*\)/,'').trim();
+    curDenom=(DN[reg]||[]).find(function(d){return d.n===nomeDenom})||null;
+    renderMenzioni(curDenom?curDenom.tip:[]);
+  }
+
+  // ── Tipologia: Modalità + Colore + Menzioni ──
+  selBase='';selColore='';selMenzione='';
+  document.querySelectorAll('#tipolBase .tc-chip').forEach(function(c){c.classList.remove('on-base')});
+  document.querySelectorAll('#tipolColore .tc-chip').forEach(function(c){c.classList.remove('on-colore')});
+
+  var tip=s.tipologia||'';
+  var BASI=['Fermo','Frizzante','Spumante'];
+  var COLORI=['Bianco','Rosato','Rosso'];
+  var menzioniDisciplinare=curDenom?curDenom.tip:[];
+  var skip=['Fermo','Frizzante','Spumante','Bianco','Rosato','Rosso'];
+  var notaLib=[];
+
+  tip.split(' ').filter(Boolean).forEach(function(p){
+    if(BASI.indexOf(p)>-1){
+      selBase=p;
+      document.querySelectorAll('#tipolBase .tc-chip').forEach(function(c){if(c.textContent===p)c.classList.add('on-base')});
+      aggiornaSezioniVisive(p);
+    } else if(COLORI.indexOf(p)>-1){
+      selColore=p;
+      document.querySelectorAll('#tipolColore .tc-chip').forEach(function(c){if(c.textContent===p)c.classList.add('on-colore')});
+      aggiornaColoreVisivo(p, true);
+      aggiornaTannicita(p);
+    } else if(menzioniDisciplinare.indexOf(p)>-1){
+      // menzione da disciplinare — seleziona il chip corrispondente
+      selMenzione=(selMenzione?selMenzione+' ':'')+p;
+      setTimeout(function(){
+        document.querySelectorAll('#tipolMenzione .tc-chip').forEach(function(c){
+          if(c.textContent===p)c.classList.add('on-menzione');
+        });
+      },50);
+    } else {
+      // nota libera
+      notaLib.push(p);
+    }
+  });
+
+  // ── Ripristina selMenzione multi-parola ──
+  // (gestisce menzioni come "Classico Oliena" che sono multi-token)
+  // Approccio: confronta con le menzioni da disciplinare per ricostruire
+  if(curDenom&&curDenom.tip){
+    var tipStr=tip;
+    // rimuovi base e colore
+    ['Fermo','Frizzante','Spumante','Bianco','Rosato','Rosso'].forEach(function(k){
+      tipStr=tipStr.replace(new RegExp('\\b'+k+'\\b','g'),'').trim();
+    });
+    var trovate=[];
+    var notaLibera=tipStr;
+    curDenom.tip.forEach(function(m){
+      if(tipStr.indexOf(m)>-1){
+        trovate.push(m);
+        notaLibera=notaLibera.replace(m,'').trim();
+      }
+    });
+    selMenzione=trovate.join(' ');
+    notaLib=[notaLibera].filter(Boolean);
+    setTimeout(function(){
+      document.querySelectorAll('#tipolMenzione .tc-chip').forEach(function(c){
+        c.classList.toggle('on-menzione', trovate.indexOf(c.textContent)>-1);
+      });
+    },60);
+  }
+
+  // ── Nota libera tipologia ──
+  var notaLibStr=notaLib.join(' ').trim();
+  if(notaLibStr){
+    document.getElementById('notaTipol').value=notaLibStr;
+    document.getElementById('notaTipolWrap').style.display='block';
+    document.getElementById('btnAddNota').textContent='- Nascondi nota libera';
+  } else {
+    document.getElementById('notaTipol').value='';
+    document.getElementById('notaTipolWrap').style.display='none';
+    document.getElementById('btnAddNota').textContent='+ Aggiungi nota libera';
+  }
+
+  // ── Ripristina selezioni visive dai parametri salvati ──
+  setTimeout(function(){
+    // Reitera sc sui bottoni .o
+    Object.keys(sc).forEach(function(g){
+      var val=sc[g];
+      var valori=val.indexOf(' / ')>-1?val.split(' / '):[val];
+      var isBorderline=valori.length>1;
+      document.querySelectorAll('.o[data-g="'+g+'"]').forEach(function(o){
+        var v=o.textContent.trim();
+        if(valori.indexOf(v)>-1){
+          o.classList.add('sel');
+          if(isBorderline) o.classList.add('borderline');
+        }
+      });
+    });
+    // Reitera mx.dolf sui descrittori
+    (mx.dolf||[]).forEach(function(v){
+      document.querySelectorAll('.o[data-g="dolf"]').forEach(function(o){
+        if(o.textContent.trim()===v)o.classList.add('sel');
+      });
+    });
+    // Reitera sfumature
+    (mx.sfumatura||[]).forEach(function(v){
+      document.querySelectorAll('.o[data-g="sfumatura"]').forEach(function(o){
+        if(o.textContent.trim()===v)o.classList.add('sel');
+      });
+    });
+    // Reitera desc_vis
+    (mx.desc_vis||[]).forEach(function(v){
+      document.querySelectorAll('.o[data-g="desc_vis"]').forEach(function(o){
+        if(o.textContent.trim()===v)o.classList.add('sel');
+      });
+    });
+    // Reitera qo (qualità)
+    ['qolf','qgus','qtot'].forEach(function(g){
+      if(sc[g]){
+        document.querySelectorAll('.qo[data-g="'+g+'"]').forEach(function(o){
+          o.classList.toggle('sel',o.textContent.trim()===sc[g]);
+        });
+      }
+    });
+  }, 80);
+
+  // ── Ripristina sezione spumante/frizzante ──
+  setTimeout(function(){
+    var t=(selBase||'').toLowerCase();
+    if(t==='spumante'||t==='frizzante'){
+      var bspu=document.getElementById('blk-spumante');
+      var bmet=document.getElementById('blk-metodo');
+      var bliev=document.getElementById('blk-lieviti');
+      if(bspu) bspu.style.display='block';
+      if(bmet) bmet.style.display=(t==='spumante')?'block':'none';
+      // Ripristina metodo selezionato visivamente
+      if(sc.metodo){
+        document.querySelectorAll('.o[data-g="metodo"]').forEach(function(o){
+          o.classList.toggle('sel', o.textContent.trim()===sc.metodo);
+        });
+        if(bliev) bliev.style.display=(sc.metodo==='Metodo Classico')?'block':'none';
+      }
+      // Ripristina dosaggio selezionato visivamente
+      if(sc.dosaggio){
+        document.querySelectorAll('.o[data-g="dosaggio"]').forEach(function(o){
+          o.classList.toggle('sel', o.textContent.trim()===sc.dosaggio);
+        });
+      }
+      // Ripristina lieviti selezionati visivamente
+      if(sc.lieviti){
+        document.querySelectorAll('.o[data-g="lieviti"]').forEach(function(o){
+          o.classList.toggle('sel', o.textContent.trim()===sc.lieviti);
+        });
+      }
+    }
+  }, 90);
+
+
+  // Imposta sempre modalità aggiornamento quando si carica una scheda
+  editingId=id;
+  document.getElementById('btnSav').textContent='Aggiorna scheda';
+  up();
+  // Aggiorna anteprima e coerenza dopo che tutti i valori sono stati ripristinati
+  setTimeout(function(){
+    aggiornaAnteprima();
+    controllaCoerenzaQtot();
+  }, 150);
+  toast('Scheda caricata — premi Aggiorna per salvare le modifiche');
+}
+
+
+// Event delegation globale unico
+document.addEventListener('click', function(e){
+  var el = e.target;
+
+  // Risali fino al chip cliccabile (gestisce click su testo interno)
+  var chip = el.classList.contains('o') ? el : el.closest('.o');
+  if(chip && chip.dataset.g){
+    var g = chip.dataset.g;
+    if(g==='sfumatura'||g==='desc_vis'||g==='dolf') pkm(chip);
+    else pk(chip);
+    return;
+  }
+
+  var qchip = el.classList.contains('qo') ? el : el.closest('.qo');
+  if(qchip && qchip.dataset.g){ pkq(qchip); return; }
+
+  var star = el.classList.contains('st') ? el : el.closest('.st');
+  if(star){
+    var stars = Array.from(document.querySelectorAll('#stars .st'));
+    var idx = stars.indexOf(star);
+    if(idx>=0) ss(idx+1);
+    return;
+  }
+
+  var tc = el.classList.contains('tc-chip') ? el : el.closest('.tc-chip');
+  if(tc){
+    if(tc.closest('#tipolBase'))   { pickBase(tc);     return; }
+    if(tc.closest('#tipolColore')) { pickColore(tc);   return; }
+    if(tc.closest('#tipolMenzione')){ pickMenzione(tc); return; }
+    if(tc.closest('#vitigni-chips')){ pickVitigno(tc); return; }
+  }
+});
+
+onReg();rSav();
+
+
+/* ═══ SCRIPT PUNTI ═══ */
+
+// ─── PARAMETRI ────────────────────────────────────────────────────────────
+const PARAMS=[
+  {id:'aspetto', peso:1,  vId:'vAspetto', cId:'cAspetto', slId:'slw-aspetto', hId:'hAspetto', sez:'V'},
+  {id:'iolf',    peso:0.5,vId:'vIolf',    cId:'cIolf',    slId:'slw-iolf',    hId:'hIolf',    sez:'O'},
+  {id:'purez',   peso:1,  vId:'vPurez',   cId:'cPurez',   slId:'slw-purez',   hId:'hPurez',   sez:'O'},
+  {id:'compl',   peso:1.5,vId:'vCompl',   cId:'cCompl',   slId:'slw-compl',   hId:'hCompl',   sez:'O'},
+  {id:'igus',    peso:0.5,vId:'vIgus',    cId:'cIgus',    slId:'slw-igus',    hId:'hIgus',    sez:'G'},
+  {id:'equi',    peso:1,  vId:'vEqui',    cId:'cEqui',    slId:'slw-equi',    hId:'hEqui',    sez:'G'},
+  {id:'espr',    peso:1,  vId:'vEspr',    cId:'cEspr',    slId:'slw-espr',    hId:'hEspr',    sez:'G'},
+  {id:'pers',    peso:1.5,vId:'vPers',    cId:'cPers',    slId:'slw-pers',    hId:'hPers',    sez:'G'},
+  {id:'armo',    peso:0.5,vId:'vArmo',    cId:'cArmo',    slId:'slw-armo',    hId:'hArmo',    sez:'F'},
+  {id:'qual',    peso:1.5,vId:'vQual',    cId:'cQual',    slId:'slw-qual',    hId:'hQual',    sez:'F'},
+];
+
+const VOTI=[6,7,8,9,10];
+const LABELS=['6 Accettabile','7 Buono','8 Distinto','9 Ottimo','10 Eccellente'];
+const FASCIA={6:'Accettabile',7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
+
+// Mappa qualità analitica → voto suggerito
+const Q2V={'Accettabile':6,'Buono':7,'Distinto':8,'Ottimo':9,'Eccellente':10};
+const HINT_MAP={
+  iolf:  {campo:'iolf',  label:'Intensità olfattiva'},
+  purez: {campo:'qolf',  label:'Qualità olfattiva'},
+  compl: {campo:'colf',  label:'Complessità olfattiva'},
+  igus:  {campo:'igus',  label:'Intensità/struttura'},
+  equi:  {campo:'equi',  label:'Equilibrio'},
+  espr:  {campo:'qgus',  label:'Qualità gusto-olfattiva'},
+  pers:  {campo:'pers',  label:'Persistenza'},
+  armo:  {campo:'armo',  label:'Armonia'},
+  qual:  {campo:'qtot',  label:'Qualità complessiva'},
+};
+
+let voti={aspetto:6,iolf:6,purez:6,compl:6,igus:6,equi:6,espr:6,pers:6,armo:6,qual:6};
+let analiticaP=null;
+let editingIdP=null;
+let basePunti=80;
+
+function aggiornaHint(par){
+  if(!par) return;
+  var Q={'Accettabile':6,'Buono':7,'Distinto':8,'Ottimo':9,'Eccellente':10};
+  var vm={'Moderatamente intenso':7,'Intenso':8,'Molto intenso':9};
+  var vc={'Moderatamente complesso':7,'Complesso':8,'Ampio':9};
+  var ve={'Poco equil.':7,'Med. equil.':8,'Equilibrato':9};
+  var vp={'Mod. pers.':7,'Persistente':8,'Molto pers.':9};
+  var va={'Poco armonico':7,'Mediamente armonico':8,'Armonico':9};
+
+  function hn(elId, label, testo, voto){
+    var el=document.getElementById(elId);
+    if(!el||!testo) return;
+    el.innerHTML=label+': <strong>'+testo+'</strong>'
+      +(voto?' <span style="color:var(--m);font-weight:900;font-style:normal">→ '+voto+'</span>':'');
+  }
+  if(par.iolf)  hn('hIolf',  'Analitica',               par.iolf,  vm[par.iolf]||(Q[par.iolf]||null));
+  if(par.qolf)  hn('hPurez', 'Qualità olfattiva',        par.qolf,  Q[par.qolf]);
+  if(par.colf)  hn('hCompl', 'Complessità',              par.colf,  vc[par.colf]||(Q[par.colf]||null));
+  if(par.igus)  hn('hIgus',  'Intensità/struttura',      par.igus,  vm[par.igus]||(Q[par.igus]||null));
+  if(par.equi)  hn('hEqui',  'Equilibrio',               par.equi,  ve[par.equi]);
+  if(par.qgus)  hn('hEspr',  'Qualità gusto-olfattiva',  par.qgus,  Q[par.qgus]);
+  if(par.pers)  hn('hPers',  'Persistenza',              par.pers,  vp[par.pers]);
+  if(par.armo)  hn('hArmo',  'Armonia',                  par.armo,  va[par.armo]);
+  if(par.qvis)  hn('hAspetto','⚠ Qualità visiva',        par.qvis,  Q[par.qvis]);
+  if(par.qtot)  hn('hQual',  'Qualità complessiva',      par.qtot,  Q[par.qtot]);
+}
+
+function sincronizzaConAnalitica(){
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  if(!schede.length){
+    toast('Nessuna scheda analitica salvata — compila prima la scheda analitica');
+    return;
+  }
+  var target=null;
+  if(editingId){
+    target=schede.find(function(x){return x.id===editingId;})||schede[0];
+  } else {
+    target=schede[0];
+  }
+  if(!target) return;
+
+  // Carica valutazione a punti esistente per questa scheda analitica
+  var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var esistente=lp.find(function(x){return x.analiticaId===target.id;});
+
+  if(analiticaP && analiticaP.id===target.id){
+    // Stessa scheda — aggiorna solo base
+    analiticaP=target;
+    aggiornBasePunti();
+    calcolaTotale();
+    return;
+  }
+
+  analiticaP=target;
+  if(esistente){
+    // Carica valutazione esistente
+    loadP(esistente.id);
+  } else {
+    // Nuova — pre-compila dai giudizi analitici
+    caricaDaAnalitica();
+  }
+}
+
+function aggiornBasePunti(){
+  if(!analiticaP) return;
+  // Legge dati freschi dal localStorage
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var fresca=schede.find(function(x){return x.id===analiticaP.id;});
+  if(fresca) analiticaP=fresca;
+  if(typeof calcolaTeoricoAIS==='function'){
+    basePunti=calcolaTeoricoAIS(analiticaP.parametri||{}).totale;
+  }
+  aggiornaHint(analiticaP.parametri||{});
+}
+
+// ─── CHIP VOTO 6·7·8·9·10 ────────────────────────────────────────────────
+const ETICHETTE={6:'Accett.',7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
+
+function creaSlider(wrapId, paramId){
+  var wrap=document.getElementById(wrapId);
+  wrap.innerHTML='';
+  var div=document.createElement('div');
+  div.className='voto-wrap';
+  div.id='vw-'+paramId;
+  VOTI.forEach(function(v){
+    var chip=document.createElement('div');
+    chip.className='voto-chip';
+    chip.dataset.param=paramId;
+    chip.dataset.voto=v;
+    chip.innerHTML='<div class="vc-num">'+v+'</div><div class="vc-lbl">'+ETICHETTE[v]+'</div>';
+    div.appendChild(chip);
+  });
+  wrap.appendChild(div);
+  aggiornaSlider(paramId);
+}
+
+function aggiornaSlider(paramId){
+  var v=voti[paramId];
+  var wrap=document.getElementById('vw-'+paramId);
+  if(!wrap) return;
+  wrap.querySelectorAll('.voto-chip').forEach(function(c){
+    c.classList.toggle('sel', parseInt(c.dataset.voto)===v);
+  });
+}
+
+function setVoto(paramId, v){
+  voti[paramId]=v;
+  var p=PARAMS.find(function(x){return x.id===paramId;});
+  if(p){
+    document.getElementById(p.vId).textContent=v;
+    var contributo=(v*p.peso).toFixed(1);
+    document.getElementById(p.cId).textContent=contributo+' pt';
+  }
+  aggiornaSlider(paramId);
+  calcolaTotale();
+}
+
+// ─── CALCOLO TOTALE ───────────────────────────────────────────────────────
+function calcolaTotale(){
+  aggiornBasePunti();
+  var tot=0, subV=0, subO=0, subG=0, subF=0;
+  PARAMS.forEach(function(p){
+    var c=voti[p.id]*p.peso;
+    tot+=c;
+    if(p.sez==='V') subV+=c;
+    if(p.sez==='O') subO+=c;
+    if(p.sez==='G') subG+=c;
+    if(p.sez==='F') subF+=c;
+  });
+  tot=parseFloat(tot.toFixed(1));
+  document.getElementById('heroNum').textContent=tot.toFixed(1);
+  document.getElementById('heroFascia').textContent=fasciaP(tot);
+  document.getElementById('heroBreak').innerHTML=
+    'Visivo: '+subV.toFixed(1)+' · Olfattivo: '+subO.toFixed(1)+' · Gusto: '+subG.toFixed(1)+' · Finale: '+subF.toFixed(1)
+    +(analiticaP?'<br><span style="color:var(--m);font-weight:700">(base analitica: '+Math.round(basePunti)+')</span>':'');
+  document.getElementById('subV').textContent=subV.toFixed(1);
+  document.getElementById('subO').textContent=subO.toFixed(1);
+  document.getElementById('subG').textContent=subG.toFixed(1);
+  document.getElementById('subF').textContent=subF.toFixed(1);
+  // Label qualitative di sezione (media voti pesati → fascia)
+  function lbSez(pt,max){var v=pt/max*10; return v>=9?'Eccellente':v>=8?'Ottimo':v>=7?'Distinto':v>=6?'Buono':'Accettabile';}
+  var lbV=document.getElementById('lbV'); if(lbV&&subV>0) lbV.textContent='· '+lbSez(subV,10);
+  var lbO=document.getElementById('lbO'); if(lbO&&subO>0) lbO.textContent='· '+lbSez(subO,30);
+  var lbG=document.getElementById('lbG'); if(lbG&&subG>0) lbG.textContent='· '+lbSez(subG,40);
+  var lbF=document.getElementById('lbF'); if(lbF&&subF>0) lbF.textContent='· '+lbSez(subF,20);
+
+  // Feedback coerenza: confronta totale con media ponderata dei voti effettivi
+  if(analiticaP){
+    var baseEffettiva=0;
+    PARAMS.forEach(function(p){ baseEffettiva+=voti[p.id]*p.peso; });
+    baseEffettiva=parseFloat(baseEffettiva.toFixed(1));
+    var delta=parseFloat((tot-baseEffettiva).toFixed(1));
+    var fb=document.getElementById('feedback');
+    fb.style.display='block';
+    if(Math.abs(delta)<=1.5){
+      fb.className='feedback fb-ok';
+      fb.innerHTML='✓ Punteggio coerente con la distribuzione dei parametri analitici';
+    } else if(delta>1.5){
+      fb.className='feedback fb-su';
+      fb.innerHTML='↑ Il tuo punteggio finale (<strong>'+tot+'</strong>) è +'+delta+' rispetto alla somma dei parametri (<strong>'+baseEffettiva+'</strong>). Ricontrolla o motiva nelle note.';
+    } else {
+      fb.className='feedback fb-giu';
+      fb.innerHTML='↓ Il tuo punteggio finale (<strong>'+tot+'</strong>) è '+delta+' rispetto alla somma dei parametri (<strong>'+baseEffettiva+'</strong>). Ricontrolla o motiva nelle note.';
+    }
+  }
+}
+
+function fasciaP(v){
+  if(v>=94) return 'Eccellente';
+  if(v>=88) return 'Ottimo';
+  if(v>=80) return 'Distinto';
+  if(v>=70) return 'Buono';
+  if(v>=60) return 'Accettabile';
+  return 'Insufficiente';
+}
+
+// ─── CARICA DA ANALITICA ─────────────────────────────────────────────────
+function popolaSelectP(){
+  var sel=document.getElementById('selScheda');
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  sel.innerHTML='<option value="">-- seleziona scheda analitica --</option>';
+  schede.forEach(function(s){
+    var opt=document.createElement('option');
+    opt.value=s.id;
+    opt.textContent=(s.produttore||'')+(s.nome?' — '+s.nome:'')+(s.annata?' ('+s.annata+')':'');
+    sel.appendChild(opt);
+  });
+}
+
+function caricaDaAnalitica(){
+  if(!analiticaP){toastP('Nessuna scheda analitica collegata');return;}
+  // Dati freschi dal localStorage
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var fresca=schede.find(function(s){return s.id===analiticaP.id;})||analiticaP;
+  analiticaP=fresca;
+  
+  // Popola testata
+  document.getElementById('t-autore').textContent=analiticaP.autore||'—';
+  document.getElementById('t-data').textContent=analiticaP.dt||new Date().toLocaleDateString('it-IT');
+  document.getElementById('t-vino').textContent=(analiticaP.produttore||'')+(analiticaP.nome?' — '+analiticaP.nome:'');
+  document.getElementById('t-annata').textContent=analiticaP.annata||'—';
+  document.getElementById('t-tipol').textContent=analiticaP.tipologia||'—';
+  document.getElementById('t-denom').textContent=analiticaP.denominazione||'—';
+
+  // Suggerisci voti da analitica
+  var par=analiticaP.parametri||{};
+  var vm={'Moderatamente intenso':7,'Intenso':8,'Molto intenso':9};
+  var vc={'Moderatamente complesso':7,'Complesso':8,'Ampio':9};
+  var ve={'Poco equil.':7,'Med. equil.':8,'Equilibrato':9};
+  var vp={'Mod. pers.':7,'Persistente':8,'Molto pers.':9};
+  var va={'Poco armonico':7,'Mediamente armonico':8,'Armonico':9};
+
+  if(par.iolf &&vm[par.iolf])  setVoto('iolf', vm[par.iolf]);
+  if(par.qolf &&Q2V[par.qolf]) setVoto('purez',Q2V[par.qolf]);
+  if(par.colf &&vc[par.colf])  setVoto('compl',vc[par.colf]);
+  if(par.igus &&vm[par.igus])  setVoto('igus', vm[par.igus]);
+  if(par.equi &&ve[par.equi])  setVoto('equi', ve[par.equi]);
+  if(par.qgus &&Q2V[par.qgus]) setVoto('espr', Q2V[par.qgus]);
+  if(par.pers &&vp[par.pers])  setVoto('pers', vp[par.pers]);
+  if(par.armo &&va[par.armo])  setVoto('armo', va[par.armo]);
+  if(par.qvis &&Q2V[par.qvis]) setVoto('aspetto', Q2V[par.qvis]);
+  if(par.qtot&&Q2V[par.qtot])  setVoto('qual', Q2V[par.qtot]);
+
+  aggiornBasePunti(); // sincronizza base con i dati freschi dell'analitica
+
+  // Hint analitica
+  if(par.iolf)  document.getElementById('hIolf').innerHTML='Analitica: <strong>'+par.iolf+'</strong>';
+  if(par.qolf)  document.getElementById('hPurez').innerHTML='Qualità olfattiva: <strong>'+par.qolf+'</strong>';
+  if(par.colf)  document.getElementById('hCompl').innerHTML='Complessità: <strong>'+par.colf+'</strong>';
+  if(par.igus)  document.getElementById('hIgus').innerHTML='Intensità/struttura: <strong>'+par.igus+'</strong>';
+  if(par.equi)  document.getElementById('hEqui').innerHTML='Equilibrio: <strong>'+par.equi+'</strong>';
+  if(par.qgus)  document.getElementById('hEspr').innerHTML='Qualità gusto-olfattiva: <strong>'+par.qgus+'</strong>';
+  if(par.pers)  document.getElementById('hPers').innerHTML='Persistenza: <strong>'+par.pers+'</strong>';
+  if(par.armo)  document.getElementById('hArmo').innerHTML='Armonia: <strong>'+par.armo+'</strong>';
+  if(par.qvis)  document.getElementById('hAspetto').innerHTML='⚠ Qualità visiva (extra-AIS): <strong>'+par.qvis+'</strong>';
+  if(par.qtot) document.getElementById('hQual').innerHTML='Qualità complessiva: <strong>'+par.qtot+'</strong>';
+
+  mostraScheda();
+}
+
+function modalitaManuale(){
+  analiticaP=null;
+  mostraScheda();
+}
+
+function mostraScheda(){
+  document.getElementById('testata').style.display=analiticaP?'block':'none';
+  document.getElementById('hero').style.display='block';
+  ['sezV','sezO','sezG','sezF'].forEach(function(id){
+    document.getElementById(id).style.display='block';
+  });
+  document.getElementById('actsP').style.display='flex';
+  calcolaTotale();
+}
+
+// ─── SALVATAGGIO ─────────────────────────────────────────────────────────
+function salvaPunti(){
+  var tot=parseFloat(document.getElementById('heroNum').textContent)||0;
+  if(!tot){toastP('Nessun punteggio da salvare');return;}
+  var l=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var now=new Date();
+  var dt=now.toLocaleDateString('it-IT')+' '+now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  var aId=analiticaP?analiticaP.id:null;
+
+  var d={
+    id:aId||Date.now(), // usa analiticaId come chiave — garantisce unicità 1:1
+    analiticaId:aId,
+    produttore:analiticaP?analiticaP.produttore:'',
+    nome:analiticaP?analiticaP.nome:'',
+    annata:analiticaP?analiticaP.annata:'',
+    tipologia:analiticaP?analiticaP.tipologia:'',
+    punteggio:tot,
+    fascia:fasciaP(tot),
+    baseAnalitica:Math.round(basePunti),
+    delta:parseFloat((tot-basePunti).toFixed(1)),
+    voti:Object.assign({},voti),
+    nota:document.getElementById('notaP').value,
+    dt:dt
+  };
+
+  // Sovrascrive sempre — una sola valutazione per scheda analitica
+  var idx=l.findIndex(function(s){return s.analiticaId===aId;});
+  if(idx>-1){
+    l[idx]=d;
+  } else {
+    l.unshift(d);
+  }
+  toastP('Valutazione aggiornata ✓');
+  editingIdP=d.id;
+  localStorage.setItem('ais_punti',JSON.stringify(l));
+  rSavP();
+}
+
+function rSavP(){
+  var l=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var el=document.getElementById('svsecP');
+  if(!l.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="svt">Valutazione a punti collegata</div>'+
+    l.map(function(s){
+      var deltaStr=s.delta?(s.delta>0?'+'+s.delta:s.delta):'—';
+      var deltaCol=!s.delta?'#aaa':s.delta>0?'var(--m)':'#e0a030';
+      return'<div class="svc" onclick="loadP('+s.id+')">'
+        +'<div style="flex:1">'
+        +'<div class="scn">'+(s.produttore||'')+(s.nome?' — '+s.nome:'')+'</div>'
+        +'<div class="scs">'+(s.annata||'')+(s.tipologia?' · '+s.tipologia:'')+'</div>'
+        +'<div class="scs">'
+        +'<strong style="color:var(--m);font-size:14px">'+s.punteggio+'</strong>'
+        +' '+s.fascia
+        +(s.baseAnalitica?' · base: '+s.baseAnalitica+' <span style="color:'+deltaCol+';font-weight:700">('+deltaStr+')</span>':'')
+        +' · '+s.dt
+        +'</div>'
+        +'</div>'
+        +'<span style="font-size:20px;color:#aaa;padding:2px 8px;cursor:pointer" onclick="delP('+s.id+',event)">&#215;</span>'
+        +'</div>';
+    }).join('');
+}
+
+function delP(id,e){
+  e.stopPropagation();
+  var l=JSON.parse(localStorage.getItem('ais_punti')||'[]').filter(function(s){return s.id!==id;});
+  localStorage.setItem('ais_punti',JSON.stringify(l));
+  rSavP(); toastP('Eliminata');
+}
+
+function loadP(id){
+  var l=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var s=l.find(function(x){return x.id===id;});
+  if(!s) return;
+  if(s.analiticaId){
+    var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+    analiticaP=schede.find(function(x){return x.id===s.analiticaId;})||null;
+  }
+  Object.keys(s.voti||{}).forEach(function(k){setVoto(k,s.voti[k]);});
+  document.getElementById('notaP').value=s.nota||'';
+  editingIdP=id;
+  mostraScheda();
+  if(analiticaP){
+    document.getElementById('t-autore').textContent=analiticaP.autore||'—';
+    document.getElementById('t-vino').textContent=(analiticaP.produttore||'')+(analiticaP.nome?' — '+analiticaP.nome:'');
+    document.getElementById('t-annata').textContent=analiticaP.annata||'—';
+    document.getElementById('t-tipol').textContent=analiticaP.tipologia||'—';
+    document.getElementById('t-denom').textContent=analiticaP.denominazione||'—';
+    document.getElementById('t-data').textContent=s.dt||'—';
+    document.getElementById('testata').style.display='block';
+  }
+  toastP('Caricata');
+}
+
+function vediAnaliticaCollegata(){
+  if(!analiticaP) return;
+  mostraVista('analitica');
+  setTimeout(function(){
+    if(typeof loadS==='function') loadS(analiticaP.id);
+  }, 100);
+}
+
+function resetPunti(){
+  analiticaP=null; editingIdP=null;
+  voti={aspetto:6,iolf:6,purez:6,compl:6,igus:6,equi:6,espr:6,pers:6,armo:6,qual:6};
+  PARAMS.forEach(function(p){aggiornaSlider(p.id);});
+  document.getElementById('notaP').value='';
+  document.getElementById('feedback').style.display='none';
+  ['sezV','sezO','sezG','sezF','hero','actsP'].forEach(function(id){
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('testata').style.display='none';
+  popolaSelectP();
+  toastP('Nuova valutazione');
+}
+
+function toastP(m){
+  if(typeof toast==='function'){toast(m);}
+  else{
+    var t=document.getElementById('toast')||document.createElement('div');
+    t.textContent=m; t.style.cssText='position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#3d3d3d;color:#fff;padding:8px 18px;border-radius:3px;font-size:12px;font-weight:700;z-index:999';
+    document.body.appendChild(t);
+    setTimeout(function(){t.remove();},2500);
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────
+function initPunti(){
+  // Pulizia: rimuovi duplicati per analiticaId (tieni il più recente)
+  var l=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var seen={};
+  l=l.filter(function(s){
+    if(!s.analiticaId) return true;
+    if(seen[s.analiticaId]) return false;
+    seen[s.analiticaId]=true;
+    return true;
+  });
+  localStorage.setItem('ais_punti',JSON.stringify(l));
+  PARAMS.forEach(function(p){ creaSlider(p.slId, p.id); });
+  // Event delegation per chip voto
+  document.getElementById('vista-punti').addEventListener('click',function(e){
+    var chip=e.target.closest('.voto-chip');
+    if(!chip) return;
+    var paramId=chip.dataset.param;
+    var v=parseInt(chip.dataset.voto);
+    if(paramId&&v) setVoto(paramId,v);
+  });
+  rSavP();
+}
+
+initPunti();
+
+
+</script>
+</body>
+</html>
