@@ -2636,30 +2636,62 @@ function caricaDaAnalitica(){
   var vp={'Mod. pers.':7,'Persistente':8,'Molto pers.':9};
   var va={'Poco armonico':7,'Mediamente armonico':8,'Armonico':9};
 
-  if(par.iolf &&vm[par.iolf])  setVoto('iolf', vm[par.iolf]);
-  if(par.qolf &&Q2V[par.qolf]) setVoto('purez',Q2V[par.qolf]);
-  if(par.colf &&vc[par.colf])  setVoto('compl',vc[par.colf]);
-  if(par.igus &&vm[par.igus])  setVoto('igus', vm[par.igus]);
-  if(par.equi &&ve[par.equi])  setVoto('equi', ve[par.equi]);
-  if(par.qgus &&Q2V[par.qgus]) setVoto('espr', Q2V[par.qgus]);
-  if(par.pers &&vp[par.pers])  setVoto('pers', vp[par.pers]);
-  if(par.armo &&va[par.armo])  setVoto('armo', va[par.armo]);
-  if(par.qvis &&Q2V[par.qvis]) setVoto('aspetto', Q2V[par.qvis]);
-  if(par.qtot&&Q2V[par.qtot])  setVoto('qual', Q2V[par.qtot]);
+  // Helper: media arrotondata per difetto di due valori numerici
+  function mediaGiù(a, b){ return Math.floor((a + b) / 2); }
+
+  // Mappature dirette — fromLoad=true → chip gialli (non confermati)
+  if(par.iolf && vm[par.iolf])  setVoto('iolf',    vm[par.iolf],    true);
+  if(par.colf && vc[par.colf])  setVoto('compl',   vc[par.colf],    true);
+  if(par.igus && vm[par.igus])  setVoto('igus',    vm[par.igus],    true);
+  if(par.equi && ve[par.equi])  setVoto('equi',    ve[par.equi],    true);
+  if(par.pers && vp[par.pers])  setVoto('pers',    vp[par.pers],    true);
+  if(par.armo && va[par.armo])  setVoto('armo',    va[par.armo],    true);
+
+  // Mappature dirette: aspetto → qvis, qualità → qtot
+  if(par.qvis && Q2V[par.qvis]) setVoto('aspetto', Q2V[par.qvis],   true);
+  if(par.qtot && Q2V[par.qtot]) setVoto('qual',    Q2V[par.qtot],   true);
+
+  // Parametri indipendenti: pre-compilati da media dei più correlati
+  // Purezza/Eleganza → media(iolf, qolf)
+  var vIolf=par.iolf&&vm[par.iolf]?vm[par.iolf]:null;
+  var vQolf=par.qolf&&Q2V[par.qolf]?Q2V[par.qolf]:null;
+  if(vIolf&&vQolf)        setVoto('purez', mediaGiù(vIolf,vQolf),   true);
+  else if(vIolf)          setVoto('purez', vIolf,                    true);
+  else if(vQolf)          setVoto('purez', vQolf,                    true);
+
+  // Espressività → media(igus, pers)
+  var vIgus=par.igus&&vm[par.igus]?vm[par.igus]:null;
+  var vPers=par.pers&&vp[par.pers]?vp[par.pers]:null;
+  if(vIgus&&vPers)        setVoto('espr',  mediaGiù(vIgus,vPers),   true);
+  else if(vIgus)          setVoto('espr',  vIgus,                    true);
+  else if(vPers)          setVoto('espr',  vPers,                    true);
 
   aggiornBasePunti(); // sincronizza base con i dati freschi dell'analitica
 
   // Hint analitica
   if(par.iolf)  document.getElementById('hIolf').innerHTML='Analitica: <strong>'+par.iolf+'</strong>';
-  if(par.qolf)  document.getElementById('hPurez').innerHTML='Qualità olfattiva: <strong>'+par.qolf+'</strong>';
   if(par.colf)  document.getElementById('hCompl').innerHTML='Complessità: <strong>'+par.colf+'</strong>';
   if(par.igus)  document.getElementById('hIgus').innerHTML='Intensità/struttura: <strong>'+par.igus+'</strong>';
   if(par.equi)  document.getElementById('hEqui').innerHTML='Equilibrio: <strong>'+par.equi+'</strong>';
-  if(par.qgus)  document.getElementById('hEspr').innerHTML='Qualità gusto-olfattiva: <strong>'+par.qgus+'</strong>';
   if(par.pers)  document.getElementById('hPers').innerHTML='Persistenza: <strong>'+par.pers+'</strong>';
   if(par.armo)  document.getElementById('hArmo').innerHTML='Armonia: <strong>'+par.armo+'</strong>';
-  if(par.qvis)  document.getElementById('hAspetto').innerHTML='⚠ Qualità visiva (extra-AIS): <strong>'+par.qvis+'</strong>';
-  if(par.qtot) document.getElementById('hQual').innerHTML='Qualità complessiva: <strong>'+par.qtot+'</strong>';
+  if(par.qvis)  document.getElementById('hAspetto').innerHTML='Qualità visiva (extra-AIS): <strong>'+par.qvis+'</strong>';
+  if(par.qtot)  document.getElementById('hQual').innerHTML='Qualità complessiva: <strong>'+par.qtot+'</strong>';
+  // Hint parametri derivati — mostra la fonte
+  var hPurez=document.getElementById('hPurez');
+  if(hPurez){
+    var src=[];
+    if(par.iolf) src.push('Intensità: '+par.iolf);
+    if(par.qolf) src.push('Qualità olf.: '+par.qolf);
+    if(src.length) hPurez.innerHTML='Derivato da — '+src.join(' · ');
+  }
+  var hEspr=document.getElementById('hEspr');
+  if(hEspr){
+    var src2=[];
+    if(par.igus) src2.push('Intensità gus.: '+par.igus);
+    if(par.pers) src2.push('Persistenza: '+par.pers);
+    if(src2.length) hEspr.innerHTML='Derivato da — '+src2.join(' · ');
+  }
 
   mostraScheda();
 }
