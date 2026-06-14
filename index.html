@@ -1514,7 +1514,11 @@ async function caricaValutazioniDB(){
 }
 
 async function salvaSuDB(scheda){
-  if(!currentUser||!accessToken) return;
+  console.log('[DB] salvaSuDB chiamata — currentUser:', currentUser?currentUser.email:'NULL', '— accessToken:', accessToken?'OK':'NULL');
+  if(!currentUser||!accessToken){
+    console.warn('[DB] salvaSuDB: uscita anticipata — manca currentUser o accessToken');
+    return;
+  }
   // Manda solo i campi che esistono nella tabella
   var row={
     id: scheda.id,
@@ -1539,8 +1543,9 @@ async function salvaSuDB(scheda){
     stelle: scheda.stelle||0,
     dt: scheda.dt||''
   };
+  console.log('[DB] row da mandare:', JSON.stringify(row).substring(0,200));
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
-  if(ok) console.log('✓ Salvato su Supabase');
+  console.log('[DB] supaInsertOrUpdate result:', ok);
 }
 
 async function salvaValutazioneDB(val){
