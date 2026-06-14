@@ -2769,10 +2769,10 @@ function salvaPunti(){
     nome:analiticaP?analiticaP.nome:'',
     annata:analiticaP?analiticaP.annata:'',
     tipologia:analiticaP?analiticaP.tipologia:'',
-    punteggio:tot,
-    fascia:fasciaP(tot),
+    punteggio:Math.round(tot),
+    fascia:fasciaP(Math.round(tot)),
     baseAnalitica:Math.round(basePunti),
-    delta:parseFloat((tot-basePunti).toFixed(1)),
+    delta:Math.round(tot)-Math.round(basePunti),
     voti:Object.assign({},voti),
     nota:document.getElementById('notaP').value,
     dt:dt
