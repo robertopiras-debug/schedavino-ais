@@ -824,6 +824,22 @@ body{padding-bottom:54px}
 
 <div class="toast" id="toast"></div>
 
+<!-- Modale errore validazione -->
+<div id="modale-errore" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;background:rgba(0,0,0,.55);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:6px;border-top:5px solid #c0006a;max-width:340px;width:90%;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,.3);overflow:hidden">
+    <div style="background:#c0006a;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px;line-height:1">⚠</span>
+      <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Scheda incompleta</span>
+    </div>
+    <div style="padding:14px 16px">
+      <div id="modale-errore-msg" style="font-size:12px;color:#3d3d3d;line-height:1.7"></div>
+    </div>
+    <div style="padding:0 16px 14px">
+      <button onclick="chiudiModaleErrore()" style="width:100%;padding:10px;background:#c0006a;color:#fff;border:none;border-radius:3px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">Ho capito — correggo</button>
+    </div>
+  </div>
+</div>
+
 <script>
 function mostraVista(v){
   document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva')});
@@ -1723,6 +1739,20 @@ function gd(){
 
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none'},2500);}
 
+function mostraModaleErrore(titolo, righe){
+  var m=document.getElementById('modale-errore');
+  var msg=document.getElementById('modale-errore-msg');
+  if(!m||!msg) return;
+  msg.innerHTML='<strong style="font-size:13px;color:#c0006a">'+titolo+'</strong><ul style="margin:8px 0 0 16px;padding:0">'+
+    righe.map(function(r){return'<li style="margin-bottom:3px">'+r+'</li>';}).join('')+'</ul>';
+  m.style.display='flex';
+}
+
+function chiudiModaleErrore(){
+  var m=document.getElementById('modale-errore');
+  if(m) m.style.display='none';
+}
+
 
 // ─── VALIDAZIONE SCHEDA ANALITICA ────────────────────────────────────────
 
@@ -1824,30 +1854,24 @@ function aggiornaBarre(){
 function validaScheda(){
   // Dati identificativi
   var mId=validaDatiId();
-  if(mId.length){
-    toast('⚠ Dati mancanti: '+mId.join(', '));
-    window.scrollTo({top:0,behavior:'smooth'});
-    return false;
-  }
-  // Sezioni
   var sezioni=['vis','olf','gus','fin'];
   var tuttiMancanti=[];
   sezioni.forEach(function(s){
     var r=validaSezione(s);
     if(!r.completa){
-      // Apri la sezione se chiusa
       var sb=document.getElementById('sb-'+s);
       var ar=document.getElementById('ar-'+s);
-      if(sb&&!sb.classList.contains('op')){
-        sb.classList.add('op');
-        if(ar) ar.classList.add('op');
-      }
-      r.mancanti.forEach(function(m){ tuttiMancanti.push(m); });
+      if(sb&&!sb.classList.contains('op')){sb.classList.add('op');if(ar)ar.classList.add('op');}
+      r.mancanti.forEach(function(m){tuttiMancanti.push(m);});
     }
   });
   aggiornaBarre();
-  if(tuttiMancanti.length){
-    toast('⚠ Incompleta: '+tuttiMancanti.slice(0,3).join(', ')+(tuttiMancanti.length>3?' e altri...':''));
+  var righeErrore=[];
+  if(mId.length) righeErrore=righeErrore.concat(mId.map(function(m){return'<span style="color:#888">Identificativi:</span> '+m;}));
+  if(tuttiMancanti.length) righeErrore=righeErrore.concat(tuttiMancanti.map(function(m){return m;}));
+  if(righeErrore.length){
+    mostraModaleErrore('Compila i campi obbligatori prima di salvare', righeErrore);
+    if(mId.length) window.scrollTo({top:0,behavior:'smooth'});
     return false;
   }
   return true;
@@ -2670,7 +2694,8 @@ function salvaPunti(){
   // Verifica che tutti i 10 parametri siano stati confermati almeno una volta
   var nonConf=PARAMS.filter(function(p){return !votiConfermati.has(p.id);}).map(function(p){return p.id;});
   if(nonConf.length){
-    toastP('⚠ Conferma tutti i parametri prima di salvare ('+nonConf.length+' mancanti)');
+    var nomiParam={'aspetto':'Aspetto','iolf':'Intensità olfattiva','purez':'Purezza/Eleganza','compl':'Complessità olfattiva','igus':'Intensità gusto','equi':'Equilibrio','espr':'Espressività','pers':'Persistenza','armo':'Armonia','qual':'Qualità/Carattere'};
+    mostraModaleErrore('Conferma tutti i parametri prima di salvare', nonConf.map(function(p){return nomiParam[p]||p;}));
     aggiornaStatoPunti();
     return;
   }
