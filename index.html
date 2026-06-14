@@ -214,6 +214,15 @@ let supa=null, currentUser=null;
 function initSupabase(){
   supa=supabase.createClient(SUPA_URL,SUPA_KEY);
 }
+// Inizializza subito appena la libreria è disponibile
+document.addEventListener('DOMContentLoaded', function(){
+  initSupabase();
+  supa.auth.getSession().then(function(res){
+    if(res.data&&res.data.session&&res.data.session.user){
+      onLogin(res.data.session.user);
+    }
+  });
+});
 </script>
 </style>
 </head>
@@ -251,7 +260,7 @@ function initSupabase(){
   <span style="color:var(--m);cursor:pointer;font-weight:700" onclick="doLogout()">Esci</span>
 </div>
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v14</span></div>
+  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v15</span></div>
   <div class="ais-hd-l">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 <div class="autore-bar">
@@ -652,7 +661,7 @@ function initSupabase(){
 <div class="page">
 
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v14</span></div>
+  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v15</span></div>
   <div class="ais-hd-r">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 
@@ -1914,14 +1923,15 @@ document.addEventListener('click', function(e){
 });
 
 onReg();rSav();
-// Avvia Supabase e controlla sessione
+// Avvia Supabase SUBITO e controlla sessione esistente
 initSupabase();
-supa.auth.getSession().then(function(res){
-  if(res.data&&res.data.session&&res.data.session.user){
-    onLogin(res.data.session.user);
-  }
-  // Aggiorna versione nell'header
-});
+setTimeout(function(){
+  supa.auth.getSession().then(function(res){
+    if(res.data&&res.data.session&&res.data.session.user){
+      onLogin(res.data.session.user);
+    }
+  });
+}, 500);
 
 
 /* ═══ SCRIPT PUNTI ═══ */
