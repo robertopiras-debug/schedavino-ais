@@ -1452,15 +1452,15 @@ async function caricaSchedeDB(){
     // ma non cancella schede locali che non sono ancora su DB
     var locale=JSON.parse(localStorage.getItem('ais_s')||'[]');
     var dbMap={};
-    data.forEach(function(r){dbMap[r.id]=Object.assign({},r,{
+    data.forEach(function(r){dbMap[String(r.id)]=Object.assign({},r,{
       parametri:r.parametri||{},
       descrittori:r.descrittori||[],
       sfumature:r.sfumature||[],
       desc_vis:r.desc_vis||[]
     });});
-    // Aggiunge le schede locali che non esistono ancora su DB
+    // Aggiunge le schede locali che non esistono ancora su DB (confronto String)
     locale.forEach(function(s){
-      if(!dbMap[s.id]) dbMap[s.id]=s;
+      if(!dbMap[String(s.id)]) dbMap[String(s.id)]=s;
     });
     var merged=Object.values(dbMap).sort(function(a,b){
       return (b.dt||'').localeCompare(a.dt||'');
@@ -1504,7 +1504,7 @@ async function caricaValutazioniDB(){
       };
       dbMap[r.id]=mapped;
     });
-    locale.forEach(function(s){if(!dbMap[s.id]) dbMap[s.id]=s;});
+    locale.forEach(function(s){if(!dbMap[String(s.id)]) dbMap[String(s.id)]=s;});
     var merged=Object.values(dbMap).sort(function(a,b){
       return (b.dt||'').localeCompare(a.dt||'');
     });
