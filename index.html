@@ -251,7 +251,7 @@ function initSupabase(){
   <span style="color:var(--m);cursor:pointer;font-weight:700" onclick="doLogout()">Esci</span>
 </div>
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v13</span></div>
+  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v14</span></div>
   <div class="ais-hd-l">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 <div class="autore-bar">
@@ -652,7 +652,7 @@ function initSupabase(){
 <div class="page">
 
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v13</span></div>
+  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v14</span></div>
   <div class="ais-hd-r">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 
@@ -1374,9 +1374,13 @@ async function doLogin(){
   var pwd=document.getElementById('login-pwd').value;
   if(!email||!pwd){showLoginMsg('Inserisci email e password','#e0a030');return;}
   showLoginMsg('Accesso in corso...','#888');
-  var {data,error}=await supa.auth.signInWithPassword({email,password:pwd});
-  if(error){showLoginMsg('Errore: '+error.message,'#c0006a');return;}
-  onLogin(data.user);
+  try {
+    var res=await supa.auth.signInWithPassword({email:email,password:pwd});
+    if(res.error){showLoginMsg('Errore: '+res.error.message,'#c0006a');return;}
+    onLogin(res.data.user);
+  } catch(e){
+    showLoginMsg('Errore connessione: '+e.message,'#c0006a');
+  }
 }
 
 async function doRegister(){
@@ -1385,9 +1389,18 @@ async function doRegister(){
   if(!email||!pwd){showLoginMsg('Inserisci email e password','#e0a030');return;}
   if(pwd.length<6){showLoginMsg('Password minimo 6 caratteri','#e0a030');return;}
   showLoginMsg('Registrazione in corso...','#888');
-  var {data,error}=await supa.auth.signUp({email,password:pwd});
-  if(error){showLoginMsg('Errore: '+error.message,'#c0006a');return;}
-  showLoginMsg('✓ Registrato! Controlla la tua email per confermare.','#5a8a5a');
+  try {
+    var res=await supa.auth.signUp({email:email,password:pwd});
+    if(res.error){showLoginMsg('Errore: '+res.error.message,'#c0006a');return;}
+    if(res.data&&res.data.user){
+      showLoginMsg('✓ Registrato! Accesso automatico...','#5a8a5a');
+      setTimeout(function(){ onLogin(res.data.user); }, 1000);
+    } else {
+      showLoginMsg('✓ Registrato! Ora accedi.','#5a8a5a');
+    }
+  } catch(e){
+    showLoginMsg('Errore connessione: '+e.message,'#c0006a');
+  }
 }
 
 function doLogout(){
