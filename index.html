@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Scheda AIS — Degustazione</title>
@@ -206,7 +207,6 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 .nav-btn.pt{background:var(--m);color:#fff}
 .nav-btn:not(.attivo){opacity:.5}
 body{padding-bottom:54px}
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzdHhuY3VzaHJsdmpobHh1bHR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjQzNzcsImV4cCI6MjA5NzAwMDM3N30.SLC-z84TDdBlQPCbQ8WPhM0zr_nG3VFVue2EqdNtQrQ';
@@ -215,13 +215,17 @@ function initSupabase(){
   supa=supabase.createClient(SUPA_URL,SUPA_KEY);
 }
 // Inizializza subito appena la libreria è disponibile
-document.addEventListener('DOMContentLoaded', function(){
-  initSupabase();
-  supa.auth.getSession().then(function(res){
-    if(res.data&&res.data.session&&res.data.session.user){
-      onLogin(res.data.session.user);
-    }
-  });
+window.addEventListener('load', function(){
+  try {
+    initSupabase();
+    supa.auth.getSession().then(function(res){
+      if(res.data&&res.data.session&&res.data.session.user){
+        onLogin(res.data.session.user);
+      }
+    });
+  } catch(e){
+    console.error('Supabase init error:', e);
+  }
 });
 </script>
 </style>
@@ -260,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function(){
   <span style="color:var(--m);cursor:pointer;font-weight:700" onclick="doLogout()">Esci</span>
 </div>
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v15</span></div>
+  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v16</span></div>
   <div class="ais-hd-l">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 <div class="autore-bar">
@@ -661,7 +665,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <div class="page">
 
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v15</span></div>
+  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v16</span></div>
   <div class="ais-hd-r">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 
