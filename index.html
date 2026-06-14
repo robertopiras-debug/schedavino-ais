@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Scheda AIS — Degustazione</title>
@@ -208,25 +207,80 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 .nav-btn:not(.attivo){opacity:.5}
 body{padding-bottom:54px}
 <script>
+// ─── SUPABASE via fetch REST (no CDN) ────────────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzdHhuY3VzaHJsdmpobHh1bHR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjQzNzcsImV4cCI6MjA5NzAwMDM3N30.SLC-z84TDdBlQPCbQ8WPhM0zr_nG3VFVue2EqdNtQrQ';
-let supa=null, currentUser=null;
-function initSupabase(){
-  supa=supabase.createClient(SUPA_URL,SUPA_KEY);
+var currentUser=null, accessToken=null;
+
+function supaHeaders(withAuth){
+  var h={'Content-Type':'application/json','apikey':SUPA_KEY};
+  if(withAuth&&accessToken) h['Authorization']='Bearer '+accessToken;
+  else h['Authorization']='Bearer '+SUPA_KEY;
+  return h;
 }
-// Inizializza subito appena la libreria è disponibile
-window.addEventListener('load', function(){
+
+async function supaSignUp(email,pwd){
+  var r=await fetch(SUPA_URL+'/auth/v1/signup',{
+    method:'POST',headers:supaHeaders(false),
+    body:JSON.stringify({email:email,password:pwd})
+  });
+  return r.json();
+}
+
+async function supaSignIn(email,pwd){
+  var r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=password',{
+    method:'POST',headers:supaHeaders(false),
+    body:JSON.stringify({email:email,password:pwd})
+  });
+  return r.json();
+}
+
+async function supaGetSession(){
+  var stored=localStorage.getItem('supa_session');
+  if(!stored) return null;
   try {
-    initSupabase();
-    supa.auth.getSession().then(function(res){
-      if(res.data&&res.data.session&&res.data.session.user){
-        onLogin(res.data.session.user);
-      }
-    });
-  } catch(e){
-    console.error('Supabase init error:', e);
-  }
-});
+    var s=JSON.parse(stored);
+    if(s&&s.access_token&&s.user){
+      accessToken=s.access_token;
+      return s.user;
+    }
+  } catch(e){}
+  return null;
+}
+
+async function supaInsertOrUpdate(table, row){
+  var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?on_conflict=id',{
+    method:'POST',
+    headers:Object.assign(supaHeaders(true),{
+      'Prefer':'resolution=merge-duplicates'
+    }),
+    body:JSON.stringify(row)
+  });
+  return r.ok;
+}
+
+async function supaSelect(table, filters){
+  var q=Object.entries(filters||{}).map(function(kv){return kv[0]+'=eq.'+encodeURIComponent(kv[1]);}).join('&');
+  var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?'+q+'&order=created_at.desc',{
+    headers:supaHeaders(true)
+  });
+  return r.ok?r.json():[];
+}
+
+async function supaDelete(table, id){
+  await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{
+    method:'DELETE', headers:supaHeaders(true)
+  });
+}
+
+function initSupabase(){
+  // Controlla sessione salvata
+  supaGetSession().then(function(user){
+    if(user){ currentUser=user; onLogin(user); }
+  });
+}
+
+window.addEventListener('load', function(){ initSupabase(); });
 </script>
 </style>
 </head>
@@ -264,7 +318,7 @@ window.addEventListener('load', function(){
   <span style="color:var(--m);cursor:pointer;font-weight:700" onclick="doLogout()">Esci</span>
 </div>
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v16</span></div>
+  <div class="ais-hd-t">Scheda<br>Analitico-Descrittiva<br>del Vino <span style="color:var(--m);font-size:10px">v17</span></div>
   <div class="ais-hd-l">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 <div class="autore-bar">
@@ -665,7 +719,7 @@ window.addEventListener('load', function(){
 <div class="page">
 
 <div class="ais-hd">
-  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v16</span></div>
+  <div class="ais-hd-t">Scheda<br>Valutazione<br>a Punti <span style="color:var(--m);font-size:10px">v17</span></div>
   <div class="ais-hd-r">Associazione<br>Italiana<br>Sommelier</div>
 </div>
 
@@ -1388,9 +1442,11 @@ async function doLogin(){
   if(!email||!pwd){showLoginMsg('Inserisci email e password','#e0a030');return;}
   showLoginMsg('Accesso in corso...','#888');
   try {
-    var res=await supa.auth.signInWithPassword({email:email,password:pwd});
-    if(res.error){showLoginMsg('Errore: '+res.error.message,'#c0006a');return;}
-    onLogin(res.data.user);
+    var res=await supaSignIn(email,pwd);
+    if(res.error||res.error_code){showLoginMsg('Errore: '+(res.error_description||res.message||'credenziali errate'),'#c0006a');return;}
+    accessToken=res.access_token;
+    localStorage.setItem('supa_session', JSON.stringify({access_token:res.access_token,user:res.user}));
+    onLogin(res.user);
   } catch(e){
     showLoginMsg('Errore connessione: '+e.message,'#c0006a');
   }
@@ -1403,21 +1459,24 @@ async function doRegister(){
   if(pwd.length<6){showLoginMsg('Password minimo 6 caratteri','#e0a030');return;}
   showLoginMsg('Registrazione in corso...','#888');
   try {
-    var res=await supa.auth.signUp({email:email,password:pwd});
-    if(res.error){showLoginMsg('Errore: '+res.error.message,'#c0006a');return;}
-    if(res.data&&res.data.user){
+    var res=await supaSignUp(email,pwd);
+    if(res.error||res.error_code){showLoginMsg('Errore: '+(res.error_description||res.msg||JSON.stringify(res)),'#c0006a');return;}
+    // Login automatico dopo registrazione
+    if(res.access_token){
+      accessToken=res.access_token;
+      localStorage.setItem('supa_session',JSON.stringify({access_token:res.access_token,user:res.user}));
       showLoginMsg('✓ Registrato! Accesso automatico...','#5a8a5a');
-      setTimeout(function(){ onLogin(res.data.user); }, 1000);
+      setTimeout(function(){ onLogin(res.user); }, 800);
     } else {
-      showLoginMsg('✓ Registrato! Ora accedi.','#5a8a5a');
+      showLoginMsg('✓ Registrato! Ora accedi con le tue credenziali.','#5a8a5a');
     }
   } catch(e){
-    showLoginMsg('Errore connessione: '+e.message,'#c0006a');
+    showLoginMsg('Errore: '+e.message,'#c0006a');
   }
 }
 
 function doLogout(){
-  supa.auth.signOut();
+  localStorage.removeItem('supa_session'); accessToken=null;
   currentUser=null;
   document.getElementById('app-screen').style.display='none';
   document.getElementById('login-screen').style.display='flex';
@@ -1444,11 +1503,7 @@ function onLogin(user){
 // ─── SYNC SUPABASE ────────────────────────────────────────────────────────
 async function caricaSchedeDB(){
   if(!currentUser) return;
-  var {data,error}=await supa.from('schede_analitiche')
-    .select('*')
-    .eq('user_email',currentUser.email)
-    .order('created_at',{ascending:false});
-  if(error){console.error('Caricamento schede:',error);return;}
+  var data=await supaSelect('schede_analitiche',{user_email:currentUser.email});
   // Salva in localStorage come cache locale
   if(data&&data.length){
     var schede=data.map(function(r){
@@ -1468,10 +1523,7 @@ async function caricaSchedeDB(){
 
 async function caricaValutazioniDB(){
   if(!currentUser) return;
-  var {data,error}=await supa.from('valutazioni_punti')
-    .select('*')
-    .eq('user_email',currentUser.email);
-  if(error) return;
+  var data=await supaSelect('valutazioni_punti',{user_email:currentUser.email});
   if(data&&data.length){
     var vp=data.map(function(r){
       return Object.assign({},r,{voti:r.voti||{}});
@@ -1483,8 +1535,7 @@ async function caricaValutazioniDB(){
 async function salvaSuDB(scheda){
   if(!currentUser) return;
   var row=Object.assign({},scheda,{user_email:currentUser.email});
-  var {error}=await supa.from('schede_analitiche').upsert(row,{onConflict:'id'});
-  if(error) console.error('Salvataggio DB:',error);
+  await supaInsertOrUpdate('schede_analitiche', row);
 }
 
 async function salvaValutazioneDB(val){
@@ -1493,13 +1544,12 @@ async function salvaValutazioneDB(val){
     user_email:currentUser.email,
     analitica_id:val.analiticaId||null
   });
-  var {error}=await supa.from('valutazioni_punti').upsert(row,{onConflict:'id'});
-  if(error) console.error('Salvataggio valutazione DB:',error);
+  await supaInsertOrUpdate('valutazioni_punti', row);
 }
 
 async function eliminaSchemaDB(id){
   if(!currentUser) return;
-  await supa.from('schede_analitiche').delete().eq('id',id);
+  await supaDelete('schede_analitiche', id);
 }
 
 function onReg(){
@@ -1927,15 +1977,6 @@ document.addEventListener('click', function(e){
 });
 
 onReg();rSav();
-// Avvia Supabase SUBITO e controlla sessione esistente
-initSupabase();
-setTimeout(function(){
-  supa.auth.getSession().then(function(res){
-    if(res.data&&res.data.session&&res.data.session.user){
-      onLogin(res.data.session.user);
-    }
-  });
-}, 500);
 
 
 /* ═══ SCRIPT PUNTI ═══ */
