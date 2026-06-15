@@ -264,7 +264,38 @@ body{padding-bottom:54px}
     </div>
     <button onclick="doLogin()" style="width:100%;padding:11px;background:var(--m);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">Accedi</button>
     <div style="text-align:center;margin-top:10px">
-      <span style="font-size:11px;color:#888;cursor:pointer;text-decoration:underline" onclick="doRegister()">Prima volta? Registrati</span>
+      <span style="font-size:11px;color:var(--m);cursor:pointer;font-weight:600" onclick="mostraReg()">Prima volta? Registrati →</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCHERMATA REGISTRAZIONE -->
+<div id="reg-screen" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f0f0e8;padding:20px;position:fixed;top:0;left:0;width:100%;z-index:600">
+  <div style="background:#fff;border-radius:6px;border:2px solid var(--m);padding:24px 20px;max-width:340px;width:100%">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:800;color:var(--m)">Nuovo account</div>
+      <div style="font-size:10px;color:#888;margin-top:3px">Scheda AIS Degustazione Vini</div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--d);letter-spacing:.05em">Nome e Cognome</label>
+      <input id="reg-nome" type="text" placeholder="es. Mario Rossi" style="width:100%;margin-top:3px;padding:8px;border:1px solid var(--b);border-radius:3px;font-size:13px">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--d);letter-spacing:.05em">Email</label>
+      <input id="reg-email" type="email" placeholder="la-tua@email.it" style="width:100%;margin-top:3px;padding:8px;border:1px solid var(--b);border-radius:3px;font-size:13px">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--d);letter-spacing:.05em">Password</label>
+      <input id="reg-pwd" type="password" placeholder="minimo 6 caratteri" style="width:100%;margin-top:3px;padding:8px;border:1px solid var(--b);border-radius:3px;font-size:13px">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--d);letter-spacing:.05em">Conferma Password</label>
+      <input id="reg-pwd2" type="password" placeholder="ripeti la password" style="width:100%;margin-top:3px;padding:8px;border:1px solid var(--b);border-radius:3px;font-size:13px">
+    </div>
+    <button onclick="doRegister()" style="width:100%;padding:11px;background:var(--m);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Registrati</button>
+    <div id="reg-msg" style="display:none;font-size:11px;padding:8px;border-radius:3px;text-align:center;margin-bottom:8px"></div>
+    <div style="text-align:center">
+      <span style="font-size:11px;color:var(--m);cursor:pointer;font-weight:600" onclick="nascondiReg()">← Torna al login</span>
     </div>
   </div>
 </div>
@@ -1442,15 +1473,44 @@ async function doLogin(){
   }
 }
 
+function mostraReg(){
+  document.getElementById('reg-screen').style.display='flex';
+  document.getElementById('reg-nome').value='';
+  document.getElementById('reg-email').value='';
+  document.getElementById('reg-pwd').value='';
+  document.getElementById('reg-pwd2').value='';
+  document.getElementById('reg-msg').style.display='none';
+}
+
+function nascondiReg(){
+  document.getElementById('reg-screen').style.display='none';
+}
+
+function showRegMsg(msg, color){
+  var el=document.getElementById('reg-msg');
+  el.textContent=msg;
+  el.style.display='block';
+  el.style.background=color==='#c0006a'?'#fff0f5':color==='#2e6b2e'?'#eef5e8':'#f5f5f0';
+  el.style.color=color;
+  el.style.border='1px solid '+color;
+}
+
 async function doRegister(){
-  var email=document.getElementById('login-email').value.trim();
-  var pwd=document.getElementById('login-pwd').value;
-  if(!email||!pwd){showLoginMsg('Inserisci email e password','#e0a030');return;}
-  if(pwd.length<6){showLoginMsg('Password minimo 6 caratteri','#e0a030');return;}
-  showLoginMsg('Registrazione in corso...','#888');
+  var nome=document.getElementById('reg-nome').value.trim();
+  var email=document.getElementById('reg-email').value.trim();
+  var pwd=document.getElementById('reg-pwd').value;
+  var pwd2=document.getElementById('reg-pwd2').value;
+  if(!nome){showRegMsg('Inserisci nome e cognome','#e0a030');return;}
+  if(!email){showRegMsg('Inserisci la tua email','#e0a030');return;}
+  if(!pwd||pwd.length<6){showRegMsg('Password di almeno 6 caratteri','#e0a030');return;}
+  if(pwd!==pwd2){showRegMsg('Le password non coincidono','#c0006a');return;}
+  showRegMsg('Registrazione in corso...','#888');
   try {
     var res=await supaSignUp(email,pwd);
-    if(res.error||res.error_code){showLoginMsg('Errore: '+(res.error_description||res.msg||JSON.stringify(res)),'#c0006a');return;}
+    if(res.error||res.error_code){
+      showRegMsg('Errore: '+(res.error_description||res.message||JSON.stringify(res)),'#c0006a');
+      return;
+    }
     if(res.access_token){
       accessToken=res.access_token;
       refreshToken=res.refresh_token||null;
@@ -1459,13 +1519,20 @@ async function doRegister(){
         refresh_token:res.refresh_token||null,
         user:res.user
       }));
-      showLoginMsg('✓ Registrato! Accesso automatico...','#5a8a5a');
-      setTimeout(function(){ onLogin(res.user); }, 800);
+      showRegMsg('✓ Registrazione completata!','#2e6b2e');
+      nascondiReg();
+      // Usa il nome inserito come display name
+      setTimeout(function(){
+        onLogin(res.user);
+        var hd=document.getElementById('home-degustatore');
+        if(hd) hd.textContent=nome;
+      }, 500);
     } else {
-      showLoginMsg('✓ Registrato! Ora accedi con le tue credenziali.','#5a8a5a');
+      // Supabase richiede conferma email
+      showRegMsg('✓ Registrato! Controlla la tua email per confermare l'account, poi accedi.','#2e6b2e');
     }
   } catch(e){
-    showLoginMsg('Errore: '+e.message,'#c0006a');
+    showRegMsg('Errore di connessione: '+e.message,'#c0006a');
   }
 }
 
