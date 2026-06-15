@@ -232,7 +232,6 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 
 
 /* ═══ NAVIGAZIONE ═══ */
-.vista{display:none}
 .vista.attiva{display:block}
 .nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;display:flex;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.15)}
 .nav-btn{flex:1;padding:13px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -896,9 +895,11 @@ body{padding-bottom:54px}
 
 <script>
 function mostraVista(v){
-  document.querySelectorAll('.vista').forEach(function(el){el.style.display='none'});
+  document.querySelectorAll('.vista').forEach(function(el){
+    el.style.setProperty('display','none','important');
+  });
   var vEl=document.getElementById('vista-'+v);
-  if(vEl) vEl.style.display='block';
+  if(vEl) vEl.style.setProperty('display','block','important');
   document.getElementById('btn-home').classList.toggle('attivo',v==='home');
   document.getElementById('btn-an').classList.toggle('attivo',v==='analitica');
   document.getElementById('btn-pt').classList.toggle('attivo',v==='punti');
