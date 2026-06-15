@@ -1969,7 +1969,7 @@ function savLocal(){
     // Aggiorna la scheda esistente — non crea mai un duplicato
     var trovata=false;
     l=l.map(function(s){
-      if(s.id===editingId){
+      if(s.id==editingId){
         trovata=true;
         d.id=editingId;
         d.dt=dt;
@@ -2214,7 +2214,7 @@ function loadS(id){
 
 
   // Imposta sempre modalità aggiornamento quando si carica una scheda
-  editingId=id;
+  editingId=typeof id==="string"?parseInt(id):id; // sempre numerico
   _schedaToccata=true;
   document.getElementById('btnSav').textContent='Aggiorna scheda';
   up();
@@ -3023,7 +3023,7 @@ function filtraHomeSchede(){
       +ptLabel+'</div></div>';
   }).join('');
 }
-function homeApriScheda(id){nascondiHome();setTimeout(function(){loadS(id);},50);}
+function homeApriScheda(id){nascondiHome();setTimeout(function(){loadS(typeof id==="string"?parseInt(id):id);},50);}
 function homeApriPunti(id){nascondiHome();apriInPunti(id,{stopPropagation:function(){}});}
 function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=currentUser.email.split('@')[0];}}
 
