@@ -1485,6 +1485,61 @@ function showLoginMsg(msg,color){
   el.style.color=color; el.style.border='1px solid '+color;
 }
 
+
+// ═══ CARICA DENOMINAZIONI DA SUPABASE ═══════════════════════════════════
+async function caricaDenominazioniDB(){
+  // Scarica denominazioni Sardegna
+  var dataDen = await supaSelect('denominazioni', {regione:'Sardegna'});
+  if(!dataDen || !dataDen.length) return; // fallback ai dati hardcoded
+
+  // Scarica menzioni
+  var dataMen = await supaSelect('denominazione_menzioni', {});
+  var menMap = {};
+  if(dataMen){
+    dataMen.forEach(function(m){
+      if(!menMap[m.denominazione_id]) menMap[m.denominazione_id]=[];
+      menMap[m.denominazione_id].push(m.menzione);
+    });
+  }
+
+  // Scarica vitigni per denominazione tramite denominazione_vitigni
+  var dataVitDen = await supaSelect('denominazione_vitigni', {});
+  var dataVitigni = await supaSelect('vitigni', {});
+  var vitigniById = {};
+  if(dataVitigni){
+    dataVitigni.forEach(function(v){ vitigniById[v.id]=v.nome; });
+  }
+  var vitMap = {};
+  if(dataVitDen){
+    dataVitDen.forEach(function(dv){
+      if(!vitMap[dv.denominazione_id]) vitMap[dv.denominazione_id]=[];
+      vitMap[dv.denominazione_id].push(vitigniById[dv.vitigno_id]||'');
+    });
+  }
+
+  // Costruisce array per DN['Sardegna']
+  var sarde = dataDen
+    .sort(function(a,b){
+      var ord={DOCG:0,DOC:1,IGT:2};
+      return (ord[a.tipo]||9)-(ord[b.tipo]||9) || a.nome.localeCompare(b.nome);
+    })
+    .map(function(d){
+      var tip = (d.colori||[]).concat(menMap[d.id]||[]);
+      return {n:d.nome, t:d.tipo, tip:tip};
+    });
+
+  // Sostituisce Sardegna in DN
+  DN['Sardegna'] = sarde;
+
+  // Aggiorna VIT con i vitigni dal DB (solo denominazioni con vitigni mappati)
+  dataDen.forEach(function(d){
+    var vits = vitMap[d.id];
+    if(vits && vits.length) VIT[d.nome] = vits;
+  });
+
+  console.log('[DB] Caricate', sarde.length, 'denominazioni Sardegna da Supabase');
+}
+
 function onLogin(user){
   currentUser=user;
   document.getElementById('login-screen').style.display='none';
@@ -1493,6 +1548,7 @@ function onLogin(user){
   var hd=document.getElementById('home-degustatore');
   if(hd) hd.textContent=user.email.split('@')[0];
   caricaSchedeDB();
+  caricaDenominazioniDB();
   mostraHome();
 }
 
