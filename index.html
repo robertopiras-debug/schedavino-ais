@@ -1606,7 +1606,8 @@ function onLogin(user){
   var hd=document.getElementById('home-degustatore');
   if(hd) hd.textContent=nomeDegs;
   caricaSchedeDB();
-  mostraVista('home');
+  // setTimeout garantisce che app-screen sia visibile prima di mostraVista
+  setTimeout(function(){ mostraVista('home'); }, 50);
 }
 
 // ─── SYNC SUPABASE — v20 ─────────────────────────────────────────────────
