@@ -2948,14 +2948,23 @@ function filtraHomeSchede(){
   if(!el) return;
   if(!lista.length && q){el.innerHTML='<div style="text-align:center;padding:20px 0;color:#aaa;font-size:12px">Nessun risultato — prova con un termine diverso.</div>';return;}
   if(!lista.length){el.innerHTML='';return;}
+  var puntiMap={};
+  JSON.parse(localStorage.getItem('ais_punti')||'[]').forEach(function(p){
+    // Associa per analiticaId o per corrispondenza produttore+nome
+    if(p.analiticaId) puntiMap[p.analiticaId]=p;
+  });
   el.innerHTML=lista.map(function(s){
     var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—');
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
+    var val=puntiMap[s.id]||puntiMap[String(s.id)];
+    var ptLabel=val
+      ?'<span style="font-size:11px;color:var(--m);font-weight:700" onclick="event.stopPropagation();homeApriPunti('+s.id+')">🎯 <strong>'+Math.round(val.punteggio)+'</strong> pt · '+val.fascia+'</span>'
+      :'<span style="font-size:10px;color:#bbb" onclick="event.stopPropagation();homeApriPunti('+s.id+')">🎯 Valuta</span>';
     return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid var(--m);box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer" onclick="homeApriScheda('+s.id+')">'
       +'<div style="font-size:13px;color:var(--d);margin-bottom:3px">'+titolo+'</div>'
       +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')
-      +'<div style="display:flex;justify-content:space-between"><span style="font-size:10px;color:#aaa">'+(s.dt?s.dt.split(' ')[0]:'')+'</span>'
-      +'<span style="font-size:10px;color:var(--m);font-weight:700" onclick="event.stopPropagation();homeApriPunti('+s.id+')">🎯 Punti</span></div></div>';
+      +'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:#aaa">'+(s.dt?s.dt.split(' ')[0]:'')+'</span>'
+      +ptLabel+'</div></div>';
   }).join('');
 }
 function homeApriScheda(id){nascondiHome();setTimeout(function(){loadS(id);},50);}
