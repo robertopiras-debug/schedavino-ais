@@ -2894,9 +2894,12 @@ function loadP(id){
     analiticaP=schede.find(function(x){return x.id===s.analiticaId;})||null;
   }
   votiConfermati=new Set();
+  votiBase={};
   Object.keys(s.voti||{}).forEach(function(k){setVoto(k,s.voti[k],true);});
   // Una scheda già salvata ha tutti i parametri confermati per definizione
   PARAMS.forEach(function(p){votiConfermati.add(p.id);});
+  // Aggiorna visualizzazione chip per riflettere stato confermato
+  PARAMS.forEach(function(p){aggiornaSlider(p.id);});
   document.getElementById('notaP').value=s.nota||'';
   editingIdP=id;
   mostraScheda();
