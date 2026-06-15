@@ -2946,7 +2946,7 @@ function salvaPunti(){
   };
 
   // Sovrascrive sempre — una sola valutazione per scheda analitica
-  var idx=l.findIndex(function(s){return s.analiticaId===aId;});
+  var idx=l.findIndex(function(s){return s.analiticaId==aId;}); // == gestisce number/string mismatch
   if(idx>-1){
     l[idx]=d;
   } else {
@@ -3010,7 +3010,7 @@ function loadP(id){
   // Aggiorna visualizzazione chip per riflettere stato confermato
   PARAMS.forEach(function(p){aggiornaSlider(p.id);});
   document.getElementById('notaP').value=s.nota||'';
-  editingIdP=id;
+  editingIdP=typeof id==="string"?parseInt(id):id;
   mostraScheda();
   if(analiticaP){
     document.getElementById('t-autore').textContent=analiticaP.autore||'—';
