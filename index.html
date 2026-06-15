@@ -270,11 +270,6 @@ body{padding-bottom:54px}
 
 <!-- APP (nascosta finché non si fa login) -->
 <div id="app-screen" style="display:none;overflow:visible;min-height:100vh">
-<div class="page">
-<div style="background:#fff;padding:5px 12px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;font-size:11px">
-  <span style="color:var(--d)">👤 <span id="user-label">—</span></span>
-  <span style="color:var(--m);cursor:pointer;font-weight:700" onclick="doLogout()">Esci</span>
-</div>
 <!-- ═══ HOME PAGE ═══ -->
 <div id="vista-home" class="vista" style="min-height:calc(100vh - 80px);background:#f0f0e8;padding:0 0 80px">
   <!-- Header home -->
@@ -312,6 +307,12 @@ body{padding-bottom:54px}
     </div>
     <div id="home-lista"></div>
   </div>
+</div>
+
+<div class="page">
+<div style="background:#fff;padding:5px 12px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;font-size:11px">
+  <span style="color:var(--d)">👤 <span id="user-label">—</span></span>
+  <span style="color:var(--m);cursor:pointer;font-weight:700" onclick="doLogout()">Esci</span>
 </div>
 
 <div class="ais-hd">
