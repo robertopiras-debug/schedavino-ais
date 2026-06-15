@@ -1537,6 +1537,8 @@ async function doRegister(){
 }
 
 function doLogout(){
+  // Impedisce re-login automatico da initSupabase
+  _explicitLogout=true;
   // Prima di tutto invalida la sessione
   localStorage.removeItem('supa_session');
   localStorage.removeItem('ais_last_user');
@@ -1620,6 +1622,7 @@ async function caricaDenominazioniDB(){
 }
 
 function onLogin(user){
+  _explicitLogout=false; // reset flag — login volontario
   currentUser=user;
 
   // Controlla se è cambiato l'utente rispetto all'ultima sessione
@@ -2499,10 +2502,14 @@ async function supaDelete(table, id){
   });
 }
 
+var _explicitLogout=false; // flag: l'utente ha fatto logout esplicito
+
 function initSupabase(){
+  // Se l'utente ha fatto logout esplicito non ri-logga automaticamente
+  if(_explicitLogout) return;
   // Controlla sessione salvata — verifica scadenza e tenta refresh se necessario
   supaGetSession().then(function(user){
-    if(user){ currentUser=user; onLogin(user); }
+    if(user && !_explicitLogout){ currentUser=user; onLogin(user); }
   });
 }
 
