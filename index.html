@@ -2940,7 +2940,8 @@ function filtraHomeSchede(){
       benv.innerHTML='Benvenuto <strong>'+nome+'</strong> — non ho ancora schede salvate per te.'
         +'<br>Premi <strong>+ Nuova Scheda</strong> per iniziare la tua prima degustazione.';
     } else {
-      benv.innerHTML='Benvenuto <strong>'+nome+'</strong> — ho in archivio <strong>'+tot+'</strong> scheda'+(tot!==1?'e':'')+' salvata'+(tot!==1?'e':'')+' da te.'
+      var nSchede=tot===1?'1 scheda salvata':''+tot+' schede salvate';
+      benv.innerHTML='Benvenuto <strong>'+nome+'</strong> — ho in archivio <strong>'+nSchede+'</strong> da te.'
         +'<br><span style="color:#888">Aprila per consultarla o aggiornarla, oppure crea una nuova degustazione.</span>';
     }
   }
@@ -3008,7 +3009,7 @@ function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=d
     </div>
   </div>
   <div style="padding:0 12px">
-    <div id="home-benvenuto" style="background:#fff;border-radius:4px;padding:14px;margin-bottom:12px;border-left:4px solid var(--m);font-size:12px;color:var(--d);line-height:1.7"></div>
+    <div id="home-benvenuto" style="background:#fff;border-radius:6px;padding:18px 16px;margin-bottom:14px;font-size:13px;color:var(--d);line-height:1.8;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08)"></div>
     <div id="home-lista"></div>
   </div>
 </div>
