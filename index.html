@@ -1539,6 +1539,9 @@ async function doRegister(){
 function doLogout(){
   localStorage.removeItem('supa_session');
   accessToken=null; refreshToken=null; currentUser=null;
+  // Nasconde home overlay e app screen
+  var ho=document.getElementById('home-overlay');
+  if(ho) ho.style.display='none';
   document.getElementById('app-screen').style.display='none';
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('login-email').value='';
