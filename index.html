@@ -3014,15 +3014,35 @@ function filtraHomeSchede(){
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
     var ptLabel=val
-      ?'<span style="font-size:11px;color:var(--m);font-weight:700" onclick="event.stopPropagation();homeApriPunti('+s.id+')">🎯 <strong>'+Math.round(val.punteggio)+'</strong> pt · '+val.fascia+'</span>'
-      :'<span style="font-size:10px;color:#bbb" onclick="event.stopPropagation();homeApriPunti('+s.id+')">🎯 Valuta</span>';
-    return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid var(--m);box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer" onclick="homeApriScheda('+s.id+')">'
+      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 '+Math.round(val.punteggio)+' pt · '+val.fascia+'</button>'
+      :'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>';
+    var dt=s.dt?s.dt.split(' ')[0]:'';
+    return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid var(--m);box-shadow:0 1px 3px rgba(0,0,0,.08)">'
       +'<div style="font-size:13px;color:var(--d);margin-bottom:3px">'+titolo+'</div>'
-      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')
-      +'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:#aaa">'+(s.dt?s.dt.split(' ')[0]:'')+'</span>'
-      +ptLabel+'</div></div>';
+      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:5px">'+sub+'</div>':'')
+      +'<div style="display:flex;justify-content:space-between;align-items:center">'
+      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'
+      +'<div style="display:flex;align-items:center;gap:6px">'
+      +'<button onclick="homeApriScheda('+s.id+')" style="font-size:11px;padding:4px 10px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>'
+      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:11px;padding:4px 8px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'
+      +ptLabel
+      +'</div>'
+      +'</div></div>';
   }).join('');
 }
+function homeElimina(id, e){
+  e.stopPropagation();
+  if(!confirm('Eliminare questa scheda?')) return;
+  // Elimina da localStorage
+  var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  l=l.filter(function(s){return s.id!=id;});
+  localStorage.setItem('ais_s',JSON.stringify(l));
+  // Elimina da DB
+  if(typeof eliminaSchemaDB==='function') eliminaSchemaDB(id);
+  // Aggiorna lista home
+  aggiornaHomeSchede();
+}
+
 function homeApriScheda(id){nascondiHome();setTimeout(function(){loadS(typeof id==="string"?parseInt(id):id);},50);}
 function homeApriPunti(id){nascondiHome();apriInPunti(id,{stopPropagation:function(){}});}
 function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=currentUser.email.split('@')[0];}}
