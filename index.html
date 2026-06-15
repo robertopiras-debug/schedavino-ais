@@ -1537,22 +1537,27 @@ async function doRegister(){
 }
 
 function doLogout(){
-  // Impedisce re-login automatico da initSupabase
   _explicitLogout=true;
-  // Prima di tutto invalida la sessione
+  sessionStorage.setItem('ais_logout','1'); // persiste al reload ma non alla chiusura tab
+  // Chiama Supabase signout per invalidare il token lato server
+  if(accessToken){
+    fetch('https://rstxncushrlvjhlxulty.supabase.co/auth/v1/logout',{
+      method:'POST',
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzdHhuY3VzaHJsdmpobHh1bHR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MjQzNzcsImV4cCI6MjA5NzAwMDM3N30.SLC-z84TDdBlQPCbQ8WPhM0zr_nG3VFVue2EqdNtQrQ',
+      'Authorization':'Bearer '+accessToken}
+    }).catch(function(){});
+  }
   localStorage.removeItem('supa_session');
   localStorage.removeItem('ais_last_user');
   accessToken=null; refreshToken=null; currentUser=null;
-  // Nasconde tutto ciò che appartiene all'app
   var ho=document.getElementById('home-overlay');
   if(ho) ho.style.display='none';
   var nb=document.querySelector('.nav-bar');
   if(nb) nb.style.display='none';
   document.getElementById('app-screen').style.display='none';
-  // Mostra login pulito
   var ls=document.getElementById('login-screen');
   ls.style.display='flex';
-  ls.style.zIndex='1000'; // sopra tutto
+  ls.style.zIndex='1000';
   document.getElementById('login-email').value='';
   document.getElementById('login-pwd').value='';
   var lm=document.getElementById('login-msg');
@@ -1622,7 +1627,8 @@ async function caricaDenominazioniDB(){
 }
 
 function onLogin(user){
-  _explicitLogout=false; // reset flag — login volontario
+  _explicitLogout=false;
+  sessionStorage.removeItem('ais_logout'); // reset flag — login volontario
   currentUser=user;
 
   // Controlla se è cambiato l'utente rispetto all'ultima sessione
@@ -2505,11 +2511,12 @@ async function supaDelete(table, id){
 var _explicitLogout=false; // flag: l'utente ha fatto logout esplicito
 
 function initSupabase(){
-  // Se l'utente ha fatto logout esplicito non ri-logga automaticamente
-  if(_explicitLogout) return;
-  // Controlla sessione salvata — verifica scadenza e tenta refresh se necessario
+  // Controlla sia il flag in memoria che in sessionStorage (sopravvive al reload)
+  if(_explicitLogout || sessionStorage.getItem('ais_logout')==='1') return;
   supaGetSession().then(function(user){
-    if(user && !_explicitLogout){ currentUser=user; onLogin(user); }
+    if(user && !_explicitLogout && sessionStorage.getItem('ais_logout')!=='1'){
+      currentUser=user; onLogin(user);
+    }
   });
 }
 
