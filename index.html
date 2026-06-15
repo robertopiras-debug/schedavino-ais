@@ -1537,15 +1537,24 @@ async function doRegister(){
 }
 
 function doLogout(){
+  // Prima di tutto invalida la sessione
   localStorage.removeItem('supa_session');
+  localStorage.removeItem('ais_last_user');
   accessToken=null; refreshToken=null; currentUser=null;
-  // Nasconde home overlay e app screen
+  // Nasconde tutto ciò che appartiene all'app
   var ho=document.getElementById('home-overlay');
   if(ho) ho.style.display='none';
+  var nb=document.querySelector('.nav-bar');
+  if(nb) nb.style.display='none';
   document.getElementById('app-screen').style.display='none';
-  document.getElementById('login-screen').style.display='flex';
+  // Mostra login pulito
+  var ls=document.getElementById('login-screen');
+  ls.style.display='flex';
+  ls.style.zIndex='1000'; // sopra tutto
   document.getElementById('login-email').value='';
   document.getElementById('login-pwd').value='';
+  var lm=document.getElementById('login-msg');
+  if(lm) lm.style.display='none';
 }
 
 function showLoginMsg(msg,color){
@@ -1625,6 +1634,8 @@ function onLogin(user){
 
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
+  var nb=document.querySelector('.nav-bar');
+  if(nb) nb.style.display='flex';
   document.getElementById('user-label').textContent=user.email;
   var hd=document.getElementById('home-degustatore');
   if(hd) hd.textContent=user.email.split('@')[0];
