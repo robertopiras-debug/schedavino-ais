@@ -1609,6 +1609,17 @@ async function caricaDenominazioniDB(){
 
 function onLogin(user){
   currentUser=user;
+
+  // Controlla se è cambiato l'utente rispetto all'ultima sessione
+  var lastUser=localStorage.getItem('ais_last_user');
+  if(lastUser && lastUser!==user.email){
+    // Utente diverso — svuota cache locale per evitare contaminazione tra account
+    localStorage.removeItem('ais_s');
+    localStorage.removeItem('ais_punti');
+    console.log('[Auth] Utente cambiato ('+lastUser+'→'+user.email+') — cache locale svuotata');
+  }
+  localStorage.setItem('ais_last_user', user.email);
+
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   document.getElementById('user-label').textContent=user.email;
