@@ -3196,7 +3196,7 @@ function homeNuovaRapida(){
   var el=document.getElementById('rp-sezioni');
   el.innerHTML=SEZIONI_RAPIDE.map(function(s){
     var chips=SCALA_AIS.map(function(c){
-      return '<button onclick="rpSetVoto(' + JSON.stringify(s.id) + ',' + c.v + ',this)" '
+      return '<button onclick="rpSetVoto(\'' + s.id + '\',' + c.v + ',this)" '
         + 'style="padding:6px 10px;border:1px solid #ddd;border-radius:3px;background:#fff;'
         + 'font-size:11px;cursor:pointer;transition:all .15s" data-sez="' + s.id + '" data-val="' + c.v + '">'
         + c.l + '</button>';
