@@ -2078,6 +2078,7 @@ function savLocal(){
         d.id=editingId;
         d.dt=dt;
         d.dt_crea=s.dt_crea||s.dt;
+        d.tipo='completa'; // completamento bozza VITAE → diventa scheda definitiva
         return d;
       }
       return s;
@@ -2134,6 +2135,13 @@ function editS(id,e){
 }
 
 function loadS(id){
+  // Se la scheda è una bozza, avvisa l'utente che può completarla
+  var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var sc=l.find(function(x){return x.id==(typeof id==='string'?parseInt(id):id);});
+  if(sc&&sc.tipo==='bozza'){
+    toast('⚡ Bozza VITAE — completa i campi mancanti e salva come scheda definitiva');
+  }
+
   var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
   var s=l.find(function(x){return x.id===id});
   if(!s)return;
@@ -3122,14 +3130,17 @@ function filtraHomeSchede(){
     if(p.analiticaId) puntiMap[p.analiticaId]=p;
   });
   el.innerHTML=lista.map(function(s){
-    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—');
+    var isBozza=s.tipo==='bozza';
+    var badgeBozza=isBozza?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#f5a800;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">BOZZA</span>':'';
+    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza;
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
     var ptLabel=val
       ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 '+Math.round(val.punteggio)+' pt · '+val.fascia+'</button>'
       :'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>';
     var dt=s.dt?s.dt.split(' ')[0]:'';
-    return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid var(--m);box-shadow:0 1px 3px rgba(0,0,0,.08)">'
+    var borderCol=isBozza?'#f5a800':'var(--m)';
+    return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08)">'
       +'<div style="font-size:13px;color:var(--d);margin-bottom:3px">'+titolo+'</div>'
       +(sub?'<div style="font-size:11px;color:#888;margin-bottom:5px">'+sub+'</div>':'')
       +'<div style="display:flex;justify-content:space-between;align-items:center">'
@@ -3158,6 +3169,153 @@ function homeElimina(id, e){
 function homeApriScheda(id){nascondiHome();setTimeout(function(){loadS(typeof id==="string"?parseInt(id):id);},50);}
 function homeApriPunti(id){nascondiHome();apriInPunti(id,{stopPropagation:function(){}});}
 function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=currentUser.email.split('@')[0];}}
+
+
+// ═══ MODALITÀ GUIDA VITAE ════════════════════════════════════════════════
+var SCALA_AIS=[
+  {v:6, l:'Accettabile'},
+  {v:7, l:'Buono'},
+  {v:8, l:'Distinto'},
+  {v:9, l:'Ottimo'},
+  {v:10,l:'Eccellente'}
+];
+
+var SEZIONI_RAPIDE=[
+  {id:'vis',  label:'Esame Visivo',          peso:0.10, params:['aspetto']},
+  {id:'olf',  label:'Esame Olfattivo',        peso:0.30, params:['iolf','purez','compl']},
+  {id:'gus',  label:'Esame Gusto-Olfattivo',  peso:0.40, params:['igus','equi','espr','pers']},
+  {id:'fin',  label:'Considerazioni Finali',  peso:0.20, params:['armo','qual']}
+];
+
+var _rpVoti={vis:null,olf:null,gus:null,fin:null};
+
+function homeNuovaRapida(){
+  nascondiHome();
+  _rpVoti={vis:null,olf:null,gus:null,fin:null};
+  // Popola le sezioni
+  var el=document.getElementById('rp-sezioni');
+  el.innerHTML=SEZIONI_RAPIDE.map(function(s){
+    var chips=SCALA_AIS.map(function(c){
+      return '<button onclick="rpSetVoto(''+s.id+'','+c.v+',this)" '
+        +'style="padding:6px 10px;border:1px solid #ddd;border-radius:3px;background:#fff;'
+        +'font-size:11px;cursor:pointer;transition:all .15s" data-sez="'+s.id+'" data-val="'+c.v+'">'
+        +c.l+'</button>';
+    }).join('');
+    return '<div style="margin-bottom:14px">'
+      +'<div style="font-size:11px;font-weight:700;color:var(--d);margin-bottom:6px">'+s.label
+      +' <span style="font-size:9px;font-weight:400;color:#aaa">(peso '+(s.peso*100)+'%)</span></div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:5px" id="rp-chips-'+s.id+'">'+chips+'</div>'
+      +'</div>';
+  }).join('');
+  // Pulisce campi
+  ['rp-produttore','rp-nome','rp-annata','rp-note'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('rp-colore').value='';
+  document.getElementById('rp-base').value='';
+  document.getElementById('rp-preview').textContent='—';
+  document.getElementById('rp-fascia').textContent='';
+  document.getElementById('rapida-overlay').style.display='block';
+}
+
+function nascondiRapida(){
+  document.getElementById('rapida-overlay').style.display='none';
+}
+
+function rpSetVoto(sezId, val, btn){
+  _rpVoti[sezId]=val;
+  // Aggiorna stile chip
+  document.querySelectorAll('[data-sez="'+sezId+'"]').forEach(function(b){
+    b.style.background=b.dataset.val==val?'var(--m)':'#fff';
+    b.style.color=b.dataset.val==val?'#fff':'#333';
+    b.style.borderColor=b.dataset.val==val?'var(--m)':'#ddd';
+    b.style.fontWeight=b.dataset.val==val?'700':'400';
+  });
+  rpAggiornaPunteggio();
+}
+
+function rpAggiornaPunteggio(){
+  var tot=0, pesoCoperto=0;
+  var tuttiSet=true;
+  SEZIONI_RAPIDE.forEach(function(s){
+    if(_rpVoti[s.id]!==null){
+      tot+=_rpVoti[s.id]*s.peso;
+      pesoCoperto+=s.peso;
+    } else {
+      tuttiSet=false;
+    }
+  });
+  var el=document.getElementById('rp-preview');
+  var ef=document.getElementById('rp-fascia');
+  if(pesoCoperto===0){el.textContent='—';ef.textContent='';return;}
+  // Normalizza sul peso coperto se non tutte le sezioni sono valutate
+  var pt=Math.round(tuttiSet?tot:(tot/pesoCoperto)*1);
+  if(tuttiSet) pt=Math.round(tot);
+  else pt='~'+Math.round(tot/pesoCoperto*10); // stima parziale
+  el.textContent=tuttiSet?Math.round(tot):('~'+Math.round(tot/pesoCoperto*10));
+  ef.textContent=tuttiSet?fasciaP(Math.round(tot)):'(stima parziale)';
+}
+
+async function salvaRapida(){
+  var produttore=document.getElementById('rp-produttore').value.trim();
+  var nome=document.getElementById('rp-nome').value.trim();
+  if(!produttore||!nome){
+    alert('Inserisci almeno produttore e nome del vino');return;
+  }
+  var sezioniMancanti=SEZIONI_RAPIDE.filter(function(s){return _rpVoti[s.id]===null;});
+  if(sezioniMancanti.length){
+    alert('Valuta tutte e 4 le sezioni prima di salvare');return;
+  }
+
+  var now=new Date();
+  var dt=now.toLocaleDateString("it-IT")+' '+now.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+  var id=Date.now();
+  var colore=document.getElementById('rp-colore').value;
+  var base=document.getElementById('rp-base').value;
+  var tipologia=[colore,base].filter(Boolean).join(' ');
+
+  // Costruisce parametri con i voti rapidi propagati
+  var parametri={};
+  SEZIONI_RAPIDE.forEach(function(s){
+    s.params.forEach(function(p){ parametri[p]=_rpVoti[s.id]; });
+  });
+  // Mappa valori numerici → descrittori AIS per i campi analitica
+  var descMap={6:'Accettabile',7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
+  parametri.qvis=descMap[_rpVoti.vis];
+  parametri.qolf=descMap[_rpVoti.olf];
+  parametri.qgus=descMap[_rpVoti.gus];
+  parametri.qtot=descMap[_rpVoti.fin];
+
+  var scheda={
+    id:id,
+    tipo:'bozza',
+    produttore:produttore,
+    nome:nome,
+    annata:document.getElementById('rp-annata').value||'',
+    tipologia:tipologia,
+    nota_fin:document.getElementById('rp-note').value||'',
+    parametri:parametri,
+    descrittori:[],sfumature:[],desc_vis:[],
+    dt:dt, dt_crea:dt,
+    stelle:0
+  };
+
+  // Salva su Supabase
+  if(currentUser){
+    var row=Object.assign({},scheda,{user_email:currentUser.email});
+    await supaInsertOrUpdate('schede_analitiche', row);
+  }
+
+  // Aggiorna localStorage
+  var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  l.unshift(scheda);
+  localStorage.setItem('ais_s',JSON.stringify(l));
+
+  nascondiRapida();
+  aggiornaHomeSchede();
+  mostraHome();
+  toast('Bozza VITAE salvata ✓');
+}
 
 </script>
 </div><!-- end app-screen -->
@@ -3196,8 +3354,9 @@ function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=d
     </div>
     <span style="font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;font-weight:600" onclick="doLogout()">Esci</span>
   </div>
-  <div style="padding:14px 12px 8px">
-    <button onclick="homeNuovaScheda()" style="width:100%;padding:13px;background:var(--m);color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em">＋ Nuova Scheda</button>
+  <div style="padding:14px 12px 6px;display:flex;gap:8px">
+    <button onclick="homeNuovaScheda()" style="flex:1;padding:12px 8px;background:var(--m);color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em">＋ Scheda Completa</button>
+    <button onclick="homeNuovaRapida()" style="flex:1;padding:12px 8px;background:#f5a800;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em">⚡ Guida VITAE</button>
   </div>
   <div style="padding:0 12px 10px">
     <div style="position:relative">
@@ -3208,6 +3367,83 @@ function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=d
   <div style="padding:0 12px">
     <div id="home-benvenuto" style="background:#fff;border-radius:6px;padding:18px 16px;margin-bottom:14px;font-size:13px;color:var(--d);line-height:1.8;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08)"></div>
     <div id="home-lista"></div>
+  </div>
+</div>
+
+
+<!-- ═══ SCHEDA RAPIDA VITAE ═══ -->
+<div id="rapida-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:600;background:#f0f0e8;overflow-y:auto;padding-bottom:80px">
+  <div style="background:#f5a800;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:20px">⚡</span>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.05em">Modalità Guida VITAE</div>
+      <div style="font-size:10px;opacity:.85">Valutazione rapida per degustazione di panel</div>
+    </div>
+    <span onclick="nascondiRapida()" style="cursor:pointer;font-size:20px;opacity:.8">✕</span>
+  </div>
+
+  <!-- Dati vino -->
+  <div style="background:#fff;margin:10px 12px 0;border-radius:6px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.06em;margin-bottom:10px">Dati identificativi</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Produttore</label>
+        <input id="rp-produttore" type="text" placeholder="es. Argiolas" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Nome vino</label>
+        <input id="rp-nome" type="text" placeholder="es. Turriga" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div>
+        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Annata</label>
+        <input id="rp-annata" type="number" placeholder="2021" min="1900" max="2030" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Colore</label>
+        <select id="rp-colore" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
+          <option value="">—</option>
+          <option>Bianco</option>
+          <option>Rosato</option>
+          <option>Rosso</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Modalità</label>
+        <select id="rp-base" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
+          <option value="">—</option>
+          <option>Fermo</option>
+          <option>Frizzante</option>
+          <option>Spumante</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 valutazioni rapide -->
+  <div style="background:#fff;margin:8px 12px 0;border-radius:6px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.06em;margin-bottom:12px">Valutazione per sezione</div>
+
+    <div id="rp-sezioni"></div>
+
+    <!-- Punteggio stimato -->
+    <div style="margin-top:14px;padding:12px;background:#f5f5f0;border-radius:4px;text-align:center">
+      <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.05em">Punteggio stimato</div>
+      <div id="rp-preview" style="font-size:28px;font-weight:900;color:var(--m)">—</div>
+      <div id="rp-fascia" style="font-size:11px;color:#888;margin-top:2px"></div>
+    </div>
+  </div>
+
+  <!-- Note libere -->
+  <div style="margin:8px 12px 0">
+    <textarea id="rp-note" placeholder="Note rapide (facoltative)..." style="width:100%;padding:10px;border:1px solid var(--b);border-radius:4px;font-size:12px;resize:vertical;min-height:60px;box-sizing:border-box;background:#fff"></textarea>
+  </div>
+
+  <!-- Bottoni azione -->
+  <div style="padding:10px 12px;display:flex;gap:8px">
+    <button onclick="salvaRapida()" style="flex:2;padding:13px;background:#f5a800;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">💾 Salva Bozza</button>
+    <button onclick="nascondiRapida()" style="flex:1;padding:13px;background:#fff;color:#888;border:1px solid #ddd;border-radius:4px;font-size:12px;cursor:pointer">Annulla</button>
   </div>
 </div>
 
