@@ -2791,7 +2791,7 @@ function calcolaTotale(){
   document.getElementById('heroFascia').textContent=fasciaP(tot);
   document.getElementById('heroBreak').innerHTML=
     'Visivo: '+subV.toFixed(1)+' · Olfattivo: '+subO.toFixed(1)+' · Gusto: '+subG.toFixed(1)+' · Finale: '+subF.toFixed(1)
-    +(analiticaP?'<br><span style="color:var(--m);font-weight:700">(base analitica: '+parseFloat(basePunti.toFixed(1))+')</span>':'');
+    +(analiticaP?'<br><span style="color:var(--m);font-weight:700">(base analitica: '+fmtPt(basePunti)+')</span>':'');
   document.getElementById('subV').textContent=subV.toFixed(1);
   document.getElementById('subO').textContent=subO.toFixed(1);
   document.getElementById('subG').textContent=subG.toFixed(1);
@@ -2823,6 +2823,9 @@ function calcolaTotale(){
     }
   }
 }
+
+// Formatta punteggio SEMPRE con 1 decimale (es. 95 → "95.0", 87.5 → "87.5")
+function fmtPt(v){ return parseFloat(v||0).toFixed(1); }
 
 function fasciaP(v){
   if(v>=94) return 'Eccellente';
@@ -3059,20 +3062,19 @@ function rSavP(){
   if(!l.length){el.innerHTML='';return;}
   el.innerHTML='<div class="svt">Valutazione a punti collegata</div>'+
     l.map(function(s){
-      // Normalizza record vecchi: punteggio/base/delta con 1 decimale
-      var pt=parseFloat(parseFloat(s.punteggio||0).toFixed(1));
-      var ba=s.baseAnalitica!=null?parseFloat(parseFloat(s.baseAnalitica).toFixed(1)):null;
+      var pt=parseFloat(s.punteggio||0);
+      var ba=s.baseAnalitica!=null?parseFloat(s.baseAnalitica):null;
       var dl=ba!==null?parseFloat((pt-ba).toFixed(1)):null;
-      var deltaStr=dl!==null?(dl>0?'+'+dl:String(dl)):'—';
+      var deltaStr=dl!==null?(dl>0?'+'+dl.toFixed(1):dl.toFixed(1)):'—';
       var deltaCol=dl===null?'#aaa':dl>0?'var(--m)':'#e0a030';
       return'<div class="svc" onclick="loadP('+s.id+')">'
         +'<div style="flex:1">'
         +'<div class="scn">'+(s.produttore||'')+(s.nome?' — '+s.nome:'')+'</div>'
         +'<div class="scs">'+(s.annata||'')+(s.tipologia?' · '+s.tipologia:'')+'</div>'
         +'<div class="scs">'
-        +'<strong style="color:var(--m);font-size:14px">'+pt+'</strong>'
+        +'<strong style="color:var(--m);font-size:14px">'+fmtPt(pt)+'</strong>'
         +' '+s.fascia
-        +(ba!==null?' · base: '+ba+' <span style="color:'+deltaCol+';font-weight:700">('+deltaStr+')</span>':'')
+        +(ba!==null?' · base: '+fmtPt(ba)+' <span style="color:'+deltaCol+';font-weight:700">('+deltaStr+')</span>':'')
         +' · '+s.dt
         +'</div>'
         +'</div>'
@@ -3222,7 +3224,7 @@ function filtraHomeSchede(){
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
     var ptLabel=val
-      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 '+parseFloat(parseFloat(val.punteggio).toFixed(1))+' pt · '+val.fascia+'</button>'
+      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 '+fmtPt(val.punteggio)+' pt · '+val.fascia+'</button>'
       :'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>';
     var dt=s.dt?s.dt.split(' ')[0]:'';
     var borderCol=isBozza?'#f5a800':'var(--m)';
@@ -3476,7 +3478,7 @@ function renderAdminDeg(){
       h+='</div>';
       if(pt){
         h+='<div style="text-align:right;flex-shrink:0">';
-        h+='<div style="font-size:17px;font-weight:900;color:var(--m)">'+parseFloat(parseFloat(pt.punteggio).toFixed(1))+'</div>';
+        h+='<div style="font-size:17px;font-weight:900;color:var(--m)">'+fmtPt(pt.punteggio)+'</div>';
         h+='<div style="font-size:9px;color:#aaa">'+( pt.fascia||'')+'</div>';
         h+='</div>';
       } else {
@@ -3517,7 +3519,7 @@ function renderAdminVino(){
       h+='<div style="font-size:9px;color:#aaa">'+(s.tipo==='bozza'?'⚡ bozza guida':'scheda completa')+'</div>';
       h+='</div>';
       if(pt){
-        var pv=parseFloat(parseFloat(pt.punteggio).toFixed(1));
+        var pv=fmtPt(pt.punteggio);
         ptArr.push(pv);
         h+='<div style="text-align:right;flex-shrink:0">';
         h+='<div style="font-size:18px;font-weight:900;color:var(--m)">'+pv+'</div>';
