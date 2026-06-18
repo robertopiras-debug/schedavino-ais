@@ -3060,7 +3060,7 @@ function rSavP(){
   el.innerHTML='<div class="svt">Valutazione a punti collegata</div>'+
     l.map(function(s){
       // Normalizza record vecchi: punteggio/base/delta con 1 decimale
-      var pt=parseFloat((s.punteggio||0).toFixed ? parseFloat(s.punteggio||0).toFixed(1) : (s.punteggio||0));
+      var pt=parseFloat(parseFloat(s.punteggio||0).toFixed(1));
       var ba=s.baseAnalitica!=null?parseFloat(parseFloat(s.baseAnalitica).toFixed(1)):null;
       var dl=ba!==null?parseFloat((pt-ba).toFixed(1)):null;
       var deltaStr=dl!==null?(dl>0?'+'+dl:String(dl)):'—';
