@@ -2828,11 +2828,12 @@ function calcolaTotale(){
 function fmtPt(v){ return parseFloat(v||0).toFixed(1); }
 
 // Nome display degustatore — sempre nome reale, mai email grezza
+// Restituisce — se non c'è sessione attiva (currentUser non impostato)
 function nomeDisplay(){
+  if(!currentUser) return '—';
   var n=localStorage.getItem('ais_nome_utente');
   if(n && n.trim()) return n.trim();
-  if(currentUser && currentUser.email) return currentUser.email.split('@')[0];
-  return '—';
+  return currentUser.email.split('@')[0];
 }
 // Salva nome utente in localStorage (chiamata da registrazione e primo salvataggio scheda)
 function salvaNomeUtente(nome){
