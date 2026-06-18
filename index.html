@@ -1531,9 +1531,8 @@ async function doRegister(){
       nascondiReg();
       // Usa il nome inserito come display name
       setTimeout(function(){
+        salvaNomeUtente(nome);
         onLogin(res.user);
-        var hd=document.getElementById('home-degustatore');
-        if(hd) hd.textContent=nome;
       }, 500);
     } else {
       // Supabase richiede conferma email
@@ -1659,9 +1658,9 @@ function onLogin(user){
   document.getElementById('app-screen').style.display='block';
   var nb=document.querySelector('.nav-bar');
   if(nb) nb.style.display='flex';
-  document.getElementById('user-label').textContent=user.email;
+  document.getElementById('user-label').textContent=nomeDisplay();
   var hd=document.getElementById('home-degustatore');
-  if(hd) hd.textContent=user.email.split('@')[0];
+  if(hd) hd.textContent=nomeDisplay();
   // Mostra pulsante admin solo per l'email amministratore
   var _ab=document.getElementById('admin-btn');
   if(_ab) _ab.style.display=(user.email===ADMIN_EMAIL)?'':'none';
@@ -1926,7 +1925,8 @@ function gd(){
   var notaLib=(document.getElementById('notaTipol').value||'').trim();
   var vitigniStr=getVitigni();
   var tipCombinata=[selColore,selMenzione,selBase,notaLib].filter(Boolean).join(' ');
-  return{autore:document.getElementById('wAutore').value,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,stelle:sv};
+  var _autoreVal=document.getElementById('wAutore').value; salvaNomeUtente(_autoreVal);
+  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,stelle:sv};
 }
 
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none'},2500);}
@@ -2827,6 +2827,18 @@ function calcolaTotale(){
 // Formatta punteggio SEMPRE con 1 decimale (es. 95 → "95.0", 87.5 → "87.5")
 function fmtPt(v){ return parseFloat(v||0).toFixed(1); }
 
+// Nome display degustatore — sempre nome reale, mai email grezza
+function nomeDisplay(){
+  var n=localStorage.getItem('ais_nome_utente');
+  if(n && n.trim()) return n.trim();
+  if(currentUser && currentUser.email) return currentUser.email.split('@')[0];
+  return '—';
+}
+// Salva nome utente in localStorage (chiamata da registrazione e primo salvataggio scheda)
+function salvaNomeUtente(nome){
+  if(nome && nome.trim()) localStorage.setItem('ais_nome_utente', nome.trim());
+}
+
 function fasciaP(v){
   if(v>=94) return 'Eccellente';
   if(v>=88) return 'Ottimo';
@@ -3194,7 +3206,7 @@ function filtraHomeSchede(){
   });
   var el=document.getElementById('home-lista');
   // Messaggio benvenuto dinamico
-  var nome=currentUser?currentUser.email.split('@')[0]:'';
+  var nome=nomeDisplay();
   var benv=document.getElementById('home-benvenuto');
   if(benv){
     var tot=_homeSchede.length;
@@ -3223,24 +3235,11 @@ function filtraHomeSchede(){
     var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza;
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
-    var ptLabel=val
-      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 '+fmtPt(val.punteggio)+' pt · '+val.fascia+'</button>'
-      :'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>';
+    var ptNum=val
+      ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:22px;font-weight:900;color:var(--m);line-height:1.1">'+fmtPt(val.punteggio)+'</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">'+val.fascia+'</div>'        +'</div>'      :'<div style="min-width:54px;flex-shrink:0;text-align:right">'        +'<div style="font-size:10px;color:#ccc">—</div>'        +'</div>';
     var dt=s.dt?s.dt.split(' ')[0]:'';
     var borderCol=isBozza?'#f5a800':'var(--m)';
-    return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08)">'
-      +'<div style="font-size:13px;color:var(--d);margin-bottom:3px">'+titolo+'</div>'
-      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:5px">'+sub+'</div>':'')
-      +'<div style="display:flex;justify-content:space-between;align-items:center">'
-      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'
-      +'<div style="display:flex;align-items:center;gap:6px">'
-      +(isBozza
-      ? '<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'
-      : '<button onclick="homeApriScheda('+s.id+')" style="font-size:11px;padding:4px 10px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')
-      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:11px;padding:4px 8px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'
-      +ptLabel
-      +'</div>'
-      +'</div></div>';
+    return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'      +'<div style="flex:1;min-width:0">'      +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')      +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'      +(isBozza      ? '<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'      : '<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:10px;padding:3px 7px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'      +(val      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 Apri</button>'      :'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>')      +'</div>'      +'</div>'      +ptNum      +'</div>';
   }).join('');
 }
 function homeElimina(id, e){
@@ -3258,7 +3257,7 @@ function homeElimina(id, e){
 
 function homeApriScheda(id){nascondiHome();setTimeout(function(){loadS(typeof id==="string"?parseInt(id):id);},50);}
 function homeApriPunti(id){nascondiHome();apriInPunti(id,{stopPropagation:function(){}});}
-function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=currentUser.email.split('@')[0];}}
+function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=nomeDisplay();}}
 
 
 // ═══ MODALITÀ GUIDA VITAE ════════════════════════════════════════════════
@@ -3515,7 +3514,7 @@ function renderAdminVino(){
       var pt=_adminPt(s.id);
       h+='<div style="padding:7px 12px;border-bottom:1px solid #f9f9f4;display:flex;align-items:center;gap:8px">';
       h+='<div style="flex:1">';
-      h+='<div style="font-size:11px;font-weight:600;color:#444">'+(s.autore||s.user_email||'—')+'</div>';
+      h+='<div style="font-size:11px;font-weight:600;color:#444">'+(s.autore&&s.autore.trim()?s.autore:nomeDisplay())+'</div>';
       h+='<div style="font-size:9px;color:#aaa">'+(s.tipo==='bozza'?'⚡ bozza guida':'scheda completa')+'</div>';
       h+='</div>';
       if(pt){
