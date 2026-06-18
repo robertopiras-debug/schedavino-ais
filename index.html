@@ -1661,6 +1661,12 @@ function onLogin(user){
   document.getElementById('app-screen').style.display='block';
   var nb=document.querySelector('.nav-bar');
   if(nb) nb.style.display='flex';
+  // Recupera nome reale dall'ultima scheda salvata in localStorage
+  if(!localStorage.getItem('ais_nome_utente')){
+    var _schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+    var _autore=_schede.length?(_schede[0].autore||'').trim():'';
+    if(_autore) salvaNomeUtente(_autore);
+  }
   document.getElementById('user-label').textContent=nomeDisplay();
   var hd=document.getElementById('home-degustatore');
   if(hd) hd.textContent=nomeDisplay();
@@ -3235,8 +3241,10 @@ function filtraHomeSchede(){
   if(!lista.length){el.innerHTML='';return;}
   var puntiMap={};
   JSON.parse(localStorage.getItem('ais_punti')||'[]').forEach(function(p){
-    // Associa per analiticaId o per corrispondenza produttore+nome
-    if(p.analiticaId) puntiMap[p.analiticaId]=p;
+    // Indicizza per analiticaId in entrambi i formati (numero e stringa)
+    if(p.analiticaId!=null){puntiMap[p.analiticaId]=p;puntiMap[String(p.analiticaId)]=p;}
+    // Fallback: indicizza anche per id diretto
+    if(p.id!=null){puntiMap[p.id]=puntiMap[p.id]||p;puntiMap[String(p.id)]=puntiMap[String(p.id)]||p;}
   });
   el.innerHTML=lista.map(function(s){
     var isBozza=s.tipo==='bozza';
