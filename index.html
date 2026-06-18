@@ -2791,7 +2791,7 @@ function calcolaTotale(){
   document.getElementById('heroFascia').textContent=fasciaP(tot);
   document.getElementById('heroBreak').innerHTML=
     'Visivo: '+subV.toFixed(1)+' · Olfattivo: '+subO.toFixed(1)+' · Gusto: '+subG.toFixed(1)+' · Finale: '+subF.toFixed(1)
-    +(analiticaP?'<br><span style="color:var(--m);font-weight:700">(base analitica: '+Math.round(basePunti)+')</span>':'');
+    +(analiticaP?'<br><span style="color:var(--m);font-weight:700">(base analitica: '+parseFloat(basePunti.toFixed(1))+')</span>':'');
   document.getElementById('subV').textContent=subV.toFixed(1);
   document.getElementById('subO').textContent=subO.toFixed(1);
   document.getElementById('subG').textContent=subG.toFixed(1);
@@ -3027,10 +3027,10 @@ function salvaPunti(){
     nome:analiticaP?analiticaP.nome:'',
     annata:analiticaP?analiticaP.annata:'',
     tipologia:analiticaP?analiticaP.tipologia:'',
-    punteggio:Math.round(tot),
-    fascia:fasciaP(Math.round(tot)),
-    baseAnalitica:Math.round(basePunti),
-    delta:Math.round(tot)-Math.round(basePunti),
+    punteggio:parseFloat(tot.toFixed(1)),
+    fascia:fasciaP(parseFloat(tot.toFixed(1))),
+    baseAnalitica:parseFloat(basePunti.toFixed(1)),
+    delta:parseFloat((tot-basePunti).toFixed(1)),
     voti:Object.assign({},voti),
     nota:document.getElementById('notaP').value,
     dt:dt
@@ -3059,10 +3059,10 @@ function rSavP(){
   if(!l.length){el.innerHTML='';return;}
   el.innerHTML='<div class="svt">Valutazione a punti collegata</div>'+
     l.map(function(s){
-      // Normalizza record vecchi: punteggio/base/delta sempre interi
-      var pt=Math.round(s.punteggio||0);
-      var ba=s.baseAnalitica?Math.round(s.baseAnalitica):null;
-      var dl=ba!==null?pt-ba:null;
+      // Normalizza record vecchi: punteggio/base/delta con 1 decimale
+      var pt=parseFloat((s.punteggio||0).toFixed ? parseFloat(s.punteggio||0).toFixed(1) : (s.punteggio||0));
+      var ba=s.baseAnalitica!=null?parseFloat(parseFloat(s.baseAnalitica).toFixed(1)):null;
+      var dl=ba!==null?parseFloat((pt-ba).toFixed(1)):null;
       var deltaStr=dl!==null?(dl>0?'+'+dl:String(dl)):'—';
       var deltaCol=dl===null?'#aaa':dl>0?'var(--m)':'#e0a030';
       return'<div class="svc" onclick="loadP('+s.id+')">'
@@ -3222,7 +3222,7 @@ function filtraHomeSchede(){
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
     var ptLabel=val
-      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 '+Math.round(val.punteggio)+' pt · '+val.fascia+'</button>'
+      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 '+parseFloat(parseFloat(val.punteggio).toFixed(1))+' pt · '+val.fascia+'</button>'
       :'<button onclick="homeApriPunti('+s.id+')" style="font-size:11px;padding:4px 10px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>';
     var dt=s.dt?s.dt.split(' ')[0]:'';
     var borderCol=isBozza?'#f5a800':'var(--m)';
@@ -3337,8 +3337,8 @@ function rpAggiornaPunteggio(){
   if(!par.qvis&&!par.qolf&&!par.qgus&&!par.qtot){el.textContent='—';ef.textContent='';return;}
   var tuttiSet=(_rpVoti.vis!==null&&_rpVoti.olf!==null&&_rpVoti.gus!==null&&_rpVoti.fin!==null);
   var r=calcolaTeoricoAIS(par);
-  el.textContent=(tuttiSet?'':'~')+Math.round(r.totale);
-  ef.textContent=tuttiSet?fasciaP(Math.round(r.totale)):'(stima parziale — su 100)';
+  el.textContent=(tuttiSet?'':'~')+parseFloat(r.totale.toFixed(1));
+  ef.textContent=tuttiSet?fasciaP(parseFloat(r.totale.toFixed(1))):'(stima parziale — su 100)';
 }
 
 async function salvaRapida(){
@@ -3476,7 +3476,7 @@ function renderAdminDeg(){
       h+='</div>';
       if(pt){
         h+='<div style="text-align:right;flex-shrink:0">';
-        h+='<div style="font-size:17px;font-weight:900;color:var(--m)">'+Math.round(pt.punteggio)+'</div>';
+        h+='<div style="font-size:17px;font-weight:900;color:var(--m)">'+parseFloat(parseFloat(pt.punteggio).toFixed(1))+'</div>';
         h+='<div style="font-size:9px;color:#aaa">'+( pt.fascia||'')+'</div>';
         h+='</div>';
       } else {
@@ -3517,7 +3517,7 @@ function renderAdminVino(){
       h+='<div style="font-size:9px;color:#aaa">'+(s.tipo==='bozza'?'⚡ bozza guida':'scheda completa')+'</div>';
       h+='</div>';
       if(pt){
-        var pv=Math.round(pt.punteggio);
+        var pv=parseFloat(parseFloat(pt.punteggio).toFixed(1));
         ptArr.push(pv);
         h+='<div style="text-align:right;flex-shrink:0">';
         h+='<div style="font-size:18px;font-weight:900;color:var(--m)">'+pv+'</div>';
