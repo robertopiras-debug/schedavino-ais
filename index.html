@@ -245,11 +245,11 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 .vista{display:none}
 .vista.attiva{display:block}
 .nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:500px;display:flex;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.15);background:#fff;-webkit-backface-visibility:hidden;backface-visibility:hidden}
-.nav-btn{flex:1;padding:13px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;color:var(--d)}
+.nav-btn{flex:1;padding:13px 8px calc(13px + env(safe-area-inset-bottom)) 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;color:var(--d)}
 .nav-btn.an{background:var(--d);color:#fff}
 .nav-btn.pt{background:var(--m);color:#fff}
 .nav-btn:not(.attivo){opacity:.5}
-body{padding-bottom:54px}
+body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 </style>
 </head>
@@ -1689,6 +1689,8 @@ function onLogin(user){
 // ─── SYNC SUPABASE — v20 ─────────────────────────────────────────────────
 async function caricaSchedeDB(){
   if(!currentUser) return;
+  // Ritenta eventuali cancellazioni cloud rimaste in sospeso da un sync precedente
+  await flushPendingDeletes('ais_s_pending_del','schede_analitiche');
   var data=await supaSelect('schede_analitiche',{user_email:currentUser.email});
 
   if(data===null){
@@ -1701,6 +1703,11 @@ async function caricaSchedeDB(){
   }
 
   if(data.length){
+    // Esclude dal merge gli id ancora in attesa di cancellazione: senza
+    // questo filtro una DELETE non ancora riuscita farebbe "resuscitare"
+    // in home una scheda che l'utente ha già cancellato localmente.
+    var pendingDel=getPendingDeletes('ais_s_pending_del').map(String);
+    if(pendingDel.length) data=data.filter(function(r){return pendingDel.indexOf(String(r.id))===-1;});
     // Merge: il DB vince sul locale per le schede condivise (stessa id)
     // ma non cancella schede locali che non sono ancora su DB
     var locale=JSON.parse(localStorage.getItem('ais_s')||'[]');
@@ -1731,6 +1738,7 @@ async function caricaValutazioniDB(){
 
   if(data===null){
     console.warn('caricaValutazioniDB: errore fetch, uso cache locale');
+    toast('DB non raggiunto — uso punteggi locali');
     rSavP();
     return;
   }
@@ -1768,11 +1776,7 @@ async function caricaValutazioniDB(){
 }
 
 async function salvaSuDB(scheda){
-  console.log('[DB] salvaSuDB chiamata — currentUser:', currentUser?currentUser.email:'NULL', '— accessToken:', accessToken?'OK':'NULL');
-  if(!currentUser||!accessToken){
-    console.warn('[DB] salvaSuDB: uscita anticipata — manca currentUser o accessToken');
-    return;
-  }
+  if(!currentUser||!accessToken) return false;
   // Manda solo i campi che esistono nella tabella
   var row={
     id: scheda.id,
@@ -1797,13 +1801,16 @@ async function salvaSuDB(scheda){
     stelle: scheda.stelle||0,
     dt: scheda.dt||''
   };
-  console.log('[DB] row da mandare:', JSON.stringify(row).substring(0,200));
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
-  console.log('[DB] supaInsertOrUpdate result:', ok);
+  if(!ok){
+    console.error('[DB] salvaSuDB: scrittura su Supabase fallita per scheda', scheda.id);
+    toast('⚠ Salvata in locale — sync cloud non riuscita');
+  }
+  return ok;
 }
 
 async function salvaValutazioneDB(val){
-  if(!currentUser) return;
+  if(!currentUser) return false;
   // Mappa esatta sui nomi colonna reali della tabella (snake_case)
   var row={
     id:             val.id,
@@ -1821,12 +1828,41 @@ async function salvaValutazioneDB(val){
     nota:           val.nota||'',
     dt:             val.dt||''
   };
-  await supaInsertOrUpdate('valutazioni_punti', row);
+  var ok=await supaInsertOrUpdate('valutazioni_punti', row);
+  if(!ok){
+    console.error('[DB] salvaValutazioneDB: scrittura su Supabase fallita per valutazione', val.id);
+    toast('⚠ Punteggio salvato in locale — sync cloud non riuscita');
+  }
+  return ok;
 }
 
 async function eliminaSchemaDB(id){
-  if(!currentUser) return;
-  await supaDelete('schede_analitiche', id);
+  if(!currentUser) return false;
+  return await supaDelete('schede_analitiche', id);
+}
+
+// ─── CANCELLAZIONI IN SOSPESO (anti-resurrezione) ─────────────────────────
+// Se una DELETE su Supabase fallisce, l'id viene registrato qui. Finché resta
+// in lista: (a) il prossimo merge da DB lo esclude esplicitamente, quindi la
+// scheda non puo' "ricomparire" da sola; (b) ogni caricaSchedeDB ritenta la
+// cancellazione cloud in background, finché non riesce.
+function getPendingDeletes(key){
+  try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
+}
+function addPendingDelete(key,id){
+  var p=getPendingDeletes(key);
+  if(p.indexOf(id)===-1) p.push(id);
+  localStorage.setItem(key, JSON.stringify(p));
+}
+async function flushPendingDeletes(key, table){
+  var pending=getPendingDeletes(key);
+  if(!pending.length) return;
+  var stillPending=[];
+  for(var i=0;i<pending.length;i++){
+    var ok=await supaDelete(table, pending[i]);
+    if(!ok) stillPending.push(pending[i]);
+  }
+  localStorage.setItem(key, JSON.stringify(stillPending));
 }
 
 function onReg(){
@@ -1946,7 +1982,7 @@ function gd(){
   return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,stelle:sv};
 }
 
-function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none'},2500);}
+/* toast(m) già definita sopra — duplicato rimosso (stesso comportamento, debito tecnico) */
 
 function mostraModaleErrore(titolo, righe){
   var m=document.getElementById('modale-errore');
@@ -2431,7 +2467,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v38';
+const APP_VERSION='v39';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -2571,10 +2607,15 @@ async function supaSelect(table, filters){
 
 async function supaDelete(table, id){
   var ok=await supaEnsureToken();
-  if(!ok) return;
-  await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{
+  if(!ok) return false;
+  var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{
     method:'DELETE', headers:supaHeaders()
   });
+  if(!r.ok){
+    var err=await r.text();
+    console.error('Supabase delete error '+r.status+' ['+table+']:', err);
+  }
+  return r.ok;
 }
 
 var _explicitLogout=false; // flag: l'utente ha fatto logout esplicito
@@ -3267,17 +3308,23 @@ function filtraHomeSchede(){
     return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'      +'<div style="flex:1;min-width:0">'      +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')      +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'      +(isBozza      ? '<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'      : '<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:10px;padding:3px 7px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'      +(val      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 Apri</button>'      :'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>')      +'</div>'      +'</div>'      +ptNum      +'</div>';
   }).join('');
 }
-function homeElimina(id, e){
+async function homeElimina(id, e){
   e.stopPropagation();
   if(!confirm('Eliminare questa scheda?')) return;
-  // Elimina da localStorage
+  // Rimuovi subito dalla vista locale (risposta immediata)
   var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
   l=l.filter(function(s){return s.id!=id;});
   localStorage.setItem('ais_s',JSON.stringify(l));
-  // Elimina da DB
-  if(typeof eliminaSchemaDB==='function') eliminaSchemaDB(id);
-  // Aggiorna lista home
   aggiornaHomeSchede();
+  // Elimina dal cloud. Se fallisce, registra come pendente: il prossimo
+  // sync NON la fara' ricomparire e ritentera' la cancellazione da solo.
+  if(typeof eliminaSchemaDB==='function'){
+    var ok=await eliminaSchemaDB(id);
+    if(!ok){
+      addPendingDelete('ais_s_pending_del', id);
+      toast('⚠ Eliminata in locale — sync cloud in sospeso, riproverò');
+    }
+  }
 }
 
 function homeApriScheda(id){nascondiHome();setTimeout(function(){loadS(typeof id==="string"?parseInt(id):id);},50);}
