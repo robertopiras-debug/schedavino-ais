@@ -85,7 +85,8 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .scn{font-size:12px;font-weight:700;color:var(--d)}
 .scs{font-size:10px;color:#666;margin-top:2px}
 .scd{font-size:18px;color:#aaa;padding:2px 7px;cursor:pointer;margin-left:auto}
-.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--d);color:#fff;padding:8px 18px;border-radius:3px;font-size:12px;font-weight:700;display:none;z-index:999}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:var(--d);padding:16px 24px;border-radius:8px;font-size:13px;font-weight:700;line-height:1.45;display:none;z-index:999;box-shadow:0 6px 28px rgba(0,0,0,.28);border:1px solid var(--b);max-width:82%;text-align:center}
+.toast.toast-warn{border:1px solid #c8002a;color:#8a0018;background:#fff5f5}
 .autore-bar{background:#fff;padding:6px 10px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:8px}
 .autore-bar label{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--d);white-space:nowrap}
 .autore-bar input{flex:1;font-size:12px}
@@ -912,8 +913,12 @@ function mostraVista(v){
 
 function toast(m){
   var t=document.getElementById('toast');
-  t.textContent=m; t.style.display='block';
-  setTimeout(function(){t.style.display='none'},2500);
+  var isWarn=m.indexOf('⚠')===0;
+  t.textContent=m;
+  t.classList.toggle('toast-warn', isWarn);
+  t.style.display='block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(function(){t.style.display='none'},isWarn?3800:2200);
 }
 
 /* ═══ SCRIPT ANALITICA ═══ */
@@ -1799,7 +1804,8 @@ async function salvaSuDB(scheda){
     nota_vis: scheda.nota_vis||'',
     nota_fin: scheda.nota_fin||'',
     stelle: scheda.stelle||0,
-    dt: scheda.dt||''
+    dt: scheda.dt||'',
+    tipo: scheda.tipo||'completa'
   };
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
   if(!ok){
@@ -2467,7 +2473,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v39';
+const APP_VERSION='v40';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3123,8 +3129,19 @@ function salvaPunti(){
     l.unshift(d);
   }
   toastP('Valutazione aggiornata ✓');
-  if(isBozzaMode){
-    setTimeout(function(){toastP('Ricorda: aggiorna la scheda analitica per completare la valutazione');},1800);
+  if(isBozzaMode && aId){
+    // La valutazione a punti è il passo che completa il flusso Guida VITAE:
+    // qui — non più nella scheda analitica — la bozza diventa definitiva.
+    var schedeA=JSON.parse(localStorage.getItem('ais_s')||'[]');
+    var idxA=schedeA.findIndex(function(s){return s.id==aId;});
+    if(idxA>-1){
+      schedeA[idxA].tipo='completa';
+      localStorage.setItem('ais_s', JSON.stringify(schedeA));
+      analiticaP=schedeA[idxA]; // mantiene coerente la sessione corrente
+      if(typeof salvaSuDB==='function') salvaSuDB(schedeA[idxA]);
+      if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
+    }
+    setTimeout(function(){toastP('✓ Bozza completata — scheda salvata come definitiva');},1800);
   }
   editingIdP=d.id;
   localStorage.setItem('ais_punti',JSON.stringify(l));
