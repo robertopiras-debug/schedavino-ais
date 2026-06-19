@@ -1605,6 +1605,16 @@ function doLogout(){
   var nb=document.querySelector('.nav-bar');
   if(nb) nb.style.display='none';
   document.getElementById('app-screen').style.display='none';
+  // vista-analitica avvolge sia login-screen che app-screen come unico
+  // blocco commutabile; vista-punti è un fratello separato. Se l'ultima
+  // vista attiva prima del logout era "punti", vista-analitica restava
+  // priva della classe .attiva — quindi display:none — intrappolando
+  // login-screen dentro un antenato invisibile anche dopo il logout,
+  // mentre vista-punti (mai disattivata) restava l'unica cosa visibile,
+  // senza alcun modo di uscirne. Ripristina lo stato corretto qui.
+  document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva');});
+  var va=document.getElementById('vista-analitica');
+  if(va) va.classList.add('attiva');
   var ls=document.getElementById('login-screen');
   ls.style.display='flex';
   ls.style.zIndex='1000';
@@ -2634,7 +2644,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v48';
+const APP_VERSION='v49';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
