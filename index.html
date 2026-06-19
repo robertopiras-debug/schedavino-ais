@@ -2347,14 +2347,14 @@ function savLocal(){
       d.id=editingId; d.dt=dt; d.dt_crea=dt;
       l.unshift(d);
     }
-    toast(_eraBozza ? 'Bozza aggiornata ✓' : 'Scheda aggiornata ✓');
+    toast(_eraBozza ? 'Bozza salvata ✓ (sync in corso...)' : 'Scheda salvata ✓ (sync in corso...)');
     // editingId resta impostato: ulteriori salvataggi aggiornano sempre la stessa scheda
   } else {
     d.id=Date.now();
     d.dt=dt;
     d.dt_crea=dt;
     l.unshift(d);
-    toast('Scheda salvata');
+    toast('Scheda salvata ✓ (sync in corso...)');
   }
   localStorage.setItem('ais_s',JSON.stringify(l));
   if(typeof salvaSuDB==='function') salvaSuDB(d);
@@ -2634,7 +2634,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v47';
+const APP_VERSION='v48';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3306,7 +3306,7 @@ function salvaPunti(){
   } else {
     l.unshift(d);
   }
-  toastP('Valutazione aggiornata ✓');
+  toastP('Valutazione salvata ✓ (sync in corso...)');
   if(isBozzaMode && aId){
     // La valutazione a punti è il passo che completa il flusso Guida VITAE:
     // qui — non più nella scheda analitica — la bozza diventa definitiva.
@@ -3319,7 +3319,7 @@ function salvaPunti(){
       if(typeof salvaSuDB==='function') salvaSuDB(schedeA[idxA]);
       if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
     }
-    setTimeout(function(){toastP('✓ Bozza completata — scheda salvata come definitiva');},1800);
+    setTimeout(function(){toastP('✓ Bozza completata (sync in corso...)');},1800);
   }
   editingIdP=d.id;
   localStorage.setItem('ais_punti',JSON.stringify(l));
