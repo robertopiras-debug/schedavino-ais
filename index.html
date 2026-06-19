@@ -244,8 +244,8 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 /* ═══ NAVIGAZIONE ═══ */
 .vista{display:none}
 .vista.attiva{display:block}
-.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;display:flex;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.15)}
-.nav-btn{flex:1;padding:13px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:500px;display:flex;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.15);background:#fff;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.nav-btn{flex:1;padding:13px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;color:var(--d)}
 .nav-btn.an{background:var(--d);color:#fff}
 .nav-btn.pt{background:var(--m);color:#fff}
 .nav-btn:not(.attivo){opacity:.5}
@@ -2423,7 +2423,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v36';
+const APP_VERSION='v37';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
