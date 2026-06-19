@@ -2634,7 +2634,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v46';
+const APP_VERSION='v47';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -2747,7 +2747,15 @@ async function supaInsertOrUpdate(table, row){
   if(!r.ok){
     var err=await r.text();
     console.error('Supabase upsert error '+r.status+' ['+table+']:', err);
-    _lastSyncError='HTTP '+r.status+' — '+err.substring(0,160);
+    // PostgREST risponde con JSON {"code":...,"message":...}: mostra solo
+    // il messaggio leggibile, non il blob grezzo — il dettaglio completo
+    // resta comunque in console per la diagnosi.
+    var msg=err;
+    try{
+      var parsed=JSON.parse(err);
+      if(parsed && parsed.message) msg=parsed.message;
+    }catch(e){ /* non era JSON, usa il testo così com'è */ }
+    _lastSyncError='HTTP '+r.status+' — '+msg.substring(0,160);
     return false;
   }
   _lastSyncError=null;
