@@ -1571,10 +1571,30 @@ function doLogout(){
       'Authorization':'Bearer '+accessToken}
     }).catch(function(){});
   }
+  // Come per il cambio account (onLogin): prima di svuotare, mette al sicuro
+  // eventuali schede/punteggi NON ancora sincronizzati col cloud. Un logout
+  // esplicito ha lo stesso rischio di un cambio utente — l'unica copia
+  // esistente di un dato non sincronizzato sarebbe altrimenti persa qui.
+  if(currentUser){
+    var pendS=getPendingSync('ais_s_pending_sync');
+    var pendP=getPendingSync('ais_punti_pending_sync');
+    if(pendS.length||pendP.length){
+      var schedeVecchie=JSON.parse(localStorage.getItem('ais_s')||'[]');
+      var puntiVecchi=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+      var orfaneS=schedeVecchie.filter(function(s){return pendS.indexOf(s.id)>-1||pendS.indexOf(String(s.id))>-1;});
+      var orfaneP=puntiVecchi.filter(function(p){return pendP.indexOf(p.id)>-1||pendP.indexOf(String(p.id))>-1;});
+      if(orfaneS.length||orfaneP.length){
+        localStorage.setItem('ais_quarantena__'+currentUser.email, JSON.stringify({schede:orfaneS,punti:orfaneP,pendingS:pendS,pendingP:pendP}));
+        console.warn('[Auth] Logout: '+(orfaneS.length+orfaneP.length)+' elementi non sincronizzati di '+currentUser.email+' messi in quarantena');
+      }
+    }
+  }
   localStorage.removeItem('supa_session');
   localStorage.removeItem('ais_last_user');
   localStorage.removeItem('ais_s');
   localStorage.removeItem('ais_punti');
+  localStorage.removeItem('ais_s_pending_sync');
+  localStorage.removeItem('ais_punti_pending_sync');
   accessToken=null; refreshToken=null; currentUser=null;
   var _ab=document.getElementById('admin-btn');
   if(_ab) _ab.style.display='none';
@@ -1736,7 +1756,6 @@ async function caricaSchedeDB(){
   if(!currentUser) return;
   // Ritenta eventuali cancellazioni cloud rimaste in sospeso da un sync precedente
   await flushPendingDeletes('ais_s_pending_del','schede_analitiche');
-  await flushPendingSyncSchede();
   var data=await supaSelect('schede_analitiche',{user_email:currentUser.email});
 
   if(data===null){
@@ -1774,6 +1793,12 @@ async function caricaSchedeDB(){
     });
     localStorage.setItem('ais_s', JSON.stringify(merged));
   }
+  // Il retry dei salvataggi in sospeso gira QUI, dopo che ais_s è stato
+  // ripopolato dal cloud — mai prima. Chiamarlo a ais_s ancora vuoto (es.
+  // appena dopo un logout) farebbe scambiare ogni scheda legittima per un
+  // "fantasma" di un altro account, rimuovendola dalla coda senza che il
+  // salvataggio sia mai realmente riuscito.
+  await flushPendingSyncSchede();
   if(typeof aggiornaDatalistGlobale==='function') aggiornaDatalistGlobale();
   rSav();
   if(typeof aggiornaHomeSchede==="function") aggiornaHomeSchede();
@@ -1782,7 +1807,6 @@ async function caricaSchedeDB(){
 
 async function caricaValutazioniDB(){
   if(!currentUser) return;
-  await flushPendingSyncPunti();
   var data=await supaSelect('valutazioni_punti',{user_email:currentUser.email});
 
   if(data===null){
@@ -1822,6 +1846,11 @@ async function caricaValutazioniDB(){
     });
     localStorage.setItem('ais_punti', JSON.stringify(merged));
   }
+  // Stesso motivo del lato schede: il retry gira DOPO che ais_punti è
+  // stato ripopolato, mai prima — altrimenti un array vuoto fa scambiare
+  // un punteggio legittimo per un fantasma e lo toglie dalla coda senza
+  // che il salvataggio sia mai realmente riuscito.
+  await flushPendingSyncPunti();
   if(typeof rSavP==='function') rSavP();
 }
 
@@ -1974,7 +2003,13 @@ async function riprovaSyncManuale(){
   await flushPendingSyncPunti();
   if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
   var rimasti=getPendingSync('ais_s_pending_sync').length+getPendingSync('ais_punti_pending_sync').length;
-  toast(rimasti===0?'✓ Tutto sincronizzato':'⚠ '+rimasti+' ancora in sospeso — riprova più tardi');
+  if(rimasti===0){
+    toast('✓ Tutto sincronizzato');
+  } else {
+    var dettaglio=_lastSyncError?(' — '+_lastSyncError):'';
+    toast('⚠ '+rimasti+' ancora in sospeso'+dettaglio);
+    console.error('[Sync] Riprova manuale: '+rimasti+' elementi ancora falliti. Ultimo errore:', _lastSyncError);
+  }
 }
 
 function getPendingDeletes(key){
@@ -2599,7 +2634,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v45';
+const APP_VERSION='v46';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -2698,9 +2733,10 @@ async function supaGetSession(){
 
 // upsert corretto: on_conflict=id nella query string + Prefer header
 // Funziona con PostgREST >=9 e richiede che 'id' sia PK o UNIQUE nella tabella
+var _lastSyncError=null; // ultimo errore reale di sync — per diagnosi, non cambia il contratto di ritorno booleano
 async function supaInsertOrUpdate(table, row){
   var ok=await supaEnsureToken();
-  if(!ok) return false;
+  if(!ok){ _lastSyncError='Sessione/token non valido — serve un nuovo login'; return false; }
   var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?on_conflict=id',{
     method:'POST',
     headers:Object.assign(supaHeaders(),{
@@ -2711,8 +2747,11 @@ async function supaInsertOrUpdate(table, row){
   if(!r.ok){
     var err=await r.text();
     console.error('Supabase upsert error '+r.status+' ['+table+']:', err);
+    _lastSyncError='HTTP '+r.status+' — '+err.substring(0,160);
+    return false;
   }
-  return r.ok;
+  _lastSyncError=null;
+  return true;
 }
 
 // supaSelect con error handling esplicito: non sovrascrive mai il localStorage con array vuoto per errore
