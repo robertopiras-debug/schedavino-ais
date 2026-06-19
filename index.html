@@ -1545,10 +1545,11 @@ async function doRegister(){
       }));
       showRegMsg('✓ Registrazione completata!','#2e6b2e');
       nascondiReg();
-      // Usa il nome inserito come display name
+      // Usa il nome inserito come display name — onLogin prima (imposta
+      // currentUser), salvaNomeUtente dopo: ora è legata all'email loggata.
       setTimeout(function(){
-        salvaNomeUtente(nome);
         onLogin(res.user);
+        salvaNomeUtente(nome);
       }, 500);
     } else {
       // Supabase richiede conferma email
@@ -1659,6 +1660,7 @@ function onLogin(user){
   _explicitLogout=false;
   sessionStorage.removeItem('ais_logout'); // reset flag — login volontario
   currentUser=user;
+  localStorage.removeItem('ais_nome_utente'); // pulizia chiave legacy non scoped (pre-v42)
 
   // Controlla se è cambiato l'utente rispetto all'ultima sessione
   var lastUser=localStorage.getItem('ais_last_user');
@@ -1675,7 +1677,7 @@ function onLogin(user){
   var nb=document.querySelector('.nav-bar');
   if(nb) nb.style.display='flex';
   // Recupera nome reale dall'ultima scheda salvata in localStorage
-  if(!localStorage.getItem('ais_nome_utente')){
+  if(!localStorage.getItem('ais_nome_utente__'+user.email)){
     var _schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
     var _autore=_schede.length?(_schede[0].autore||'').trim():'';
     if(_autore) salvaNomeUtente(_autore);
@@ -1733,7 +1735,7 @@ async function caricaSchedeDB(){
     });
     localStorage.setItem('ais_s', JSON.stringify(merged));
   }
-  if(typeof aggiornaDatalistViniProduttori==='function') aggiornaDatalistViniProduttori();
+  if(typeof aggiornaDatalistGlobale==='function') aggiornaDatalistGlobale();
   rSav();
   if(typeof aggiornaHomeSchede==="function") aggiornaHomeSchede();
   caricaValutazioniDB();
@@ -2476,7 +2478,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v41';
+const APP_VERSION='v42';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -2903,13 +2905,17 @@ function fmtPt(v){ return parseFloat(v||0).toFixed(1); }
 // Restituisce — se non c'è sessione attiva (currentUser non impostato)
 function nomeDisplay(){
   if(!currentUser) return '—';
-  var n=localStorage.getItem('ais_nome_utente');
+  var n=localStorage.getItem('ais_nome_utente__'+currentUser.email);
   if(n && n.trim()) return n.trim();
   return currentUser.email.split('@')[0];
 }
-// Salva nome utente in localStorage (chiamata da registrazione e primo salvataggio scheda)
+// Salva nome utente in localStorage, legato all'account che ha fatto login.
+// Prima era una chiave unica globale: su un dispositivo condiviso tra più
+// degustatori, il nome del primo account restava visibile per chiunque
+// accedesse dopo, anche con un'email diversa.
 function salvaNomeUtente(nome){
-  if(nome && nome.trim()) localStorage.setItem('ais_nome_utente', nome.trim());
+  if(!currentUser) return;
+  if(nome && nome.trim()) localStorage.setItem('ais_nome_utente__'+currentUser.email, nome.trim());
 }
 
 function fasciaP(v){
@@ -3390,12 +3396,32 @@ var SEZIONI_RAPIDE=[
 var _rpVoti={vis:null,olf:null,gus:null,fin:null};
 
 // ─── DATALIST PRODUTTORI/VINI — coerenza nomi tra degustatori diversi ────
-// Pesca da TUTTE le schede in archivio (locali + sincronizzate da Supabase)
-// e popola due <datalist> condivise. Cosi' chi digita "Argiolas" o "Turriga"
-// vede subito la grafia gia' usata da un altro degustatore, invece di
-// inventarne una propria che spaccherebbe il confronto in admin.
+// Le suggestion devono includere TUTTI i degustatori, non solo l'utente
+// loggato: altrimenti un account nuovo (zero schede proprie) non vede mai
+// i nomi già usati da altri, anche se lo stesso vino è già in archivio —
+// perché ais_s, dopo il sync, contiene solo le schede DELL'UTENTE CORRENTE
+// (caricaSchedeDB filtra per user_email).
+
+// Versione veloce, solo locale — per il refresh immediato dopo un proprio
+// salvataggio, senza una chiamata di rete.
 function aggiornaDatalistViniProduttori(){
-  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  _popolaDatalist(JSON.parse(localStorage.getItem('ais_s')||'[]'));
+}
+
+// Versione completa — interroga Supabase SENZA filtro utente (RLS disabilitata,
+// stesso meccanismo dell'admin panel), quindi include anche le schede di altri
+// degustatori. Va chiamata ai punti di sync (login, refresh riuscito), non ad
+// ogni singolo salvataggio.
+async function aggiornaDatalistGlobale(){
+  var tutte=JSON.parse(localStorage.getItem('ais_s')||'[]').slice();
+  if(currentUser){
+    var data=await supaSelect('schede_analitiche', {});
+    if(data) tutte=tutte.concat(data);
+  }
+  _popolaDatalist(tutte);
+}
+
+function _popolaDatalist(schede){
   var prod=new Set(), vini=new Set();
   schede.forEach(function(s){
     if(s.produttore) prod.add(s.produttore.trim());
