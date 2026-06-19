@@ -1419,7 +1419,15 @@ function apriInPunti(id, e){
     var s=schede.find(function(x){return x.id===id;});
     if(!s) return;
     analiticaP=s;
-    caricaDaAnalitica();
+    // Se esiste già una scheda a punti collegata a questa analitica, caricala
+    // (con i voti confermati intatti) invece di rigenerare suggerimenti da zero.
+    var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+    var esistente=lp.find(function(x){return x.analiticaId===id;});
+    if(esistente){
+      loadP(esistente.id);
+    } else {
+      caricaDaAnalitica();
+    }
   }, 100);
 }
 
@@ -2423,7 +2431,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v37';
+const APP_VERSION='v38';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
