@@ -1665,12 +1665,50 @@ function onLogin(user){
   // Controlla se è cambiato l'utente rispetto all'ultima sessione
   var lastUser=localStorage.getItem('ais_last_user');
   if(lastUser && lastUser!==user.email){
+    // Prima di azzerare la cache condivisa, mette al sicuro eventuali
+    // schede/punteggi dell'utente che sta uscendo NON ancora sincronizzati
+    // col cloud — altrimenti un cambio account su un dispositivo condiviso
+    // li cancellerebbe per sempre (mai arrivati al cloud, e a quel punto
+    // nemmeno più in locale: l'unica copia esistente).
+    var pendS=getPendingSync('ais_s_pending_sync');
+    var pendP=getPendingSync('ais_punti_pending_sync');
+    if(pendS.length||pendP.length){
+      var schedeVecchie=JSON.parse(localStorage.getItem('ais_s')||'[]');
+      var puntiVecchi=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+      var orfaneS=schedeVecchie.filter(function(s){return pendS.indexOf(s.id)>-1||pendS.indexOf(String(s.id))>-1;});
+      var orfaneP=puntiVecchi.filter(function(p){return pendP.indexOf(p.id)>-1||pendP.indexOf(String(p.id))>-1;});
+      if(orfaneS.length||orfaneP.length){
+        localStorage.setItem('ais_quarantena__'+lastUser, JSON.stringify({schede:orfaneS,punti:orfaneP,pendingS:pendS,pendingP:pendP}));
+        console.warn('[Auth] '+(orfaneS.length+orfaneP.length)+' elementi non sincronizzati di '+lastUser+' messi in quarantena — verranno ripristinati al suo prossimo login su questo dispositivo');
+      }
+    }
     // Utente diverso — svuota cache locale per evitare contaminazione tra account
     localStorage.removeItem('ais_s');
     localStorage.removeItem('ais_punti');
+    localStorage.removeItem('ais_s_pending_sync');
+    localStorage.removeItem('ais_punti_pending_sync');
     console.log('[Auth] Utente cambiato ('+lastUser+'→'+user.email+') — cache locale svuotata');
   }
   localStorage.setItem('ais_last_user', user.email);
+
+  // Ripristina eventuali elementi messi in quarantena per QUESTO utente
+  // in un cambio-account precedente su questo stesso dispositivo.
+  var quarRaw=localStorage.getItem('ais_quarantena__'+user.email);
+  if(quarRaw){
+    try{
+      var quar=JSON.parse(quarRaw);
+      var curS=JSON.parse(localStorage.getItem('ais_s')||'[]');
+      var curP=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+      (quar.schede||[]).forEach(function(s){if(!curS.find(function(x){return x.id==s.id;}))curS.push(s);});
+      (quar.punti||[]).forEach(function(p){if(!curP.find(function(x){return x.id==p.id;}))curP.push(p);});
+      localStorage.setItem('ais_s', JSON.stringify(curS));
+      localStorage.setItem('ais_punti', JSON.stringify(curP));
+      (quar.pendingS||[]).forEach(function(id){addPendingSync('ais_s_pending_sync', id);});
+      (quar.pendingP||[]).forEach(function(id){addPendingSync('ais_punti_pending_sync', id);});
+      localStorage.removeItem('ais_quarantena__'+user.email);
+      console.log('[Auth] Ripristinati '+((quar.schede||[]).length+(quar.punti||[]).length)+' elementi in sospeso per '+user.email);
+    }catch(e){console.error('[Auth] Errore ripristino quarantena:', e);}
+  }
 
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
@@ -1901,7 +1939,17 @@ async function flushPendingSyncSchede(){
   var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
   for(var i=0;i<pending.length;i++){
     var s=schede.find(function(x){return x.id==pending[i];});
-    if(s && typeof salvaSuDB==='function') await salvaSuDB(s);
+    if(s){
+      if(typeof salvaSuDB==='function') await salvaSuDB(s);
+    } else {
+      // L'id non corrisponde a nulla nell'archivio dell'utente corrente —
+      // probabilmente apparteneva a un altro account su questo stesso
+      // dispositivo. Nessuna pratica da risincronizzare: lo toglie dalla
+      // coda invece di lasciarlo segnalato in eterno (era il banner
+      // "fantasma" visto su un account diverso da quello che l'ha generato).
+      console.warn('[Sync] id pendente '+pending[i]+' non trovato in ais_s — rimosso dalla coda');
+      removePendingSync('ais_s_pending_sync', pending[i]);
+    }
   }
 }
 async function flushPendingSyncPunti(){
@@ -1910,7 +1958,12 @@ async function flushPendingSyncPunti(){
   var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
   for(var i=0;i<pending.length;i++){
     var p=punti.find(function(x){return x.id==pending[i];});
-    if(p && typeof salvaValutazioneDB==='function') await salvaValutazioneDB(p);
+    if(p){
+      if(typeof salvaValutazioneDB==='function') await salvaValutazioneDB(p);
+    } else {
+      console.warn('[Sync] id pendente '+pending[i]+' non trovato in ais_punti — rimosso dalla coda');
+      removePendingSync('ais_punti_pending_sync', pending[i]);
+    }
   }
 }
 // Pulsante manuale "Riprova" nel banner home — risposta immediata su richiesta,
@@ -2546,7 +2599,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v44';
+const APP_VERSION='v45';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
