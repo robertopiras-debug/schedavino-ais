@@ -1698,6 +1698,7 @@ async function caricaSchedeDB(){
   if(!currentUser) return;
   // Ritenta eventuali cancellazioni cloud rimaste in sospeso da un sync precedente
   await flushPendingDeletes('ais_s_pending_del','schede_analitiche');
+  await flushPendingSyncSchede();
   var data=await supaSelect('schede_analitiche',{user_email:currentUser.email});
 
   if(data===null){
@@ -1743,6 +1744,7 @@ async function caricaSchedeDB(){
 
 async function caricaValutazioniDB(){
   if(!currentUser) return;
+  await flushPendingSyncPunti();
   var data=await supaSelect('valutazioni_punti',{user_email:currentUser.email});
 
   if(data===null){
@@ -1815,7 +1817,10 @@ async function salvaSuDB(scheda){
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
   if(!ok){
     console.error('[DB] salvaSuDB: scrittura su Supabase fallita per scheda', scheda.id);
+    addPendingSync('ais_s_pending_sync', scheda.id);
     toast('⚠ Salvata in locale — sync cloud non riuscita');
+  } else {
+    removePendingSync('ais_s_pending_sync', scheda.id);
   }
   return ok;
 }
@@ -1843,7 +1848,10 @@ async function salvaValutazioneDB(val){
   var ok=await supaInsertOrUpdate('valutazioni_punti', row);
   if(!ok){
     console.error('[DB] salvaValutazioneDB: scrittura su Supabase fallita per valutazione', val.id);
+    addPendingSync('ais_punti_pending_sync', val.id);
     toast('⚠ Punteggio salvato in locale — sync cloud non riuscita');
+  } else {
+    removePendingSync('ais_punti_pending_sync', val.id);
   }
   return ok;
 }
@@ -1858,6 +1866,64 @@ async function eliminaSchemaDB(id){
 // in lista: (a) il prossimo merge da DB lo esclude esplicitamente, quindi la
 // scheda non puo' "ricomparire" da sola; (b) ogni caricaSchedeDB ritenta la
 // cancellazione cloud in background, finché non riesce.
+// ─── SALVATAGGI IN SOSPESO (sync cloud non riuscita) ──────────────────────
+// Quando un salvataggio su Supabase fallisce, l'id finisce qui. Resta finché
+// non viene davvero confermato (retry riuscito): è la differenza tra "ho
+// visto un avviso una volta" e "so con certezza che ora è sincronizzato".
+function getPendingSync(key){
+  try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
+}
+function addPendingSync(key,id){
+  var p=getPendingSync(key);
+  if(p.indexOf(id)===-1) p.push(id);
+  localStorage.setItem(key, JSON.stringify(p));
+  aggiornaBadgeSync();
+}
+function removePendingSync(key,id){
+  var p=getPendingSync(key).filter(function(x){return x!=id;});
+  localStorage.setItem(key, JSON.stringify(p));
+  aggiornaBadgeSync();
+}
+function aggiornaBadgeSync(){
+  var nS=getPendingSync('ais_s_pending_sync').length;
+  var nP=getPendingSync('ais_punti_pending_sync').length;
+  var tot=nS+nP;
+  var banner=document.getElementById('sync-pending-banner');
+  if(!banner) return;
+  if(tot===0){ banner.style.display='none'; return; }
+  banner.style.display='flex';
+  var txt=document.getElementById('sync-pending-text');
+  if(txt) txt.innerHTML='<strong>'+tot+'</strong> '+(tot===1?'scheda':'schede')+' non ancora sincronizzat'+(tot===1?'a':'e')+' col cloud';
+}
+async function flushPendingSyncSchede(){
+  var pending=getPendingSync('ais_s_pending_sync');
+  if(!pending.length) return;
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  for(var i=0;i<pending.length;i++){
+    var s=schede.find(function(x){return x.id==pending[i];});
+    if(s && typeof salvaSuDB==='function') await salvaSuDB(s);
+  }
+}
+async function flushPendingSyncPunti(){
+  var pending=getPendingSync('ais_punti_pending_sync');
+  if(!pending.length) return;
+  var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  for(var i=0;i<pending.length;i++){
+    var p=punti.find(function(x){return x.id==pending[i];});
+    if(p && typeof salvaValutazioneDB==='function') await salvaValutazioneDB(p);
+  }
+}
+// Pulsante manuale "Riprova" nel banner home — risposta immediata su richiesta,
+// non solo al prossimo login.
+async function riprovaSyncManuale(){
+  toast('Sincronizzazione in corso...');
+  await flushPendingSyncSchede();
+  await flushPendingSyncPunti();
+  if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
+  var rimasti=getPendingSync('ais_s_pending_sync').length+getPendingSync('ais_punti_pending_sync').length;
+  toast(rimasti===0?'✓ Tutto sincronizzato':'⚠ '+rimasti+' ancora in sospeso — riprova più tardi');
+}
+
 function getPendingDeletes(key){
   try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
 }
@@ -2480,7 +2546,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v43';
+const APP_VERSION='v44';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3342,12 +3408,19 @@ function filtraHomeSchede(){
     // Fallback: indicizza anche per id diretto
     if(p.id!=null){puntiMap[p.id]=puntiMap[p.id]||p;puntiMap[String(p.id)]=puntiMap[String(p.id)]||p;}
   });
+  var pendingSyncS=getPendingSync('ais_s_pending_sync').map(String);
+  var pendingSyncP=getPendingSync('ais_punti_pending_sync').map(String);
+  aggiornaBadgeSync();
   el.innerHTML=lista.map(function(s){
     var isBozza=s.tipo==='bozza';
     var badgeBozza=isBozza?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#f5a800;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">BOZZA</span>':'';
-    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza;
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
+    // Badge "non sincronizzata": vale sia per la scheda analitica sia per
+    // il punteggio collegato — basta che uno dei due non sia confermato sul cloud.
+    var nonSync=pendingSyncS.indexOf(String(s.id))>-1 || (val && pendingSyncP.indexOf(String(val.id))>-1);
+    var badgeSync=nonSync?'<span title="In attesa di sincronizzazione cloud" style="font-size:9px;font-weight:800;background:#fff3cd;color:#7a5400;border:1px solid #f5a800;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle">☁️⚠</span>':'';
+    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza+badgeSync;
     var ptNum=val
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:22px;font-weight:900;color:var(--m);line-height:1.1">'+fmtPt(val.punteggio)+'</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">'+val.fascia+'</div>'        +'</div>'      :'<div style="min-width:54px;flex-shrink:0;text-align:right">'        +'<div style="font-size:10px;color:#ccc">—</div>'        +'</div>';
     var dt=s.dt?s.dt.split(' ')[0]:'';
@@ -3797,6 +3870,11 @@ function renderAdminVino(){
     </div>
   </div>
   <div style="padding:0 12px">
+    <div id="sync-pending-banner" style="display:none;background:#fff3cd;border:1px solid #f5a800;border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#7a5400;align-items:center;gap:8px">
+      <span style="font-size:16px">☁️⚠</span>
+      <span id="sync-pending-text" style="flex:1"></span>
+      <button onclick="riprovaSyncManuale()" style="font-size:11px;padding:5px 10px;background:#f5a800;color:#fff;border:none;border-radius:3px;cursor:pointer;font-weight:700;flex-shrink:0">🔄 Riprova</button>
+    </div>
     <div id="home-benvenuto" style="background:#fff;border-radius:6px;padding:18px 16px;margin-bottom:14px;font-size:13px;color:var(--d);line-height:1.8;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08)"></div>
     <div id="home-lista"></div>
   </div>
