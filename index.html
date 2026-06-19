@@ -329,8 +329,8 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 <div class="bar">Dati identificativi</div>
 <div class="wf">
-  <div class="row"><div class="f"><div class="lbl">Produttore / Azienda</div><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." oninput="up()"></div></div>
-  <div class="row"><div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." oninput="up()"></div></div>
+  <div class="row"><div class="f"><div class="lbl">Produttore / Azienda</div><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." list="dl-produttori" oninput="up()"></div></div>
+  <div class="row"><div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="up()"></div></div>
   <div class="row">
     <div class="f" style="max-width:145px;flex:none"><div class="lbl">Regione</div>
       <select id="wR" onchange="onReg()">
@@ -1702,6 +1702,7 @@ async function caricaSchedeDB(){
     // Errore di rete o auth — non toccare la cache locale, avvisa
     console.warn('caricaSchedeDB: errore fetch, uso cache locale');
     toast('DB non raggiunto — uso dati locali');
+    if(typeof aggiornaDatalistViniProduttori==='function') aggiornaDatalistViniProduttori();
     rSav();
     caricaValutazioniDB();
     return;
@@ -1732,6 +1733,7 @@ async function caricaSchedeDB(){
     });
     localStorage.setItem('ais_s', JSON.stringify(merged));
   }
+  if(typeof aggiornaDatalistViniProduttori==='function') aggiornaDatalistViniProduttori();
   rSav();
   if(typeof aggiornaHomeSchede==="function") aggiornaHomeSchede();
   caricaValutazioniDB();
@@ -2198,6 +2200,7 @@ function savLocal(){
   }
   localStorage.setItem('ais_s',JSON.stringify(l));
   if(typeof salvaSuDB==='function') salvaSuDB(d);
+  if(typeof aggiornaDatalistViniProduttori==='function') aggiornaDatalistViniProduttori();
   rSav();
 }
 
@@ -2473,7 +2476,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v40';
+const APP_VERSION='v41';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3117,6 +3120,7 @@ function salvaPunti(){
     baseAnalitica:parseFloat(basePunti.toFixed(1)),
     delta:parseFloat((tot-basePunti).toFixed(1)),
     voti:Object.assign({},voti),
+    votiOriginali:Object.assign({},votiBase), // memoria del valore originale suggerito (analitica/Guida VITAE)
     nota:document.getElementById('notaP').value,
     dt:dt
   };
@@ -3193,11 +3197,28 @@ function loadP(id){
   }
   votiConfermati=new Set();
   votiBase={};
-  Object.keys(s.voti||{}).forEach(function(k){setVoto(k,s.voti[k],true);});
+  // Ripristina i voti confermati e, separatamente, i valori ORIGINALI
+  // suggeriti (da analitica o Guida VITAE) — preserva la "memoria" di
+  // quanto e dove il degustatore ha corretto la stima, anche dopo il
+  // salvataggio. Schede salvate prima di questa modifica non hanno
+  // votiOriginali: in quel caso il confronto ricade sul valore salvato
+  // stesso (delta 0 — nessuna regressione per i dati vecchi).
+  Object.keys(s.voti||{}).forEach(function(k){
+    var v=s.voti[k];
+    voti[k]=v;
+    votiBase[k]=(s.votiOriginali && s.votiOriginali[k]!==undefined) ? s.votiOriginali[k] : v;
+    var p=PARAMS.find(function(x){return x.id===k;});
+    if(p){
+      var elV=document.getElementById(p.vId); if(elV) elV.textContent=v;
+      var elC=document.getElementById(p.cId); if(elC) elC.textContent=(v*p.peso).toFixed(1)+' pt';
+    }
+  });
   // Una scheda già salvata ha tutti i parametri confermati per definizione
   PARAMS.forEach(function(p){votiConfermati.add(p.id);});
-  // Aggiorna visualizzazione chip per riflettere stato confermato
+  // Aggiorna visualizzazione chip per riflettere stato confermato + eventuale delta
   PARAMS.forEach(function(p){aggiornaSlider(p.id);});
+  aggiornaStatoPunti();
+  calcolaTotale();
   document.getElementById('notaP').value=s.nota||'';
   editingIdP=typeof id==="string"?parseInt(id):id;
   mostraScheda();
@@ -3224,6 +3245,7 @@ function vediAnaliticaCollegata(){
 function resetPunti(){
   analiticaP=null; editingIdP=null;
   votiConfermati=new Set();
+  votiBase={}; // evita di trascinare la "memoria" di una scheda precedente su una nuova
   voti={aspetto:6,iolf:6,purez:6,compl:6,igus:6,equi:6,espr:6,pers:6,armo:6,qual:6};
   PARAMS.forEach(function(p){aggiornaSlider(p.id);});
   document.getElementById('notaP').value='';
@@ -3367,6 +3389,66 @@ var SEZIONI_RAPIDE=[
 
 var _rpVoti={vis:null,olf:null,gus:null,fin:null};
 
+// ─── DATALIST PRODUTTORI/VINI — coerenza nomi tra degustatori diversi ────
+// Pesca da TUTTE le schede in archivio (locali + sincronizzate da Supabase)
+// e popola due <datalist> condivise. Cosi' chi digita "Argiolas" o "Turriga"
+// vede subito la grafia gia' usata da un altro degustatore, invece di
+// inventarne una propria che spaccherebbe il confronto in admin.
+function aggiornaDatalistViniProduttori(){
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var prod=new Set(), vini=new Set();
+  schede.forEach(function(s){
+    if(s.produttore) prod.add(s.produttore.trim());
+    if(s.nome) vini.add(s.nome.trim());
+  });
+  function esc(s){return s.replace(/"/g,'&quot;');}
+  var dlP=document.getElementById('dl-produttori');
+  var dlV=document.getElementById('dl-vini');
+  if(dlP) dlP.innerHTML=Array.from(prod).sort().map(function(p){return '<option value="'+esc(p)+'">';}).join('');
+  if(dlV) dlV.innerHTML=Array.from(vini).sort().map(function(v){return '<option value="'+esc(v)+'">';}).join('');
+}
+
+// ─── DENOMINAZIONE — ricerca semplice su tutte le regioni (Guida VITAE) ──
+// Versione snella del motore usato nella scheda analitica completa: niente
+// selettore regione né menzioni, solo ricerca testo + scelta. La scheda
+// analitica completa userà comunque il suo motore pieno alla revisione.
+function rpTutteDenom(){
+  var out=[];
+  Object.keys(DN).forEach(function(reg){
+    DN[reg].forEach(function(d){ out.push({n:d.n,t:d.t,regione:reg}); });
+  });
+  return out;
+}
+function rpFiltraDenom(){
+  var q=document.getElementById('rp-denom-search').value.trim().toLowerCase();
+  var dd=document.getElementById('rp-denom-dd');
+  if(!q){ dd.style.display='none'; dd.innerHTML=''; return; }
+  var match=rpTutteDenom().filter(function(d){return d.n.toLowerCase().indexOf(q)>-1;}).slice(0,30);
+  if(!match.length){
+    dd.innerHTML='<div style="padding:8px 10px;color:#999;font-size:11px">Nessun risultato</div>';
+    dd.style.display='block';
+    return;
+  }
+  dd.innerHTML=match.map(function(d){
+    var nEsc=d.n.replace(/'/g,"\\'");
+    return '<div onclick="rpPickDenom(\''+nEsc+'\',\''+d.t+'\')" '
+      +'style="padding:7px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid #f0f0f0">'
+      +'<strong>'+d.n+'</strong> <span style="color:#999;font-size:10px">'+d.t+' · '+d.regione+'</span></div>';
+  }).join('');
+  dd.style.display='block';
+}
+function rpPickDenom(n,t){
+  document.getElementById('rp-denom-search').value=n+' ('+t+')';
+  document.getElementById('rp-denom-dd').style.display='none';
+}
+function rpClOutDenom(e){
+  if(!e.target.closest('.rp-dw')){
+    var dd=document.getElementById('rp-denom-dd');
+    if(dd) dd.style.display='none';
+  }
+}
+document.addEventListener('click', rpClOutDenom);
+
 function homeNuovaRapida(){
   nascondiHome();
   _rpVoti={vis:null,olf:null,gus:null,fin:null};
@@ -3386,9 +3468,10 @@ function homeNuovaRapida(){
       +'</div>';
   }).join('');
   // Pulisce campi
-  ['rp-produttore','rp-nome','rp-annata','rp-note'].forEach(function(id){
+  ['rp-produttore','rp-nome','rp-annata','rp-note','rp-denom-search'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.value='';
   });
+  document.getElementById('rp-denom-dd').style.display='none';
   document.getElementById('rp-colore').value='';
   document.getElementById('rp-base').value='';
   document.getElementById('rp-preview').textContent='—';
@@ -3468,6 +3551,7 @@ async function salvaRapida(){
     nome:nome,
     annata:document.getElementById('rp-annata').value||'',
     tipologia:tipologia,
+    denominazione:document.getElementById('rp-denom-search').value.trim()||'',
     nota_fin:document.getElementById('rp-note').value||'',
     parametri:parametri,
     descrittori:[],sfumature:[],desc_vis:[],
@@ -3492,6 +3576,7 @@ async function salvaRapida(){
   var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
   l.unshift(scheda);
   localStorage.setItem('ais_s',JSON.stringify(l));
+  aggiornaDatalistViniProduttori();
 
   nascondiRapida();
   aggiornaHomeSchede();
@@ -3707,14 +3792,14 @@ function renderAdminVino(){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
         <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Produttore</label>
-        <input id="rp-produttore" type="text" placeholder="es. Argiolas" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
+        <input id="rp-produttore" type="text" placeholder="es. Argiolas" list="dl-produttori" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
       </div>
       <div>
         <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Nome vino</label>
-        <input id="rp-nome" type="text" placeholder="es. Turriga" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
+        <input id="rp-nome" type="text" placeholder="es. Turriga" list="dl-vini" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
         <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Annata</label>
         <input id="rp-annata" type="number" placeholder="2021" min="1900" max="2030" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
@@ -3737,6 +3822,13 @@ function renderAdminVino(){
           <option>Spumante</option>
         </select>
       </div>
+    </div>
+    <div class="rp-dw" style="position:relative">
+      <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Denominazione</label>
+      <input id="rp-denom-search" type="text" placeholder="Cerca denominazione..." autocomplete="off"
+        oninput="rpFiltraDenom()" onfocus="rpFiltraDenom()"
+        style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
+      <div id="rp-denom-dd" style="display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid var(--b);border-top:none;border-radius:0 0 4px 4px;max-height:180px;overflow-y:auto;z-index:50;box-shadow:0 4px 10px rgba(0,0,0,.1)"></div>
     </div>
   </div>
 
@@ -3787,5 +3879,7 @@ function renderAdminVino(){
     <div id="admin-ct-vino" style="display:none"></div>
   </div>
 </div>
+<datalist id="dl-produttori"></datalist>
+<datalist id="dl-vini"></datalist>
 </body>
 </html>
