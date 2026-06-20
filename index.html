@@ -2651,7 +2651,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v55';
+const APP_VERSION='v56';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3792,7 +3792,7 @@ function rpAggiornaPunteggio(){
   var tuttiSet=(_rpVoti.vis!==null&&_rpVoti.olf!==null&&_rpVoti.gus!==null&&_rpVoti.fin!==null);
   var r=calcolaTeoricoAIS(par);
   el.textContent=(tuttiSet?'':'~')+parseFloat(r.totale.toFixed(1));
-  ef.textContent=tuttiSet?fasciaP(parseFloat(r.totale.toFixed(1))):'(stima parziale — su 100)';
+  ef.textContent=tuttiSet?(fasciaP(parseFloat(r.totale.toFixed(1)))+' — stima da affinare nella scheda a punti'):'(stima parziale — su 100)';
 }
 
 async function salvaRapida(){
@@ -4132,6 +4132,9 @@ function renderAdminVino(){
       <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.05em">Punteggio stimato</div>
       <div id="rp-preview" style="font-size:28px;font-weight:900;color:var(--m)">—</div>
       <div id="rp-fascia" style="font-size:11px;color:#888;margin-top:2px"></div>
+    </div>
+    <div style="margin-top:8px;padding:8px 10px;background:#fffbe6;border:1px solid #e8d480;border-radius:4px;font-size:10px;line-height:1.5;color:#7a6a00">
+      ⓘ Stima rapida: in modalità Guida VITAE assegni un giudizio per <em>sezione</em>, non per singolo parametro. Il valore definitivo si ottiene affinando i 10 parametri nella scheda a punti completa.
     </div>
   </div>
 
