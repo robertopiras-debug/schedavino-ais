@@ -219,6 +219,7 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 .p-voto{display:none}
 .p-contributo{font-size:11px;color:var(--s);text-align:right;line-height:1;font-weight:700}
 /* Hero compatto */
+.hero-vino{font-size:17px;font-weight:900;color:var(--d);line-height:1.2;margin-bottom:3px}
 .hero-num{font-size:42px;font-weight:900;color:var(--m);line-height:1;margin:1px 0}
 .hero-fascia{font-size:11px;font-weight:700;color:var(--d);margin-bottom:2px}
 .hero-breakdown{font-size:9px;color:#888;line-height:1.4}
@@ -750,6 +751,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 <!-- Totale hero -->
 <div class="hero" id="hero" style="padding:8px 12px;text-align:center">
+  <div class="hero-vino" id="heroVino">—</div>
   <div class="hero-label">Punteggio totale</div>
   <div class="hero-num" id="heroNum">—</div>
   <div class="hero-fascia" id="heroFascia">—</div>
@@ -2651,7 +2653,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v52';
+const APP_VERSION='v53';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3173,7 +3175,7 @@ function caricaDaAnalitica(){
   // Popola testata
   document.getElementById('t-autore').textContent=analiticaP.autore||'—';
   document.getElementById('t-data').textContent=analiticaP.dt||new Date().toLocaleDateString('it-IT');
-  document.getElementById('t-vino').textContent=(analiticaP.produttore||'')+(analiticaP.nome?' — '+analiticaP.nome:'');
+  aggiornaTestataVino();
   document.getElementById('t-annata').textContent=analiticaP.annata||'—';
   document.getElementById('t-tipol').textContent=analiticaP.tipologia||'—';
   document.getElementById('t-denom').textContent=analiticaP.denominazione||'—';
@@ -3266,6 +3268,15 @@ function caricaDaAnalitica(){
 function modalitaManuale(){
   analiticaP=null;
   mostraScheda();
+}
+
+// Aggiorna il nome vino sia nella testata sia nella barra punteggio fissa
+// in alto (hero sticky) — un solo punto invece di due righe duplicate che
+// rischiavano di disallinearsi se una veniva aggiornata e l'altra no.
+function aggiornaTestataVino(){
+  var txt=analiticaP ? (analiticaP.produttore||'')+(analiticaP.nome?' — '+analiticaP.nome:'') : '—';
+  var tv=document.getElementById('t-vino'); if(tv) tv.textContent=txt;
+  var hv=document.getElementById('heroVino'); if(hv) hv.textContent=txt;
 }
 
 function mostraScheda(){
@@ -3452,7 +3463,7 @@ function loadP(id){
   mostraScheda();
   if(analiticaP){
     document.getElementById('t-autore').textContent=analiticaP.autore||'—';
-    document.getElementById('t-vino').textContent=(analiticaP.produttore||'')+(analiticaP.nome?' — '+analiticaP.nome:'');
+    aggiornaTestataVino();
     document.getElementById('t-annata').textContent=analiticaP.annata||'—';
     document.getElementById('t-tipol').textContent=analiticaP.tipologia||'—';
     document.getElementById('t-denom').textContent=analiticaP.denominazione||'—';
