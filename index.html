@@ -1157,7 +1157,6 @@ function ss(n){sv=n;document.querySelectorAll('#stars .st').forEach(function(s,i
 
 // ─── ANTEPRIMA PUNTEGGIO TEORICO ─────────────────────────────────────────
 var QORD=['Accettabile','Buono','Distinto','Ottimo','Eccellente'];
-var Q2PT={'Accettabile':6,'Buono':7,'Distinto':8,'Ottimo':9,'Eccellente':10};
 
 // Pesi massimi per sezione
 var SEZIONI_AP=[
@@ -1170,7 +1169,7 @@ var SEZIONI_AP=[
 // ─── CALCOLO TEORICO CONDIVISO (usato da anteprima analitica E scheda a punti) ───
 function calcolaTeoricoAIS(par){
   // par = oggetto sc dell'analitica (par.qvis, par.qolf, par.qgus, par.qtot, par.iolf, ecc.)
-  var Q={'Accettabile':6,'Buono':7,'Distinto':8,'Ottimo':9,'Eccellente':10};
+  var Q=Q2V; // riusa la costante condivisa invece di una copia locale separata (v55)
   var vm={'Moderatamente intenso':7,'Intenso':8,'Molto intenso':9};
   var vc={'Moderatamente complesso':7,'Complesso':8,'Ampio':9};
   var ve={'Poco equil.':7,'Med. equil.':8,'Equilibrato':9};
@@ -1268,7 +1267,6 @@ function aggiornaAnteprima(){
 }
 
 // ─── CONTROLLO COERENZA QTOT ─────────────────────────────────────────────
-var QORD=['Accettabile','Buono','Distinto','Ottimo','Eccellente'];
 function controllaCoerenzaQtot(){
   var av=document.getElementById('avviso-coerenza');
   if(!av) return;
@@ -2653,7 +2651,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v54';
+const APP_VERSION='v55';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -2854,12 +2852,15 @@ const PARAMS=[
   {id:'qual',    peso:1.5,vId:'vQual',    cId:'cQual',    slId:'slw-qual',    hId:'hQual',    sez:'F'},
 ];
 
-const VOTI=[10,9,8,7,6];
-const LABELS=['6 Accettabile','7 Buono','8 Distinto','9 Ottimo','10 Eccellente'];
-const FASCIA={6:'Accettabile',7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
-
+const VOTI=[10,9,8,7]; // scala ufficiale AIS per parametro: 7-10, niente 6 (v55)
 // Mappa qualità analitica → voto suggerito
-const Q2V={'Accettabile':6,'Buono':7,'Distinto':8,'Ottimo':9,'Eccellente':10};
+// Scala ufficiale AIS per parametro: 7,8,9,10 (mai 6). 5 parole su 4 numeri:
+// Buono->8 e Ottimo->9 hanno una corrispondenza esatta nella tabella ufficiale
+// (voto uniforme 8 = totale 80 = inizio fascia Buono; voto uniforme 9 = totale 90
+// = inizio fascia Ottimo). Distinto (85-89,9) non ha una colonna propria nella
+// tabella AIS — emerge solo da un MIX di valori tra parametri, mai da un voto
+// uniforme — quindi si accorpa al vicino numericamente più vicino (Ottimo).
+const Q2V={'Accettabile':7,'Buono':8,'Distinto':9,'Ottimo':9,'Eccellente':10};
 const HINT_MAP={
   iolf:  {campo:'iolf',  label:'Intensità olfattiva'},
   purez: {campo:'qolf',  label:'Qualità olfattiva'},
@@ -2872,7 +2873,7 @@ const HINT_MAP={
   qual:  {campo:'qtot',  label:'Qualità complessiva'},
 };
 
-let voti={aspetto:6,iolf:6,purez:6,compl:6,igus:6,equi:6,espr:6,pers:6,armo:6,qual:6};
+let voti={aspetto:7,iolf:7,purez:7,compl:7,igus:7,equi:7,espr:7,pers:7,armo:7,qual:7};
 var votiConfermati=new Set(); // parametri toccati esplicitamente dall'utente
 var votiBase={}; // valore ereditato dall'analitica per ogni parametro
 let analiticaP=null;
@@ -2959,7 +2960,10 @@ function aggiornBasePunti(){
 }
 
 // ─── CHIP VOTO 6·7·8·9·10 ────────────────────────────────────────────────
-const ETICHETTE={6:'Accett.',7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
+// La scheda ufficiale AIS mostra SOLO i numeri 7-10 per parametro, mai le 5
+// parole (quelle sono riservate alla classificazione del punteggio TOTALE —
+// vedi fasciaP). Etichette testuali rimosse per non confondere i due livelli.
+const ETICHETTE={7:'',8:'',9:'',10:''};
 
 function creaSlider(wrapId, paramId){
   var wrap=document.getElementById(wrapId);
@@ -3064,7 +3068,10 @@ function calcolaTotale(){
   document.getElementById('subG').textContent=subG.toFixed(1);
   document.getElementById('subF').textContent=subF.toFixed(1);
   // Label qualitative di sezione (media voti pesati → fascia)
-  function lbSez(pt,max){var v=pt/max*10; return v>=9?'Eccellente':v>=8?'Ottimo':v>=7?'Distinto':v>=6?'Buono':'Accettabile';}
+  // Soglie proporzionali a fasciaP (70/80/85/90/94 diviso 10): un voto
+  // uniforme 7/8/9/10 in una sezione produce esattamente la stessa parola
+  // che produrrebbe sull'intera scheda — coerenza piena con Q2V/fasciaP.
+  function lbSez(pt,max){var v=pt/max*10; return v>=9.4?'Eccellente':v>=9?'Ottimo':v>=8.5?'Distinto':v>=8?'Buono':'Accettabile';}
   var lbV=document.getElementById('lbV'); if(lbV&&subV>0) lbV.textContent='· '+lbSez(subV,10);
   var lbO=document.getElementById('lbO'); if(lbO&&subO>0) lbO.textContent='· '+lbSez(subO,30);
   var lbG=document.getElementById('lbG'); if(lbG&&subG>0) lbG.textContent='· '+lbSez(subG,40);
@@ -3147,12 +3154,15 @@ async function aggiornaProfiloNome(){
 }
 
 function fasciaP(v){
+  // Soglie ufficiali AIS (Dispense Seminario Degustatore, cap. 'La scheda a
+  // punti'): la base è 70/100 (= ogni parametro al minimo, 7) e corrisponde
+  // alla sufficienza/accettabile — non esiste una fascia sotto al 70.
   if(v>=94) return 'Eccellente';
-  if(v>=88) return 'Ottimo';
-  if(v>=80) return 'Distinto';
-  if(v>=70) return 'Buono';
-  if(v>=60) return 'Accettabile';
-  return 'Insufficiente';
+  if(v>=90) return 'Ottimo';
+  if(v>=85) return 'Distinto';
+  if(v>=80) return 'Buono';
+  if(v>=70) return 'Accettabile';
+  return 'Insufficiente'; // fuori scala ufficiale: nessun parametro può scendere sotto 7
 }
 
 // ─── CARICA DA ANALITICA ─────────────────────────────────────────────────
@@ -3489,7 +3499,7 @@ function resetPunti(){
   analiticaP=null; editingIdP=null;
   votiConfermati=new Set();
   votiBase={}; // evita di trascinare la "memoria" di una scheda precedente su una nuova
-  voti={aspetto:6,iolf:6,purez:6,compl:6,igus:6,equi:6,espr:6,pers:6,armo:6,qual:6};
+  voti={aspetto:7,iolf:7,purez:7,compl:7,igus:7,equi:7,espr:7,pers:7,armo:7,qual:7};
   PARAMS.forEach(function(p){aggiornaSlider(p.id);});
   document.getElementById('notaP').value='';
   document.getElementById('feedback').style.display='none';
@@ -3768,7 +3778,8 @@ function rpSetVoto(sezId, val, btn){
 function rpAggiornaPunteggio(){
   // Usa lo stesso motore della scheda a punti (scala 0-100).
   // Con i soli giudizi di sezione, calcolaTeoricoAIS assegna quel voto a ogni
-  // parametro della sezione: tutte a "Buono" (7) -> 70, "Distinto" (8) -> 80, ecc.
+  // parametro della sezione: tutte ad "Accettabile" (7) -> 70, "Buono" (8)
+  // -> 80, "Distinto"/"Ottimo" (9) -> 90, "Eccellente" (10) -> 100.
   var descMap={6:'Accettabile',7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
   var par={};
   if(_rpVoti.vis!==null) par.qvis=descMap[_rpVoti.vis];
