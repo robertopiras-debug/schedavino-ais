@@ -2651,7 +2651,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v56';
+const APP_VERSION='v57';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3632,13 +3632,10 @@ function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=d
 
 
 // ═══ MODALITÀ GUIDA VITAE ════════════════════════════════════════════════
-var SCALA_AIS=[
-  {v:10,l:'Eccellente'},
-  {v:9, l:'Ottimo'},
-  {v:8, l:'Distinto'},
-  {v:7, l:'Buono'},
-  {v:6, l:'Accettabile'}
-];
+// Solo numeri, come da tabella ufficiale AIS (mai aggettivi a livello di
+// singolo parametro/sezione — le 5 parole vivono SOLO sul punteggio totale,
+// vedi fasciaP). Tolto anche il 6: il pavimento del sistema è 7.
+var SCALA_AIS=[10,9,8,7];
 
 var SEZIONI_RAPIDE=[
   {id:'vis',  label:'Esame Visivo',          peso:0.10, params:['aspetto']},
@@ -3736,10 +3733,10 @@ function homeNuovaRapida(){
   var el=document.getElementById('rp-sezioni');
   el.innerHTML=SEZIONI_RAPIDE.map(function(s){
     var chips=SCALA_AIS.map(function(c){
-      return '<button onclick="rpSetVoto(\'' + s.id + '\',' + c.v + ',this)" '
-        + 'style="padding:6px 10px;border:1px solid #ddd;border-radius:3px;background:#fff;'
-        + 'font-size:11px;cursor:pointer;transition:all .15s" data-sez="' + s.id + '" data-val="' + c.v + '">'
-        + c.l + '</button>';
+      return '<button onclick="rpSetVoto(\'' + s.id + '\',' + c + ',this)" '
+        + 'style="padding:6px 14px;border:1px solid #ddd;border-radius:3px;background:#fff;'
+        + 'font-size:15px;font-weight:800;cursor:pointer;transition:all .15s" data-sez="' + s.id + '" data-val="' + c + '">'
+        + c + '</button>';
     }).join('');
     return '<div style="margin-bottom:14px">'
       +'<div style="font-size:11px;font-weight:700;color:var(--d);margin-bottom:6px">'+s.label
@@ -3770,7 +3767,6 @@ function rpSetVoto(sezId, val, btn){
     b.style.background=b.dataset.val==val?'var(--m)':'#fff';
     b.style.color=b.dataset.val==val?'#fff':'#333';
     b.style.borderColor=b.dataset.val==val?'var(--m)':'#ddd';
-    b.style.fontWeight=b.dataset.val==val?'700':'400';
   });
   rpAggiornaPunteggio();
 }
@@ -3778,9 +3774,12 @@ function rpSetVoto(sezId, val, btn){
 function rpAggiornaPunteggio(){
   // Usa lo stesso motore della scheda a punti (scala 0-100).
   // Con i soli giudizi di sezione, calcolaTeoricoAIS assegna quel voto a ogni
-  // parametro della sezione: tutte ad "Accettabile" (7) -> 70, "Buono" (8)
-  // -> 80, "Distinto"/"Ottimo" (9) -> 90, "Eccellente" (10) -> 100.
-  var descMap={6:'Accettabile',7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
+  // parametro della sezione: 7->70, 8->80, 9->90, 10->100.
+  // La parola scelta qui DEVE corrispondere esattamente, tramite Q2V, allo
+  // stesso numero del pulsante — altrimenti il punteggio si sposta in
+  // silenzio (bug reale, scoperto e corretto in questa stessa modifica:
+  // un Q2V non più allineato a questa mappa spostava 7->8 e 8->9).
+  var descMap={7:'Accettabile',8:'Buono',9:'Ottimo',10:'Eccellente'};
   var par={};
   if(_rpVoti.vis!==null) par.qvis=descMap[_rpVoti.vis];
   if(_rpVoti.olf!==null) par.qolf=descMap[_rpVoti.olf];
@@ -3815,9 +3814,11 @@ async function salvaRapida(){
 
   // Modalità guida: si salvano SOLO i 4 giudizi di sezione (descrittori AIS).
   // I sottoparametri descrittivi (iolf, purez, equi, pers...) NON vengono toccati:
-  // sono qualitativi, non un voto 6-10, e vanno valutati nella scheda completa.
+  // sono qualitativi, non un voto 7-10, e vanno valutati nella scheda completa.
   // Scriverli come numero rompeva il ripristino in loadS (val.indexOf su Number).
-  var descMap={6:'Accettabile',7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
+  // Stessa mappa di rpAggiornaPunteggio — deve restare identica, altrimenti
+  // l'anteprima e il valore salvato divergono silenziosamente.
+  var descMap={7:'Accettabile',8:'Buono',9:'Ottimo',10:'Eccellente'};
   var parametri={
     qvis:descMap[_rpVoti.vis],
     qolf:descMap[_rpVoti.olf],
