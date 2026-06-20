@@ -219,7 +219,7 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 .p-voto{display:none}
 .p-contributo{font-size:11px;color:var(--s);text-align:right;line-height:1;font-weight:700}
 /* Hero compatto */
-.hero-vino{font-size:17px;font-weight:900;color:var(--d);line-height:1.2;margin-bottom:3px}
+.hero-vino{font-size:19px;font-weight:900;color:var(--d);line-height:1.2;margin-bottom:4px;letter-spacing:.01em}
 .hero-num{font-size:42px;font-weight:900;color:var(--m);line-height:1;margin:1px 0}
 .hero-fascia{font-size:11px;font-weight:700;color:var(--d);margin-bottom:2px}
 .hero-breakdown{font-size:9px;color:#888;line-height:1.4}
@@ -2653,7 +2653,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v53';
+const APP_VERSION='v54';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -2925,8 +2925,12 @@ function sincronizzaConAnalitica(){
   var esistente=lp.find(function(x){return x.analiticaId===target.id;});
 
   if(analiticaP && analiticaP.id===target.id){
-    // Stessa scheda — aggiorna solo base
+    // Stessa scheda — aggiorna solo base (ma la testata/intestazione fissa
+    // va comunque rinfrescata: questo ramo veniva saltato, lasciando il nome
+    // vino nella barra sticky vuoto se si tornava su "Punti" senza cambiare
+    // scheda, es. dopo essere passati da Analitica e ritornati indietro)
     analiticaP=target;
+    aggiornaTestataVino();
     aggiornBasePunti();
     calcolaTotale();
     return;
