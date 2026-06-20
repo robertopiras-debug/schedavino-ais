@@ -316,7 +316,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 <div id="app-screen" style="display:none">
 <div class="page">
 <div style="background:#fff;padding:5px 12px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;font-size:11px">
-  <span style="color:var(--d)">👤 <span id="user-label">—</span></span>
+  <span style="color:var(--d)">👤 <span id="user-label" onclick="aggiornaProfiloNome()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Tocca per correggere il tuo nome">—</span></span>
   <span style="color:var(--m);cursor:pointer;font-weight:700" onclick="doLogout()">Esci</span>
 </div>
 <div class="ais-hd">
@@ -1530,7 +1530,7 @@ async function doRegister(){
   if(pwd!==pwd2){showRegMsg('Le password non coincidono','#c0006a');return;}
   showRegMsg('Registrazione in corso...','#888');
   try {
-    var res=await supaSignUp(email,pwd);
+    var res=await supaSignUp(email,pwd,nome);
     if(res.error||res.error_code){
       showRegMsg('Errore: '+(res.error_description||res.message||JSON.stringify(res)),'#c0006a');
       return;
@@ -1744,8 +1744,15 @@ function onLogin(user){
   document.getElementById('app-screen').style.display='block';
   var nb=document.querySelector('.nav-bar');
   if(nb) nb.style.display='flex';
-  // Recupera nome reale dall'ultima scheda salvata in localStorage
-  if(!localStorage.getItem('ais_nome_utente__'+user.email)){
+  // Nome reale: la fonte autorevole è Supabase (impostato in fase di
+  // registrazione, dalla v50 in poi) — risincronizzato ad ogni login,
+  // così resta corretto anche su un dispositivo/browser mai usato prima,
+  // invece di ricadere sul pezzo iniziale dell'email.
+  if(user.user_metadata && user.user_metadata.nome){
+    salvaNomeUtente(user.user_metadata.nome);
+  } else if(!localStorage.getItem('ais_nome_utente__'+user.email)){
+    // Account creati prima di questa modifica, senza nome su Supabase:
+    // recupera dall'ultima scheda compilata, come faceva prima.
     var _schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
     var _autore=_schede.length?(_schede[0].autore||'').trim():'';
     if(_autore) salvaNomeUtente(_autore);
@@ -2644,7 +2651,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v49';
+const APP_VERSION='v50';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -2659,10 +2666,12 @@ function supaHeaders(){
   };
 }
 
-async function supaSignUp(email,pwd){
+async function supaSignUp(email,pwd,nome){
+  var body={email:email,password:pwd};
+  if(nome) body.data={nome:nome};
   var r=await fetch(SUPA_URL+'/auth/v1/signup',{
     method:'POST',headers:supaHeaders(),
-    body:JSON.stringify({email:email,password:pwd})
+    body:JSON.stringify(body)
   });
   return r.json();
 }
@@ -3094,6 +3103,41 @@ function nomeDisplay(){
 function salvaNomeUtente(nome){
   if(!currentUser) return;
   if(nome && nome.trim()) localStorage.setItem('ais_nome_utente__'+currentUser.email, nome.trim());
+}
+
+// Aggiorna il nome del profilo SU SUPABASE (non solo in locale), usando il
+// token dell'utente già loggato — nessun privilegio admin richiesto. Serve
+// soprattutto per "riparare" gli account creati prima che la registrazione
+// inviasse il nome a Supabase: un click e il nome diventa corretto su ogni
+// dispositivo da quel momento in poi, non solo su questo.
+async function aggiornaProfiloNome(){
+  if(!currentUser) return;
+  var attuale=nomeDisplay();
+  var nuovo=prompt('Il tuo nome e cognome:', attuale==='—'?'':attuale);
+  if(nuovo===null) return; // annullato
+  nuovo=nuovo.trim();
+  if(!nuovo) return;
+  salvaNomeUtente(nuovo);
+  document.getElementById('user-label').textContent=nomeDisplay();
+  var hd=document.getElementById('home-degustatore');
+  if(hd) hd.textContent=nomeDisplay();
+  try{
+    var r=await fetch(SUPA_URL+'/auth/v1/user',{
+      method:'PUT',
+      headers:supaHeaders(),
+      body:JSON.stringify({data:{nome:nuovo}})
+    });
+    if(r.ok){
+      var updated=await r.json();
+      currentUser.user_metadata=updated.user_metadata||{nome:nuovo};
+      toast('✓ Nome aggiornato su tutti i dispositivi');
+    } else {
+      toast('⚠ Nome salvato in locale — sync con l\'account non riuscita');
+    }
+  }catch(e){
+    console.error('[Auth] aggiornaProfiloNome:', e);
+    toast('⚠ Nome salvato in locale — sync con l\'account non riuscita');
+  }
 }
 
 function fasciaP(v){
@@ -3964,7 +4008,10 @@ function renderAdminVino(){
     <span style="font-size:16px">👤</span>
     <div style="flex:1">
       <div style="font-size:9px;opacity:.8;text-transform:uppercase;letter-spacing:.05em">Degustatore</div>
-      <div id="home-degustatore" style="font-size:14px;font-weight:700">—</div>
+      <div style="display:flex;align-items:center;gap:5px;cursor:pointer" onclick="aggiornaProfiloNome()">
+        <div id="home-degustatore" style="font-size:14px;font-weight:700">—</div>
+        <span style="font-size:10px;opacity:.7">✏️</span>
+      </div>
     </div>
     <span id="admin-btn" style="display:none;font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;font-weight:600;margin-right:8px" onclick="mostraAdmin()">📊</span>
     <span style="font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;font-weight:600" onclick="doLogout()">Esci</span>
