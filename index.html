@@ -237,11 +237,9 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 /* ═══ NAVIGAZIONE ═══ */
 .vista{display:none}
 .vista.attiva{display:block}
-.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:500px;display:flex;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.15);background:#fff;-webkit-backface-visibility:hidden;backface-visibility:hidden}
-.nav-btn{flex:1;padding:13px 8px calc(13px + env(safe-area-inset-bottom)) 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;background:#fff;color:var(--d)}
-.nav-btn.an{background:var(--d);color:#fff}
-.nav-btn.pt{background:var(--m);color:#fff}
-.nav-btn:not(.attivo){opacity:.5}
+.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:500px;display:flex;z-index:200;box-shadow:0 -2px 10px rgba(0,0,0,.25);background:var(--d);-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.nav-btn{flex:1;padding:13px 8px calc(13px + env(safe-area-inset-bottom)) 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;background:transparent;color:rgba(255,255,255,.55);transition:background .15s,color .15s}
+.nav-btn.attivo{background:var(--m);color:#fff}
 body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 </style>
@@ -913,11 +911,20 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 function mostraVista(v){
   document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva')});
   document.getElementById('vista-'+v).classList.add('attiva');
+  document.getElementById('btn-home').classList.remove('attivo');
   document.getElementById('btn-an').classList.toggle('attivo',v==='analitica');
   document.getElementById('btn-pt').classList.toggle('attivo',v==='punti');
   if(v==='punti'){
     // Sync automatica: usa la scheda analitica in modifica o l'ultima salvata
     sincronizzaConAnalitica();
+  }
+  if(v==='analitica' && analiticaP && editingId!==analiticaP.id){
+    // Sync simmetrica nell'altro verso: se sto lavorando su un vino nella
+    // scheda a punti, passare ad Analitica deve mostrare LA STESSA scheda
+    // — prima questo non esisteva, bisognava passare dal bottone "Apri
+    // scheda collegata". Non ricarica se è già la stessa scheda, per non
+    // perdere eventuali modifiche non salvate nel form.
+    loadS(analiticaP.id);
   }
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -2671,7 +2678,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v66';
+const APP_VERSION='v67';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3615,7 +3622,13 @@ initPunti();
 
 // ═══ HOME ════════════════════════════════════════════════════════════════
 var _homeSchede=[];
-function mostraHome(){document.getElementById('home-overlay').style.display='block';aggiornaHomeSchede();}
+function mostraHome(){
+  document.getElementById('home-overlay').style.display='block';
+  document.getElementById('btn-home').classList.add('attivo');
+  document.getElementById('btn-an').classList.remove('attivo');
+  document.getElementById('btn-pt').classList.remove('attivo');
+  aggiornaHomeSchede();
+}
 function nascondiHome(){document.getElementById('home-overlay').style.display='none';}
 function aggiornaHomeSchede(){_homeSchede=JSON.parse(localStorage.getItem('ais_s')||'[]');filtraHomeSchede();}
 function filtraHomeSchede(){
