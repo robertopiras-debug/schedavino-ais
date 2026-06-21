@@ -1916,7 +1916,9 @@ async function salvaSuDB(scheda){
     nota_fin: scheda.nota_fin||'',
     stelle: scheda.stelle||0,
     dt: scheda.dt||'',
-    tipo: scheda.tipo||'completa'
+    tipo: scheda.tipo||'completa',
+    ng: scheda.ng||false,
+    ngMotivo: scheda.ngMotivo||''
   };
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
   if(!ok){
@@ -2669,7 +2671,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v64';
+const APP_VERSION='v65';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
