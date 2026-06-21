@@ -219,7 +219,7 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 .p-voto{display:none}
 .p-contributo{font-size:11px;color:var(--s);text-align:right;line-height:1;font-weight:700}
 /* Hero compatto */
-.hero-vino{font-size:19px;font-weight:900;color:var(--d);line-height:1.2;margin-bottom:4px;letter-spacing:.01em}
+.hero-vino{font-size:19px;font-weight:900;color:var(--d);line-height:1.2;margin-bottom:4px;letter-spacing:.01em;padding:0 36px}
 .hero-num{font-size:42px;font-weight:900;color:var(--m);line-height:1;margin:1px 0}
 .hero-fascia{font-size:11px;font-weight:700;color:var(--d);margin-bottom:2px}
 .hero-breakdown{font-size:9px;color:#888;line-height:1.4}
@@ -765,6 +765,8 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 <!-- Totale hero -->
 <div class="hero" id="hero" style="padding:8px 12px;text-align:center">
+  <button onclick="vediAnaliticaCollegata()" title="Apri scheda analitica collegata" style="position:absolute;top:6px;left:6px;width:30px;height:30px;border-radius:50%;border:1px solid var(--b);background:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1">📋</button>
+  <button id="heroAggiorna" onclick="salvaPunti()" title="Aggiorna" style="position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;border:none;background:var(--m);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1">💾</button>
   <div class="hero-vino" id="heroVino">—</div>
   <div class="hero-label">Punteggio totale</div>
   <div class="hero-num" id="heroNum">—</div>
@@ -2703,7 +2705,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v62';
+const APP_VERSION='v63';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3415,6 +3417,7 @@ function mostraScheda(){
   document.getElementById('legendaChip').style.display=isNG?'none':'flex';
   document.getElementById('ngNotice').style.display=isNG?'block':'none';
   document.getElementById('actsP').style.display=isNG?'none':'flex';
+  document.getElementById('heroAggiorna').style.display=isNG?'none':'flex';
   calcolaTotale();
   if(isNG){
     document.getElementById('heroNum').textContent='N.G.';
