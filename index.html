@@ -79,11 +79,6 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .ba{background:var(--m);color:#fff}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(0,0,0,.15);border-top-color:var(--m);border-radius:50%;animation:sp .7s linear infinite;margin-right:6px;vertical-align:middle}
 @keyframes sp{to{transform:rotate(360deg)}}
-.svsec{padding:4px 7px 0}
-.svt{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--d);margin-bottom:5px;border-left:3px solid var(--m);padding-left:5px}
-.svc{background:#fff;border:1px solid var(--b);border-radius:3px;padding:7px 9px;margin-bottom:4px;display:flex;align-items:center}
-.scn{font-size:12px;font-weight:700;color:var(--d)}
-.scs{font-size:10px;color:#666;margin-top:2px}
 .scd{font-size:18px;color:#aaa;padding:2px 7px;cursor:pointer;margin-left:auto}
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:var(--d);padding:16px 24px;border-radius:8px;font-size:13px;font-weight:700;line-height:1.45;display:none;z-index:999;box-shadow:0 6px 28px rgba(0,0,0,.28);border:1px solid var(--b);max-width:82%;text-align:center}
 .toast.toast-warn{border:1px solid #c8002a;color:#8a0018;background:#fff5f5}
@@ -235,12 +230,8 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 /* Azioni */
 .acts-p{display:none;gap:5px;padding:5px 7px 0;margin:0}
 
-/* Salvate */
-.svsec{padding:4px 7px 0}
-.svt{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--d);margin-bottom:5px;border-left:3px solid var(--m);padding-left:5px}
-.svc{background:#fff;border:1px solid var(--b);border-radius:3px;padding:7px 9px;margin-bottom:4px;display:flex;align-items:center;cursor:pointer}
-.scn{font-size:12px;font-weight:700;color:var(--d)}
-.scs{font-size:10px;color:#666;margin-top:2px}
+/* Salvate — sezione rimossa (era un doppione della home con un bug di
+   cancellazione: locale-only, mai applicata su Supabase) */
 
 
 /* ═══ NAVIGAZIONE ═══ */
@@ -720,8 +711,6 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 
 
-
-<div class="svsec" id="svsec"></div>
 </div>
 </div>
 
@@ -907,9 +896,6 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 <div class="acts-p" id="actsP" style="display:none">
   <button class="btn btn-d" style="flex:1" onclick="salvaPunti()">Aggiorna</button>
 </div>
-
-<!-- Salvate -->
-<div class="svsec" id="svsecP"></div>
 
 </div>
 </div>
@@ -2428,37 +2414,15 @@ function savLocal(){
   rSav();
 }
 
-function rSav(){
-  var l=JSON.parse(localStorage.getItem('ais_s')||'[]'),el=document.getElementById('svsec');
-  if(!l.length){el.innerHTML='';return;}
-  el.innerHTML='<div class="svt">Schede salvate ('+l.length+')</div>'+
-    l.map(function(s){
-      return'<div class="svc"><div style="flex:1;cursor:pointer" onclick="loadS('+s.id+')">' +
-        '<div class="scn">'+(s.produttore||'')+(s.produttore&&s.nome?' — ':'')+( s.nome||'')+(s.tipologia?' · '+s.tipologia:'')+'</div>'+(s.vitigni?'<div class="scs" style="font-style:italic">'+s.vitigni+'</div>':'')+
-        '<div class="scs">'+(s.annata||'')+(s.denominazione?' · '+s.denominazione:'')+'</div>'+
-        '<div class="scs" style="color:#999">Salvata: '+s.dt+(s.stelle?' · '+'★'.repeat(s.stelle):'')+'</div>'+
-      '</div>'+
-      '<span style="font-size:12px;color:var(--s);padding:4px 7px;cursor:pointer;font-weight:700;flex-shrink:0" onclick="editS('+s.id+',event)">✏️</span>'+
-      '<span title="Valuta a punti" style="font-size:12px;color:var(--m);padding:4px 6px;cursor:pointer;font-weight:700;flex-shrink:0" onclick="apriInPunti('+s.id+',event)">🎯</span>'+
-      '<span style="font-size:20px;color:#aaa;padding:2px 8px;cursor:pointer;flex-shrink:0" onclick="delS('+s.id+',event)">&#215;</span></div>';
-    }).join('');
-}
-
-function delS(id,e){
-  e.stopPropagation();
-  e.preventDefault();
-  var l=JSON.parse(localStorage.getItem('ais_s')||'[]').filter(function(s){return s.id!==id});
-  localStorage.setItem('ais_s',JSON.stringify(l));
-  if(editingId===id){editingId=null;document.getElementById('btnSav').textContent='Salva';}
-  rSav();
-  toast('Scheda eliminata');
-}
-
-function editS(id,e){
-  e.stopPropagation();
-  loadS(id);
-  window.scrollTo({top:0,behavior:'smooth'});
-}
+// rSav(): in passato renderizzava qui sotto la scheda analitica l'intero
+// elenco di tutte le schede salvate — un doppione della home, ma più
+// povero (niente ricerca, niente badge BOZZA/N.G./sync) e con un bug
+// di sicurezza mai notato: il pulsante di cancellazione lì dentro
+// (ex delS) cancellava SOLO in locale, mai su Supabase — bypassando
+// tutta la logica di quarantena/retry costruita per homeElimina.
+// Rimossa la lista; la funzione resta no-op perché richiamata da molti
+// punti del codice (savLocal, homeElimina, ecc.) che non serve toccare.
+function rSav(){}
 
 function loadS(id){
   var idNum=(typeof id==='string')?parseInt(id,10):id;
@@ -2705,7 +2669,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v63';
+const APP_VERSION='v64';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3529,39 +3493,14 @@ function salvaPunti(){
   rSavP();
 }
 
-function rSavP(){
-  var l=JSON.parse(localStorage.getItem('ais_punti')||'[]');
-  var el=document.getElementById('svsecP');
-  if(!l.length){el.innerHTML='';return;}
-  el.innerHTML='<div class="svt">Valutazione a punti collegata</div>'+
-    l.map(function(s){
-      var pt=parseFloat(s.punteggio||0);
-      var ba=s.baseAnalitica!=null?parseFloat(s.baseAnalitica):null;
-      var dl=ba!==null?parseFloat((pt-ba).toFixed(1)):null;
-      var deltaStr=dl!==null?(dl>0?'+'+dl.toFixed(1):dl.toFixed(1)):'—';
-      var deltaCol=dl===null?'#aaa':dl>0?'var(--m)':'#e0a030';
-      return'<div class="svc" onclick="loadP('+s.id+')">'
-        +'<div style="flex:1">'
-        +'<div class="scn">'+(s.produttore||'')+(s.nome?' — '+s.nome:'')+'</div>'
-        +'<div class="scs">'+(s.annata||'')+(s.tipologia?' · '+s.tipologia:'')+'</div>'
-        +'<div class="scs">'
-        +'<strong style="color:var(--m);font-size:14px">'+fmtPt(pt)+'</strong>'
-        +' '+s.fascia
-        +(ba!==null?' · base: '+fmtPt(ba)+' <span style="color:'+deltaCol+';font-weight:700">('+deltaStr+')</span>':'')
-        +' · '+s.dt
-        +'</div>'
-        +'</div>'
-        +'<span style="font-size:20px;color:#aaa;padding:2px 8px;cursor:pointer" onclick="delP('+s.id+',event)">&#215;</span>'
-        +'</div>';
-    }).join('');
-}
-
-function delP(id,e){
-  e.stopPropagation();
-  var l=JSON.parse(localStorage.getItem('ais_punti')||'[]').filter(function(s){return s.id!==id;});
-  localStorage.setItem('ais_punti',JSON.stringify(l));
-  rSavP(); toastP('Eliminata');
-}
+// rSavP(): in passato renderizzava qui sotto la scheda a punti l'elenco
+// COMPLETO di ogni valutazione mai salvata (etichetta fuorviante
+// "Valutazione a punti collegata" — non era affatto filtrata sul vino
+// in corso). Stesso doppione della home, stesso bug di sicurezza del
+// gemello lato analitica: il pulsante di cancellazione (ex delP)
+// cancellava solo in locale, mai su Supabase. Rimossa la lista; la
+// funzione resta no-op perché richiamata da molti punti del codice.
+function rSavP(){}
 
 function loadP(id){
   var l=JSON.parse(localStorage.getItem('ais_punti')||'[]');
