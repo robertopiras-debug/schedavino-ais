@@ -204,8 +204,8 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 .voto-chip.sel .vc-num{color:#fff}
 .voto-chip.sel .vc-lbl{color:rgba(255,255,255,.8)}
 /* Hero sticky */
-.hero{position:sticky;top:0;z-index:100;background:#fff;border:2px solid var(--m);border-radius:0;margin:0;box-shadow:0 2px 6px rgba(0,0,0,.12)}
-.testata-fissa{position:sticky;top:0;z-index:100;background:#fff;border-bottom:2px solid var(--m);padding:8px 34px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.hero{position:-webkit-sticky;position:sticky;top:0;z-index:100;background:#fff;border:2px solid var(--m);border-radius:0;margin:0;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.testata-fissa{position:-webkit-sticky;position:sticky;top:0;z-index:100;background:#fff;border-bottom:2px solid var(--m);padding:8px 34px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.12)}
 /* Param compatto */
 .param{padding:3px 10px;border-bottom:1px solid #f0f0e8}
 .param:last-child{border-bottom:none}
@@ -2760,7 +2760,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v75';
+const APP_VERSION='v76';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
