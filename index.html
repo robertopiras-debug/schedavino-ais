@@ -1841,6 +1841,9 @@ async function caricaSchedeDB(){
 
 async function caricaValutazioniDB(){
   if(!currentUser) return;
+  // Ritenta eventuali cancellazioni cloud rimaste in sospeso (stesso
+  // meccanismo già usato per le schede analitiche — v39)
+  await flushPendingDeletes('ais_punti_pending_del','valutazioni_punti');
   var data=await supaSelect('valutazioni_punti',{user_email:currentUser.email});
 
   if(data===null){
@@ -1851,6 +1854,11 @@ async function caricaValutazioniDB(){
   }
 
   if(data.length){
+    // Esclude dal merge gli id ancora in attesa di cancellazione — senza
+    // questo filtro un punteggio cancellato (es. dopo aver segnato N.G.)
+    // potrebbe ricomparire se la DELETE cloud non è ancora confermata.
+    var pendingDel=getPendingDeletes('ais_punti_pending_del').map(String);
+    if(pendingDel.length) data=data.filter(function(r){return pendingDel.indexOf(String(r.id))===-1;});
     var locale=JSON.parse(localStorage.getItem('ais_punti')||'[]');
     var dbMap={};
     // Rimappa snake_case DB → camelCase usato internamente
@@ -1960,6 +1968,10 @@ async function salvaValutazioneDB(val){
 async function eliminaSchemaDB(id){
   if(!currentUser) return false;
   return await supaDelete('schede_analitiche', id);
+}
+async function eliminaValutazioneDB(id){
+  if(!currentUser) return false;
+  return await supaDelete('valutazioni_punti', id);
 }
 
 // ─── CANCELLAZIONI IN SOSPESO (anti-resurrezione) ─────────────────────────
@@ -2402,6 +2414,7 @@ function savLocal(){
   }
   localStorage.setItem('ais_s',JSON.stringify(l));
   if(typeof salvaSuDB==='function') salvaSuDB(d);
+  if(d.ng && typeof rimuoviPunteggioCollegato==='function') rimuoviPunteggioCollegato(d.id); // un campione N.G. non deve avere un punteggio in archivio
   if(typeof aggiornaDatalistViniProduttori==='function') aggiornaDatalistViniProduttori();
   rSav();
 }
@@ -2683,7 +2696,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v60';
+const APP_VERSION='v61';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3355,11 +3368,29 @@ function toggleNG(prefix){
       localStorage.setItem('ais_s', JSON.stringify(schede));
       analiticaP=schede[idx];
       if(typeof salvaSuDB==='function') salvaSuDB(schede[idx]);
+      if(chk.checked) rimuoviPunteggioCollegato(schede[idx].id); // un campione N.G. non deve avere un punteggio in archivio
       if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
       if(typeof mostraScheda==='function') mostraScheda(); // riflette subito il nuovo stato sui chip e sul totale
       toast(chk.checked?'🚫 Campione segnato N.G.':'✓ Segnalazione N.G. rimossa');
     }
   }
+}
+
+// Rimuove (locale + cloud) l'eventuale valutazione a punti collegata a una
+// scheda analitica — usata quando un campione viene segnato N.G.: un voto
+// numerico messo "a caso" solo per riuscire a salvare, prima che esistesse
+// questa funzione, non deve restare in archivio sotto un campione difettato.
+async function rimuoviPunteggioCollegato(analiticaId){
+  var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var idx=punti.findIndex(function(p){return p.analiticaId==analiticaId;});
+  if(idx===-1) return; // nessun punteggio da rimuovere
+  var rimosso=punti[idx];
+  punti.splice(idx,1);
+  localStorage.setItem('ais_punti', JSON.stringify(punti));
+  if(typeof rSavP==='function') rSavP();
+  if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
+  var ok=await eliminaValutazioneDB(rimosso.id);
+  if(!ok) addPendingDelete('ais_punti_pending_del', rimosso.id); // ritentata automaticamente al prossimo sync
 }
 
 function mostraScheda(){
