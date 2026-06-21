@@ -1925,7 +1925,8 @@ async function salvaSuDB(scheda){
     dt: scheda.dt||'',
     tipo: scheda.tipo||'completa',
     ng: scheda.ng||false,
-    ng_motivo: scheda.ng_motivo||''
+    ng_motivo: scheda.ng_motivo||'',
+    analitica_compilata: scheda.analitica_compilata||false
   };
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
   if(!ok){
@@ -2380,6 +2381,13 @@ function savLocal(){
 
   if(!validaScheda()){isSaving=false;return;}
   var d=gd();
+  // Tracciamento esplicito: questa scheda è passata almeno una volta dalla
+  // scheda analitica completa (non solo creata/punteggiata via Guida VITAE).
+  // Serve a distinguere in home una scheda 'completa' nel senso di
+  // punteggio confermato da una scheda DAVVERO completa anche di descrizione.
+  // Nome snake_case fin da subito (lezione di ng_motivo): niente camelCase
+  // nei campi che vanno su Supabase, Postgres lo appiattirebbe in minuscolo.
+  d.analitica_compilata=true;
   var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
   var now=new Date();
   var dt=now.toLocaleDateString('it-IT')+' '+now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -2678,7 +2686,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v68';
+const APP_VERSION='v69';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3631,6 +3639,18 @@ function mostraHome(){
 }
 function nascondiHome(){document.getElementById('home-overlay').style.display='none';}
 function aggiornaHomeSchede(){_homeSchede=JSON.parse(localStorage.getItem('ais_s')||'[]');filtraHomeSchede();}
+// Una scheda è 'davvero' passata dalla scheda analitica completa se ha il
+// flag esplicito (record nuovi, salvati dopo questa modifica) OPPURE — per
+// l'archivio già esistente, che non ha mai avuto questo flag — se valorizza
+// almeno uno dei campi che Guida VITAE non imposta MAI: regione, vitigni,
+// gradazione, le tre note descrittive, le stelle. Un solo segnale vero
+// basta: nessuno di questi può esistere se la scheda è nata e rimasta
+// solo in Guida VITAE.
+function analiticaSembraCompilata(s){
+  if(s.analitica_compilata) return true;
+  return !!(s.regione || s.vitigni || s.gradazione || s.nota_olf || s.nota_gus || s.nota_vis || s.stelle);
+}
+
 function filtraHomeSchede(){
   var q=(document.getElementById('home-search').value||'').toLowerCase().trim();
   var lista=_homeSchede.filter(function(s){
@@ -3671,19 +3691,25 @@ function filtraHomeSchede(){
     var isBozza=s.tipo==='bozza';
     var badgeBozza=isBozza?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#f5a800;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">BOZZA</span>':'';
     var badgeNG=s.ng?'<span title="'+(s.ng_motivo?('Motivo: '+s.ng_motivo):'Campione difettato')+'" style="font-size:9px;font-weight:800;text-transform:uppercase;background:#a00;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">N.G.</span>':'';
+    // Punteggiata (tipo='completa') ma mai passata dalla scheda analitica
+    // completa: nata e rimasta solo in Guida VITAE, anche se confermata o
+    // perfezionata nei punteggi ereditati. Stato distinto da BOZZA (mai
+    // nemmeno punteggiata) e da N.G. (priorità sopra, qui irrilevante).
+    var daCompletare=!isBozza && !s.ng && !analiticaSembraCompilata(s);
+    var badgeDaCompletare=daCompletare?'<span title="Punteggio confermato ma la scheda analitica non è mai stata compilata" style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Da completare</span>':'';
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
     // Badge "non sincronizzata": vale sia per la scheda analitica sia per
     // il punteggio collegato — basta che uno dei due non sia confermato sul cloud.
     var nonSync=pendingSyncS.indexOf(String(s.id))>-1 || (val && pendingSyncP.indexOf(String(val.id))>-1);
     var badgeSync=nonSync?'<span title="In attesa di sincronizzazione cloud" style="font-size:9px;font-weight:800;background:#fff3cd;color:#7a5400;border:1px solid #f5a800;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle">☁️⚠</span>':'';
-    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza+badgeNG+badgeSync;
+    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza+badgeNG+badgeDaCompletare+badgeSync;
     var ptNum=s.ng
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:18px;font-weight:900;color:#a00;line-height:1.1">N.G.</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">difettato</div>'        +'</div>'      :(val
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:22px;font-weight:900;color:var(--m);line-height:1.1">'+fmtPt(val.punteggio)+'</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">'+val.fascia+'</div>'        +'</div>'      :'<div style="min-width:54px;flex-shrink:0;text-align:right">'        +'<div style="font-size:10px;color:#ccc">—</div>'        +'</div>');
     var dt=s.dt?s.dt.split(' ')[0]:'';
     var autoreLabel=s.autore&&s.autore.trim()?'<span style="font-size:10px;color:#aaa">👤 '+s.autore.trim()+'</span>':'';
-    var borderCol=s.ng?'#a00':(isBozza?'#f5a800':'var(--m)');
+    var borderCol=s.ng?'#a00':(isBozza?'#f5a800':(daCompletare?'var(--s)':'var(--m)'));
     return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'      +'<div style="flex:1;min-width:0">'      +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')      +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'      +autoreLabel      +(isBozza      ? '<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'      : '<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:10px;padding:3px 7px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'      +(isBozza      ?'<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>'      :(val      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 Apri</button>'      :'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>'))      +'</div>'      +'</div>'      +ptNum      +'</div>';
   }).join('');
 }
@@ -3926,6 +3952,7 @@ async function salvaRapida(){
     parametri:parametri,
     ng:isNG,
     ng_motivo:ng_motivo,
+    analitica_compilata:false, // nata da Guida VITAE — non è mai passata dalla scheda completa
     descrittori:[],sfumature:[],desc_vis:[],
     dt:dt, dt_crea:dt,
     stelle:0
