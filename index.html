@@ -1246,6 +1246,7 @@ function aggiornaAnteprima(){
   var qvis=sc['qvis']||'', qolf=sc['qolf']||'', qgus=sc['qgus']||'', qtot=sc['qtot']||'';
   if(!qvis&&!qolf&&!qgus&&!qtot){
     document.getElementById('anteprima-punti').style.display='none';
+    aggiornaPunteggioTestataAnalitica();
     return;
   }
   document.getElementById('anteprima-punti').style.display='block';
@@ -1297,6 +1298,7 @@ function aggiornaAnteprima(){
 
   document.getElementById('ap-sezioni').innerHTML=html;
   document.getElementById('ap-totale').textContent=totale>0?Math.round(totale):'—';
+  aggiornaPunteggioTestataAnalitica();
 }
 
 // ─── CONTROLLO COERENZA QTOT ─────────────────────────────────────────────
@@ -2242,9 +2244,24 @@ function aggiornaPunteggioTestataAnalitica(){
   var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
   var s=schede.find(function(x){return x.id==editingId;});
   if(s && s.ng){ el.textContent='N.G.'; return; }
+  // 1) Punteggio reale (scheda a punti salvata): priorità assoluta, è il
+  //    dato più accurato — i 10 parametri possono essere stati corretti
+  //    singolarmente rispetto alla stima uniforme per sezione.
   var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
   var p=punti.find(function(x){return x.analiticaId==editingId;});
-  el.textContent=p?p.punteggio.toFixed(1):'—';
+  if(p){ el.textContent=p.punteggio.toFixed(1); return; }
+  // 2) In assenza di un punteggio reale: stima teorica dagli stessi 4
+  //    giudizi di sezione (qvis/qolf/qgus/qtot) usati in bozza VITAE,
+  //    stesso motore condiviso calcolaTeoricoAIS — niente formula
+  //    duplicata che potrebbe disallinearsi. Prefisso "~" sempre, anche
+  //    a tutti e 4 i giudizi impostati: resta una stima finché non passa
+  //    dalla scheda a punti vera, mai un voto confermato.
+  if(sc && (sc.qvis||sc.qolf||sc.qgus||sc.qtot)){
+    var r=calcolaTeoricoAIS(sc);
+    el.textContent='~'+r.totale.toFixed(1);
+    return;
+  }
+  el.textContent='—';
 }
 
 function gd(){
@@ -2743,7 +2760,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v74';
+const APP_VERSION='v75';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
