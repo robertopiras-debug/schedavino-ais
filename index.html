@@ -777,7 +777,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 <!-- VISIVO -->
 <!-- Legenda stati chip -->
-<div style="display:flex;gap:8px;padding:6px 10px 8px;background:#f5f5f0;border-bottom:1px solid var(--b);flex-wrap:wrap">
+<div id="legendaChip" style="display:flex;gap:8px;padding:6px 10px 8px;background:#f5f5f0;border-bottom:1px solid var(--b);flex-wrap:wrap">
   <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#666">
     <span style="display:inline-block;width:14px;height:14px;border-radius:2px;background:#f5d800;border:1px solid #c8a000;vertical-align:middle"></span>
     Ereditato / da confermare
@@ -790,6 +790,13 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <span style="display:inline-block;width:14px;height:14px;border-radius:2px;background:var(--m);border:2px solid #8a0050;vertical-align:middle"></span>
     Variato rispetto al base
   </div>
+</div>
+
+<!-- Avviso campione N.G. — sostituisce l'intera interfaccia di punteggio -->
+<div id="ngNotice" style="display:none;margin:14px;padding:18px;background:#fff5f5;border:2px solid #a00;border-radius:6px;text-align:center">
+  <div style="font-size:30px;margin-bottom:6px">🚫</div>
+  <div style="font-size:15px;font-weight:800;color:#a00;margin-bottom:4px">Campione difettato — N.G.</div>
+  <div style="font-size:12px;color:#888">Nessun parametro può essere valutato. Togli il flag qui sopra per tornare alla valutazione normale.</div>
 </div>
 
 <div class="sez" id="sezV">
@@ -2696,7 +2703,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v61';
+const APP_VERSION='v62';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3396,23 +3403,23 @@ async function rimuoviPunteggioCollegato(analiticaId){
 function mostraScheda(){
   document.getElementById('testata').style.display=analiticaP?'block':'none';
   document.getElementById('hero').style.display='block';
+  var isNG=!!(analiticaP && analiticaP.ng);
+  // Campione N.G.: non basta "deselezionare" i chip — restavano gialli
+  // (stato "ereditato/da confermare"), che a colpo d'occhio sembra comunque
+  // un 7 scelto. Qui si nasconde l'INTERA interfaccia di punteggio: niente
+  // sezioni, niente chip, niente legenda, niente bottone Aggiorna (il
+  // toggle N.G. si salva già da solo). Resta solo un avviso esplicito.
   ['sezV','sezO','sezG','sezF'].forEach(function(id){
-    document.getElementById(id).style.display='block';
+    document.getElementById(id).style.display=isNG?'none':'block';
   });
-  document.getElementById('actsP').style.display='flex';
+  document.getElementById('legendaChip').style.display=isNG?'none':'flex';
+  document.getElementById('ngNotice').style.display=isNG?'block':'none';
+  document.getElementById('actsP').style.display=isNG?'none':'flex';
   calcolaTotale();
-  if(analiticaP && analiticaP.ng){
-    // Campione N.G.: nessun punteggio ha senso. Azzera qualunque chip
-    // potesse apparire selezionato/confermato — sia un residuo di una
-    // valutazione fatta prima della segnalazione N.G., sia il semplice
-    // valore di default (7) mai realmente scelto dal degustatore — e
-    // mostra N.G. al posto del totale calcolato, coerente con la home.
-    votiConfermati=new Set();
-    votiBase={};
-    voti={aspetto:7,iolf:7,purez:7,compl:7,igus:7,equi:7,espr:7,pers:7,armo:7,qual:7};
-    PARAMS.forEach(function(p){aggiornaSlider(p.id);});
+  if(isNG){
     document.getElementById('heroNum').textContent='N.G.';
     document.getElementById('heroFascia').textContent=analiticaP.ngMotivo?('Campione difettato — '+analiticaP.ngMotivo):'Campione difettato';
+    document.getElementById('heroBreak').innerHTML='';
   }
 }
 
