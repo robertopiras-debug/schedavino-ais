@@ -1396,7 +1396,7 @@ function renderMenzioni(tip){
     return;
   }
   wrap.innerHTML=menzioni.map(function(t){
-    return'<div class="tc-chip">'+t+'</div>';
+    return'<div class="tc-chip" onclick="pickMenzione(this)">'+t+'</div>';
   }).join('');
 }
 
@@ -2709,7 +2709,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v70';
+const APP_VERSION='v71';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
