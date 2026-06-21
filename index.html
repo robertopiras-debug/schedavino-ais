@@ -1918,7 +1918,7 @@ async function salvaSuDB(scheda){
     dt: scheda.dt||'',
     tipo: scheda.tipo||'completa',
     ng: scheda.ng||false,
-    ngMotivo: scheda.ngMotivo||''
+    ng_motivo: scheda.ng_motivo||''
   };
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
   if(!ok){
@@ -2188,7 +2188,7 @@ function gd(){
   var vitigniStr=getVitigni();
   var tipCombinata=[selColore,selMenzione,selBase,notaLib].filter(Boolean).join(' ');
   var _autoreVal=document.getElementById('wAutore').value; salvaNomeUtente(_autoreVal);
-  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,stelle:sv,ng:document.getElementById('w-ng').checked,ngMotivo:document.getElementById('w-ng-motivo').value.trim()};
+  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
 }
 
 /* toast(m) già definita sopra — duplicato rimosso (stesso comportamento, debito tecnico) */
@@ -2450,7 +2450,7 @@ function loadS(id){
 
   // ── Campione N.G. ──
   document.getElementById('w-ng').checked=!!s.ng;
-  document.getElementById('w-ng-motivo').value=s.ngMotivo||'';
+  document.getElementById('w-ng-motivo').value=s.ng_motivo||'';
   document.getElementById('w-ng-motivo').style.display=s.ng?'block':'none';
 
   // ── Stelle ──
@@ -2671,7 +2671,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v65';
+const APP_VERSION='v66';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3317,7 +3317,7 @@ function aggiornaTestataVino(){
   if(pNg){
     pNg.checked=!!(analiticaP && analiticaP.ng);
     if(pNgMotivo){
-      pNgMotivo.value=(analiticaP && analiticaP.ngMotivo)||'';
+      pNgMotivo.value=(analiticaP && analiticaP.ng_motivo)||'';
       pNgMotivo.style.display=pNg.checked?'block':'none';
     }
   }
@@ -3339,7 +3339,7 @@ function toggleNG(prefix){
     var idx=schede.findIndex(function(s){return s.id===analiticaP.id;});
     if(idx>-1){
       schede[idx].ng=chk.checked;
-      schede[idx].ngMotivo=motivo?motivo.value.trim():'';
+      schede[idx].ng_motivo=motivo?motivo.value.trim():'';
       localStorage.setItem('ais_s', JSON.stringify(schede));
       analiticaP=schede[idx];
       if(typeof salvaSuDB==='function') salvaSuDB(schede[idx]);
@@ -3387,7 +3387,7 @@ function mostraScheda(){
   calcolaTotale();
   if(isNG){
     document.getElementById('heroNum').textContent='N.G.';
-    document.getElementById('heroFascia').textContent=analiticaP.ngMotivo?('Campione difettato — '+analiticaP.ngMotivo):'Campione difettato';
+    document.getElementById('heroFascia').textContent=analiticaP.ng_motivo?('Campione difettato — '+analiticaP.ng_motivo):'Campione difettato';
     document.getElementById('heroBreak').innerHTML='';
   }
 }
@@ -3657,7 +3657,7 @@ function filtraHomeSchede(){
   el.innerHTML=lista.map(function(s){
     var isBozza=s.tipo==='bozza';
     var badgeBozza=isBozza?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#f5a800;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">BOZZA</span>':'';
-    var badgeNG=s.ng?'<span title="'+(s.ngMotivo?('Motivo: '+s.ngMotivo):'Campione difettato')+'" style="font-size:9px;font-weight:800;text-transform:uppercase;background:#a00;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">N.G.</span>':'';
+    var badgeNG=s.ng?'<span title="'+(s.ng_motivo?('Motivo: '+s.ng_motivo):'Campione difettato')+'" style="font-size:9px;font-weight:800;text-transform:uppercase;background:#a00;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">N.G.</span>':'';
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
     // Badge "non sincronizzata": vale sia per la scheda analitica sia per
@@ -3870,7 +3870,7 @@ async function salvaRapida(){
     alert('Inserisci almeno produttore e nome del vino');return;
   }
   var isNG=document.getElementById('rp-ng').checked;
-  var ngMotivo=document.getElementById('rp-ng-motivo').value.trim();
+  var ng_motivo=document.getElementById('rp-ng-motivo').value.trim();
   if(!isNG){
     var sezioniMancanti=SEZIONI_RAPIDE.filter(function(s){return _rpVoti[s.id]===null;});
     if(sezioniMancanti.length){
@@ -3912,7 +3912,7 @@ async function salvaRapida(){
     nota_fin:document.getElementById('rp-note').value||'',
     parametri:parametri,
     ng:isNG,
-    ngMotivo:ngMotivo,
+    ng_motivo:ng_motivo,
     descrittori:[],sfumature:[],desc_vis:[],
     dt:dt, dt_crea:dt,
     stelle:0
