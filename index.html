@@ -317,7 +317,10 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 <div class="testata-fissa" id="testataFissaAnalitica">
   <button onclick="vaiAPuntiDaAnalitica(event)" title="Apri scheda a punti collegata" style="position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:50%;border:1px solid var(--b);background:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1">🎯</button>
   <button onclick="savLocal()" title="Aggiorna" style="position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;border:none;background:var(--m);color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1">💾</button>
-  <div id="tfaVino" style="font-size:14px;font-weight:800;color:var(--d);line-height:1.2;padding:0 34px">L'etichetta apparirà qui...</div>
+  <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;flex-wrap:wrap;padding:0 34px">
+    <div id="tfaVino" style="font-size:14px;font-weight:800;color:var(--d);line-height:1.2">L'etichetta apparirà qui...</div>
+    <div id="tfaPunti" style="font-size:14px;font-weight:800;color:var(--m);white-space:nowrap"></div>
+  </div>
   <div id="tfaSub" style="font-size:10px;color:#888;margin-top:1px"></div>
 </div>
 <div class="autore-bar">
@@ -932,6 +935,13 @@ function mostraVista(v){
     // scheda collegata". Non ricarica se è già la stessa scheda, per non
     // perdere eventuali modifiche non salvate nel form.
     loadS(analiticaP.id);
+  }
+  if(v==='analitica'){
+    // Riallinea il punteggio nella testata anche quando NON scatta il
+    // loadS() qui sopra (stesso vino, nessun reload) — es. si è appena
+    // salvato un punteggio diverso nella scheda a punti e si torna qui
+    // senza che editingId cambi: up() non viene richiamata in quel caso.
+    aggiornaPunteggioTestataAnalitica();
   }
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -2212,6 +2222,29 @@ function up(){
   if(tfaV) tfaV.textContent=(p||n)?((p?p+(n?' — ':''):'')+n):'L\'etichetta apparirà qui...';
   if(tfaS) tfaS.textContent=[y,d].filter(Boolean).join(' · ');
   aggiornaBarre();
+  aggiornaPunteggioTestataAnalitica();
+}
+
+// Punteggio nella testata fissa analitica, accanto al nome vino.
+// Legge SEMPRE dal record salvato in ais_punti — mai dallo stato live
+// `voti` in memoria, che può appartenere a un vino diverso aperto in
+// precedenza nella scheda a punti (analiticaP non è affidabile qui:
+// loadS() non lo imposta, solo editingId lo è per la vista analitica).
+// Tre stati: vuoto (vino nuovo, editingId nullo), 'N.G.' (campione
+// scartato), '—' (vino salvato ma non ancora valutato a punti), numero
+// (punteggio realmente salvato — il campo punteggio è già calcolato e
+// scritto da salvaPunti(), non lo ricalcolo qui per evitare una seconda
+// formula pesata che potrebbe disallinearsi da calcolaTotale()).
+function aggiornaPunteggioTestataAnalitica(){
+  var el=document.getElementById('tfaPunti');
+  if(!el) return;
+  if(!editingId){ el.textContent=''; return; }
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var s=schede.find(function(x){return x.id==editingId;});
+  if(s && s.ng){ el.textContent='N.G.'; return; }
+  var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var p=punti.find(function(x){return x.analiticaId==editingId;});
+  el.textContent=p?p.punteggio.toFixed(1):'—';
 }
 
 function gd(){
@@ -2450,6 +2483,7 @@ function savLocal(){
   localStorage.setItem('ais_s',JSON.stringify(l));
   if(typeof salvaSuDB==='function') salvaSuDB(d);
   if(d.ng && typeof rimuoviPunteggioCollegato==='function') rimuoviPunteggioCollegato(d.id); // un campione N.G. non deve avere un punteggio in archivio
+  aggiornaPunteggioTestataAnalitica(); // riflette subito un eventuale N.G. appena salvato, senza richiedere un cambio vista
   if(typeof aggiornaDatalistViniProduttori==='function') aggiornaDatalistViniProduttori();
   rSav();
 }
@@ -2709,7 +2743,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v73';
+const APP_VERSION='v74';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
