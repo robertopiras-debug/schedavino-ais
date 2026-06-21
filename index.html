@@ -2683,7 +2683,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v59';
+const APP_VERSION='v60';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3356,6 +3356,7 @@ function toggleNG(prefix){
       analiticaP=schede[idx];
       if(typeof salvaSuDB==='function') salvaSuDB(schede[idx]);
       if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
+      if(typeof mostraScheda==='function') mostraScheda(); // riflette subito il nuovo stato sui chip e sul totale
       toast(chk.checked?'🚫 Campione segnato N.G.':'✓ Segnalazione N.G. rimossa');
     }
   }
@@ -3369,6 +3370,19 @@ function mostraScheda(){
   });
   document.getElementById('actsP').style.display='flex';
   calcolaTotale();
+  if(analiticaP && analiticaP.ng){
+    // Campione N.G.: nessun punteggio ha senso. Azzera qualunque chip
+    // potesse apparire selezionato/confermato — sia un residuo di una
+    // valutazione fatta prima della segnalazione N.G., sia il semplice
+    // valore di default (7) mai realmente scelto dal degustatore — e
+    // mostra N.G. al posto del totale calcolato, coerente con la home.
+    votiConfermati=new Set();
+    votiBase={};
+    voti={aspetto:7,iolf:7,purez:7,compl:7,igus:7,equi:7,espr:7,pers:7,armo:7,qual:7};
+    PARAMS.forEach(function(p){aggiornaSlider(p.id);});
+    document.getElementById('heroNum').textContent='N.G.';
+    document.getElementById('heroFascia').textContent=analiticaP.ngMotivo?('Campione difettato — '+analiticaP.ngMotivo):'Campione difettato';
+  }
 }
 
 
@@ -3673,8 +3687,9 @@ function filtraHomeSchede(){
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:18px;font-weight:900;color:#a00;line-height:1.1">N.G.</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">difettato</div>'        +'</div>'      :(val
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:22px;font-weight:900;color:var(--m);line-height:1.1">'+fmtPt(val.punteggio)+'</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">'+val.fascia+'</div>'        +'</div>'      :'<div style="min-width:54px;flex-shrink:0;text-align:right">'        +'<div style="font-size:10px;color:#ccc">—</div>'        +'</div>');
     var dt=s.dt?s.dt.split(' ')[0]:'';
+    var autoreLabel=s.autore&&s.autore.trim()?'<span style="font-size:10px;color:#aaa">👤 '+s.autore.trim()+'</span>':'';
     var borderCol=s.ng?'#a00':(isBozza?'#f5a800':'var(--m)');
-    return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'      +'<div style="flex:1;min-width:0">'      +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')      +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'      +(isBozza      ? '<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'      : '<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:10px;padding:3px 7px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'      +(isBozza      ?'<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>'      :(val      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 Apri</button>'      :'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>'))      +'</div>'      +'</div>'      +ptNum      +'</div>';
+    return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'      +'<div style="flex:1;min-width:0">'      +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')      +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'      +autoreLabel      +(isBozza      ? '<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'      : '<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:10px;padding:3px 7px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'      +(isBozza      ?'<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>'      :(val      ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:var(--m);border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:600">🎯 Apri</button>'      :'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🎯 Valuta</button>'))      +'</div>'      +'</div>'      +ptNum      +'</div>';
   }).join('');
 }
 async function homeElimina(id, e){
@@ -3906,6 +3921,7 @@ async function salvaRapida(){
   var scheda={
     id:id,
     tipo:'bozza',
+    autore:(typeof nomeDisplay==='function')?nomeDisplay():'',
     produttore:produttore,
     nome:nome,
     annata:document.getElementById('rp-annata').value||'',
