@@ -706,6 +706,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div style="font-size:10px;color:#888;margin-top:3px;font-style:italic">
       Basato sui giudizi qualitativi inseriti. Nella scheda a punti potrai affinare ogni parametro.
     </div>
+    <div id="ap-nota-reale" style="display:none;margin-top:8px;padding:8px 10px;border-radius:4px;font-size:11px;line-height:1.5;background:#fff3e0;border:1px solid #e0a030;color:#7a4a00"></div>
   </div>
 </div>
 
@@ -2239,17 +2240,33 @@ function up(){
 // formula pesata che potrebbe disallinearsi da calcolaTotale()).
 function aggiornaPunteggioTestataAnalitica(){
   var el=document.getElementById('tfaPunti');
+  var nota=document.getElementById('ap-nota-reale');
   if(!el) return;
-  if(!editingId){ el.textContent=''; return; }
+  if(!editingId){ el.textContent=''; if(nota) nota.style.display='none'; return; }
   var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
   var s=schede.find(function(x){return x.id==editingId;});
-  if(s && s.ng){ el.textContent='N.G.'; return; }
+  if(s && s.ng){ el.textContent='N.G.'; if(nota) nota.style.display='none'; return; }
   // 1) Punteggio reale (scheda a punti salvata): priorità assoluta, è il
   //    dato più accurato — i 10 parametri possono essere stati corretti
   //    singolarmente rispetto alla stima uniforme per sezione.
   var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
   var p=punti.find(function(x){return x.analiticaId==editingId;});
-  if(p){ el.textContent=p.punteggio.toFixed(1); return; }
+  if(p){
+    el.textContent=p.punteggio.toFixed(1);
+    // L'anteprima teorica qui sotto resta viva e reagisce ai chip anche
+    // quando esiste già un punteggio reale — i due numeri possono
+    // legittimamente divergere (è il motivo per cui la scheda a punti
+    // esiste). Senza questa nota, due numeri diversi sulla stessa
+    // schermata sembrano un errore invece che due risposte a domande
+    // diverse (bug segnalato da Roberto: 90.0 in testata, 86 in fondo,
+    // nessuna spiegazione del perché).
+    if(nota){
+      nota.style.display='block';
+      nota.innerHTML='⚠ Punteggio reale già salvato nella scheda a punti: <strong>'+p.punteggio.toFixed(1)+'</strong>. La stima qui sopra è calcolata dai giudizi di sezione attuali e NON aggiorna quello salvato — per cambiarlo davvero vai nella scheda a punti.';
+    }
+    return;
+  }
+  if(nota) nota.style.display='none';
   // 2) In assenza di un punteggio reale: stima teorica dagli stessi 4
   //    giudizi di sezione (qvis/qolf/qgus/qtot) usati in bozza VITAE,
   //    stesso motore condiviso calcolaTeoricoAIS — niente formula
@@ -2760,7 +2777,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v76';
+const APP_VERSION='v77';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
