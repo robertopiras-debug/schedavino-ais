@@ -2778,7 +2778,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v91';
+const APP_VERSION='v92';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4212,7 +4212,7 @@ function renderAdminVino(){
         var sorted=ptArr.slice().sort(function(a,b){return a-b;});
         var trimmed=sorted.slice(1,sorted.length-1);
         var trimMean=(trimmed.reduce(function(a,b){return a+b;},0)/trimmed.length).toFixed(1);
-        h+='<span style="color:#666;border-left:1px solid #ddd;padding-left:10px">Media trim. <strong>'+trimMean+'</strong></span>';
+        h+='<span style="color:#888;border-left:1px solid #ddd;padding-left:10px">Media potata <strong style="font-size:15px;color:var(--m);font-weight:900">'+trimMean+'</strong></span>';
       }
       // Outlier: chi si scosta più di 5 pt dalla media
       var outliers=autArr.filter(function(a){return Math.abs(a.pv-avg)>5;});
