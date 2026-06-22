@@ -2778,7 +2778,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v90';
+const APP_VERSION='v91';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4161,7 +4161,9 @@ function renderAdminVino(){
     h+='<div style="font-size:10px;color:#888;margin-top:2px">'+(v.annata||'')+'</div>';
     if(multi) h+='<div style="font-size:10px;color:var(--m);font-weight:700;margin-top:3px">⚖ '+v.schede.length+' degustatori</div>';
     h+='</div>';
-    var ptArr=[];
+    var ptArr=[];   // punteggi totali (numeri)
+    var sezArr=[];  // subtotali per sezione [{v,o,g,f}] per degustatore
+    var autArr=[];  // nomi degustatori con punteggio (per outlier)
     v.schede.forEach(function(s){
       var pt=_adminPt(s.id);
       h+='<div style="padding:7px 12px;border-bottom:1px solid #f9f9f4;display:flex;align-items:center;gap:8px">';
@@ -4177,6 +4179,15 @@ function renderAdminVino(){
       if(pt){
         var pv=parseFloat(pt.punteggio||0);
         ptArr.push(pv);
+        autArr.push({nome:s.autore&&s.autore.trim()?s.autore:nomeDisplay(), pv:pv});
+        // Calcola subtotali per sezione dai voti individuali
+        var vt=pt.voti||{};
+        sezArr.push({
+          v: (vt.aspetto||0)*1,
+          o: (vt.iolf||0)*0.5 + (vt.purez||0)*1 + (vt.compl||0)*1.5,
+          g: (vt.igus||0)*0.5 + (vt.equi||0)*1 + (vt.espr||0)*1 + (vt.pers||0)*1.5,
+          f: (vt.armo||0)*0.5 + (vt.qual||0)*1.5
+        });
         h+='<div style="text-align:right;flex-shrink:0">';
         h+='<div style="font-size:18px;font-weight:900;color:var(--m)">'+pv.toFixed(1)+'</div>';
         h+='<div style="font-size:9px;color:#aaa">'+(pt.fascia||'')+'</div>';
@@ -4188,15 +4199,44 @@ function renderAdminVino(){
     });
     if(ptArr.length>1){
       var sum=ptArr.reduce(function(a,b){return a+b;},0);
-      var avg=(sum/ptArr.length).toFixed(1);
+      var avg=sum/ptArr.length;
       var mn=Math.min.apply(null,ptArr),mx=Math.max.apply(null,ptArr);
-      var delta=mx-mn;
+      var delta=parseFloat((mx-mn).toFixed(1));
       var dcol=delta===0?'#888':delta<=3?'#e0a030':'#c8002a';
-      h+='<div style="padding:7px 12px;background:#f9f5ff;font-size:11px;color:#555;display:flex;gap:12px">';
-      h+='<span>Media <strong>'+avg+'</strong></span>';
-      h+='<span>Range '+mn+'—'+mx+'</span>';
+      // Riga 1: media, range, delta totale, media troncata (se n>=3)
+      h+='<div style="padding:7px 12px;background:#f9f5ff;font-size:11px;color:#555;display:flex;gap:12px;flex-wrap:wrap">';
+      h+='<span>Media <strong>'+avg.toFixed(1)+'</strong></span>';
+      h+='<span>Range '+mn.toFixed(1)+'—'+mx.toFixed(1)+'</span>';
       h+='<span style="color:'+dcol+';font-weight:700">Δ '+delta+'</span>';
+      if(ptArr.length>=3){
+        var sorted=ptArr.slice().sort(function(a,b){return a-b;});
+        var trimmed=sorted.slice(1,sorted.length-1);
+        var trimMean=(trimmed.reduce(function(a,b){return a+b;},0)/trimmed.length).toFixed(1);
+        h+='<span style="color:#666;border-left:1px solid #ddd;padding-left:10px">Media trim. <strong>'+trimMean+'</strong></span>';
+      }
+      // Outlier: chi si scosta più di 5 pt dalla media
+      var outliers=autArr.filter(function(a){return Math.abs(a.pv-avg)>5;});
+      if(outliers.length){
+        outliers.forEach(function(o){
+          var sc=parseFloat((o.pv-avg).toFixed(1));
+          h+='<span style="color:#c8002a">⚠ '+o.nome+(sc>0?' +':' ')+sc+'</span>';
+        });
+      }
       h+='</div>';
+      // Riga 2: delta per sezione (solo se abbiamo i voti)
+      if(sezArr.length>1){
+        var sezDef=[{k:'v',lb:'Vis',mx:10},{k:'o',lb:'Olf',mx:30},{k:'g',lb:'Gus',mx:40},{k:'f',lb:'Fin',mx:20}];
+        h+='<div style="padding:5px 12px;background:#f2f2fa;font-size:10px;color:#555;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid #e8e8f4">';
+        h+='<span style="color:#888;font-weight:700">Δ sezione</span>';
+        sezDef.forEach(function(sd){
+          var vals=sezArr.map(function(s){return s[sd.k];});
+          var d=parseFloat((Math.max.apply(null,vals)-Math.min.apply(null,vals)).toFixed(1));
+          var pct=d/sd.mx*100;
+          var col=d===0?'#2e7d32':pct<=10?'#e0a030':'#c8002a';
+          h+='<span style="color:'+col+'">'+sd.lb+' <strong>'+d+'</strong></span>';
+        });
+        h+='</div>';
+      }
     }
     h+='</div>';
   });
