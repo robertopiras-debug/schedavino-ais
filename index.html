@@ -2778,7 +2778,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v89';
+const APP_VERSION='v90';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4062,7 +4062,25 @@ async function loadAdminData(){
   document.getElementById('admin-loading').style.display='block';
   document.getElementById('admin-ct-deg').style.display='none';
   document.getElementById('admin-ct-vino').style.display='none';
-  var r=await Promise.all([supaSelect('schede_analitiche',{}),supaSelect('valutazioni_punti',{})]);
+  var r=await Promise.all([
+    supaSelect('schede_analitiche',{}),
+    // Fetch diretto per valutazioni_punti: evita created_at.desc (colonna
+    // assente → 400 → supaSelect ritorna null → _adminPunti=[]). Ordina
+    // per id che esiste sempre. Poi rimappa analitica_id→analiticaId
+    // perché _adminPt e il rendering usano il nome camelCase interno.
+    (async function(){
+      try{
+        var ok=await supaEnsureToken();
+        if(!ok) return [];
+        var res=await fetch(SUPA_URL+'/rest/v1/valutazioni_punti?order=id.desc',{headers:supaHeaders()});
+        if(!res.ok){ console.error('Admin punti fetch error',res.status,await res.text()); return []; }
+        var rows=await res.json();
+        return rows.map(function(p){
+          return Object.assign({},p,{analiticaId:p.analitica_id||p.analiticaId||null});
+        });
+      }catch(e){ console.error('Admin punti error',e); return []; }
+    })()
+  ]);
   _adminSchede=r[0]||[];
   _adminPunti=r[1]||[];
   document.getElementById('admin-loading').style.display='none';
