@@ -2246,33 +2246,25 @@ function aggiornaPunteggioTestataAnalitica(){
   var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
   var s=schede.find(function(x){return x.id==editingId;});
   if(s && s.ng){ el.textContent='N.G.'; if(nota) nota.style.display='none'; return; }
-  // 1) Punteggio reale (scheda a punti salvata): priorità assoluta, è il
-  //    dato più accurato — i 10 parametri possono essere stati corretti
-  //    singolarmente rispetto alla stima uniforme per sezione.
+
+  // La testata mostra SEMPRE la stima teorica live — aggiorna ad ogni chip.
+  // Il punteggio reale (scheda a punti salvata) viene mostrato nella nota
+  // gialla nell'anteprima in fondo, NON qui: due posizioni diverse,
+  // due domande diverse ("cosa sto costruendo?" vs "cosa ho già confermato?").
+  // Avere il punteggio reale bloccato in testata mentre l'anteprima sotto
+  // cambiava live era la fonte di confusione segnalata da Roberto (v77).
   var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
   var p=punti.find(function(x){return x.analiticaId==editingId;});
-  if(p){
-    el.textContent=p.punteggio.toFixed(1);
-    // L'anteprima teorica qui sotto resta viva e reagisce ai chip anche
-    // quando esiste già un punteggio reale — i due numeri possono
-    // legittimamente divergere (è il motivo per cui la scheda a punti
-    // esiste). Senza questa nota, due numeri diversi sulla stessa
-    // schermata sembrano un errore invece che due risposte a domande
-    // diverse (bug segnalato da Roberto: 90.0 in testata, 86 in fondo,
-    // nessuna spiegazione del perché).
-    if(nota){
+  if(nota){
+    if(p){
       nota.style.display='block';
       nota.innerHTML='⚠ Punteggio reale già salvato nella scheda a punti: <strong>'+p.punteggio.toFixed(1)+'</strong>. La stima qui sopra è calcolata dai giudizi di sezione attuali e NON aggiorna quello salvato — per cambiarlo davvero vai nella scheda a punti.';
+    } else {
+      nota.style.display='none';
     }
-    return;
   }
-  if(nota) nota.style.display='none';
-  // 2) In assenza di un punteggio reale: stima teorica dagli stessi 4
-  //    giudizi di sezione (qvis/qolf/qgus/qtot) usati in bozza VITAE,
-  //    stesso motore condiviso calcolaTeoricoAIS — niente formula
-  //    duplicata che potrebbe disallinearsi. Prefisso "~" sempre, anche
-  //    a tutti e 4 i giudizi impostati: resta una stima finché non passa
-  //    dalla scheda a punti vera, mai un voto confermato.
+
+  // Stima teorica live: usa sc (aggiornato da pkq() ad ogni tap, o da loadS() all'apertura)
   if(sc && (sc.qvis||sc.qolf||sc.qgus||sc.qtot)){
     var r=calcolaTeoricoAIS(sc);
     el.textContent='~'+r.totale.toFixed(1);
@@ -2654,6 +2646,14 @@ function loadS(id){
 
   // ── Ripristina selezioni visive dai parametri salvati ──
   setTimeout(function(){
+    // Pulizia obbligatoria prima di re-applicare le selezioni.
+    // senza questo, i chip .o.sel e .qo.sel del vino aperto in precedenza
+    // restano magenta nel DOM anche dopo loadS() — sc è già aggiornato al
+    // nuovo vino, ma il DOM non lo sa. Risultato: chip visivamente selezionati
+    // che la validazione (che legge sc, non il DOM) non considera compilati.
+    document.querySelectorAll('.o.sel, .qo.sel').forEach(function(c){
+      c.classList.remove('sel','borderline');
+    });
     // Reitera sc sui bottoni .o
     Object.keys(sc).forEach(function(g){
       var val=sc[g];
@@ -2777,7 +2777,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v77';
+const APP_VERSION='v78';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
