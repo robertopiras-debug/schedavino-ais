@@ -2986,7 +2986,7 @@ const VOTI=[10,9,8,7]; // scala ufficiale AIS per parametro: 7-10, niente 6 (v55
 // = inizio fascia Ottimo). Distinto (85-89,9) non ha una colonna propria nella
 // tabella AIS — emerge solo da un MIX di valori tra parametri, mai da un voto
 // uniforme — quindi si accorpa al vicino numericamente più vicino (Ottimo).
-const Q2V={'Accettabile':7,'Buono':8,'Distinto':9,'Ottimo':9,'Eccellente':10};
+const Q2V={'Accettabile':7,'Buono':7,'Distinto':8,'Ottimo':9,'Eccellente':10};
 const HINT_MAP={
   iolf:  {campo:'iolf',  label:'Intensità olfattiva'},
   purez: {campo:'qolf',  label:'Qualità olfattiva'},
@@ -3322,60 +3322,23 @@ function caricaDaAnalitica(){
 
   // Suggerisci voti da analitica
   var par=analiticaP.parametri||{};
-  var vm={'Moderatamente intenso':7,'Intenso':8,'Molto intenso':9};
-  var vc={'Moderatamente complesso':7,'Complesso':8,'Ampio':9};
-  var ve={'Poco equil.':7,'Med. equil.':8,'Equilibrato':9};
-  var vp={'Mod. pers.':7,'Persistente':8,'Molto pers.':9};
-  var va={'Poco armonico':7,'Mediamente armonico':8,'Armonico':9};
-
-  // Helper: media arrotondata per difetto di due valori numerici
-  function mediaGiù(a, b){ return Math.floor((a + b) / 2); }
-
-  // Mappature dirette — fromLoad=true → chip gialli (non confermati)
-  if(par.iolf && vm[par.iolf])  setVoto('iolf',    vm[par.iolf],    true);
-  if(par.colf && vc[par.colf])  setVoto('compl',   vc[par.colf],    true);
-  if(par.igus && vm[par.igus])  setVoto('igus',    vm[par.igus],    true);
-  if(par.equi && ve[par.equi])  setVoto('equi',    ve[par.equi],    true);
-  if(par.pers && vp[par.pers])  setVoto('pers',    vp[par.pers],    true);
-  if(par.armo && va[par.armo])  setVoto('armo',    va[par.armo],    true);
-
-  // Mappature dirette: aspetto → qvis, qualità → qtot
-  if(par.qvis && Q2V[par.qvis]) setVoto('aspetto', Q2V[par.qvis],   true);
-  if(par.qtot && Q2V[par.qtot]) setVoto('qual',    Q2V[par.qtot],   true);
-
-  // Parametri indipendenti: pre-compilati da media dei più correlati
-  // Purezza/Eleganza → media(iolf, qolf)
-  var vIolf=par.iolf&&vm[par.iolf]?vm[par.iolf]:null;
-  var vQolf=par.qolf&&Q2V[par.qolf]?Q2V[par.qolf]:null;
-  if(vIolf&&vQolf)        setVoto('purez', mediaGiù(vIolf,vQolf),   true);
-  else if(vIolf)          setVoto('purez', vIolf,                    true);
-  else if(vQolf)          setVoto('purez', vQolf,                    true);
-
-  // Espressività → media(igus, pers)
-  var vIgus=par.igus&&vm[par.igus]?vm[par.igus]:null;
-  var vPers=par.pers&&vp[par.pers]?vp[par.pers]:null;
-  if(vIgus&&vPers)        setVoto('espr',  mediaGiù(vIgus,vPers),   true);
-  else if(vIgus)          setVoto('espr',  vIgus,                    true);
-  else if(vPers)          setVoto('espr',  vPers,                    true);
-
-  aggiornBasePunti(); // sincronizza base con i dati freschi dell'analitica
-
-  // ── Fallback Guida VITAE / parametri non coperti da un descrittore specifico ──
-  // Per ogni sezione con giudizio sintetico (qvis/qolf/qgus/qtot), assegna quel
-  // voto a TUTTI i suoi parametri non gia' valorizzati da un descrittore analitico.
-  // Cosi' una bozza guida (solo i 4 giudizi) compila tutti e 10 i parametri:
-  // tutte le sezioni a "Buono" (7) -> 70/100, "Distinto" (8) -> 80, ecc.
-  // Per una scheda analitica completa, riempie solo i parametri rimasti scoperti.
+  // Eccellente=10, Ottimo=9, Distinto=8, Buono=7 — identico alla bozza VITAE.
+  // I descrittori analitici (iolf='Intenso', equi='Equilibrato'...) compaiono
+  // come hint testuali per il raffinamento manuale in scheda a punti, ma NON
+  // sovrascrivono il voto iniziale: il giudizio di sezione è il punto di partenza
+  // per TUTTI i parametri della sezione, senza eccezioni.
   var SEZ_PARAMS={vis:['aspetto'],olf:['iolf','purez','compl'],gus:['igus','equi','espr','pers'],fin:['armo','qual']};
   var SEZ_GIUD={vis:'qvis',olf:'qolf',gus:'qgus',fin:'qtot'};
   Object.keys(SEZ_PARAMS).forEach(function(sez){
     var g=par[SEZ_GIUD[sez]];
     if(g && Q2V[g]!==undefined){
       SEZ_PARAMS[sez].forEach(function(pid){
-        if(votiBase[pid]===undefined) setVoto(pid, Q2V[g], true);
+        setVoto(pid, Q2V[g], true); // incondizionale: nessun override da descrittori
       });
     }
   });
+
+  aggiornBasePunti();
 
   // Hint analitica
   if(par.iolf)  document.getElementById('hIolf').innerHTML='Analitica: <strong>'+par.iolf+'</strong>';
@@ -3978,7 +3941,7 @@ function rpAggiornaPunteggio(){
   // stesso numero del pulsante — altrimenti il punteggio si sposta in
   // silenzio (bug reale, scoperto e corretto in questa stessa modifica:
   // un Q2V non più allineato a questa mappa spostava 7->8 e 8->9).
-  var descMap={7:'Accettabile',8:'Buono',9:'Ottimo',10:'Eccellente'};
+  var descMap={7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
   var par={};
   if(_rpVoti.vis!==null) par.qvis=descMap[_rpVoti.vis];
   if(_rpVoti.olf!==null) par.qolf=descMap[_rpVoti.olf];
@@ -4022,7 +3985,7 @@ async function salvaRapida(){
   // Stessa mappa di rpAggiornaPunteggio — deve restare identica, altrimenti
   // l'anteprima e il valore salvato divergono silenziosamente.
   // Campione N.G.: nessun giudizio di sezione ha senso, parametri resta vuoto.
-  var descMap={7:'Accettabile',8:'Buono',9:'Ottimo',10:'Eccellente'};
+  var descMap={7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
   var parametri=isNG?{}:{
     qvis:descMap[_rpVoti.vis],
     qolf:descMap[_rpVoti.olf],
