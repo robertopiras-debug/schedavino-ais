@@ -200,9 +200,9 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 .voto-chip{flex:1;text-align:center;padding:4px 1px 3px;border:1px solid var(--b);border-radius:3px;cursor:pointer;background:var(--r);transition:all .12s;-webkit-tap-highlight-color:transparent}
 .voto-chip .vc-num{font-size:12px;font-weight:900;color:var(--d);line-height:1}
 .voto-chip .vc-lbl{font-size:7px;color:#aaa;margin-top:1px;line-height:1}
-.voto-chip.sel{background:var(--m);border-color:#8a0050}
-.voto-chip.sel .vc-num{color:#fff}
-.voto-chip.sel .vc-lbl{color:rgba(255,255,255,.8)}
+.voto-chip.sel{background:#f5d800;border-color:#c8a000;border-width:2px}
+.voto-chip.sel .vc-num{color:#5a3c00;font-weight:900}
+.voto-chip.sel .vc-lbl{color:rgba(90,60,0,.8)}
 /* Hero sticky */
 .hero{position:-webkit-sticky;position:sticky;top:0;z-index:100;background:#fff;border:2px solid var(--m);border-radius:0;margin:0;box-shadow:0 2px 6px rgba(0,0,0,.12)}
 .testata-fissa{position:-webkit-sticky;position:sticky;top:0;z-index:100;background:#fff;border-bottom:2px solid var(--m);padding:8px 34px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.12)}
@@ -2777,7 +2777,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v78';
+const APP_VERSION='v79';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
