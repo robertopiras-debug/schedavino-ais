@@ -587,7 +587,14 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="ph2">Note visive libere</div>
     <div class="nw"><textarea id="nota-vis" placeholder="Osservazioni visive aggiuntive..."></textarea></div>
 
-    <!-- Qualità visiva extra-AIS -->
+    <div class="tw">
+      <div class="tc2" id="blk-consistenza"><div class="ph2 gn">Consistenza<br><span style="font-weight:400">(vini fermi)</span></div><div id="note-consistenza"></div><div class="og"><div class="o" data-g="consistenza">Scorrevole</div><div class="o" data-g="consistenza">Consistente</div><div class="o" data-g="consistenza">Viscoso</div></div></div>
+      <div class="tc2" id="blk-effervescenza"><div class="ph2 gn">Effervescenza<br><span style="font-weight:400">(spumanti/frizzanti)</span></div><div id="note-effervescenza"></div>
+        <div class="og c2" style="padding-bottom:2px"><div class="o" data-g="ncat">Scarse</div><div class="o" data-g="vasc">Rapida</div><div class="o" data-g="ncat">Med. numerose</div><div class="o" data-g="vasc">Media</div><div class="o" data-g="ncat">Numerose</div><div class="o" data-g="vasc">Lenta</div></div>
+        <div class="og c2" style="padding-top:0"><div class="o" data-g="grb">Grossolane</div><div class="o" data-g="pb">Evanescenti</div><div class="o" data-g="grb">Med. fini</div><div class="o" data-g="pb">Med. persistenti</div><div class="o" data-g="grb">Fini</div><div class="o" data-g="pb">Persistenti</div></div>
+      </div>
+    </div>
+    <!-- Qualità visiva extra-AIS — spostata in fondo alla sezione (v80) -->
     <div class="extra-ais" style="margin:6px 7px 8px">
       <div style="background:#e8a020;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:5px 10px;display:flex;align-items:center;gap:6px">
         <span style="font-size:13px">⚠</span>
@@ -603,14 +610,6 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
           <div class="qo" data-g="qvis">Ottimo</div>
           <div class="qo" data-g="qvis">Eccellente</div>
         </div>
-      </div>
-    </div>
-    <div class="dt"></div>
-    <div class="tw">
-      <div class="tc2" id="blk-consistenza"><div class="ph2 gn">Consistenza<br><span style="font-weight:400">(vini fermi)</span></div><div id="note-consistenza"></div><div class="og"><div class="o" data-g="consistenza">Scorrevole</div><div class="o" data-g="consistenza">Consistente</div><div class="o" data-g="consistenza">Viscoso</div></div></div>
-      <div class="tc2" id="blk-effervescenza"><div class="ph2 gn">Effervescenza<br><span style="font-weight:400">(spumanti/frizzanti)</span></div><div id="note-effervescenza"></div>
-        <div class="og c2" style="padding-bottom:2px"><div class="o" data-g="ncat">Scarse</div><div class="o" data-g="vasc">Rapida</div><div class="o" data-g="ncat">Med. numerose</div><div class="o" data-g="vasc">Media</div><div class="o" data-g="ncat">Numerose</div><div class="o" data-g="vasc">Lenta</div></div>
-        <div class="og c2" style="padding-top:0"><div class="o" data-g="grb">Grossolane</div><div class="o" data-g="pb">Evanescenti</div><div class="o" data-g="grb">Med. fini</div><div class="o" data-g="pb">Med. persistenti</div><div class="o" data-g="grb">Fini</div><div class="o" data-g="pb">Persistenti</div></div>
       </div>
     </div>
   </div>
@@ -2777,7 +2776,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v79';
+const APP_VERSION='v80';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
