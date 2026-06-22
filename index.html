@@ -2760,7 +2760,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v85';
+const APP_VERSION='v86';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3750,7 +3750,8 @@ function filtraHomeSchede(){
     var dt=s.dt?s.dt.split(' ')[0]:'';
     var autoreLabel=s.autore&&s.autore.trim()?'<span style="font-size:10px;color:#aaa">👤 '+s.autore.trim()+'</span>':'';
     var borderCol=s.ng?'#a00':(isBozza?'#f5a800':(daCompletare?'var(--s)':'var(--m)'));
-    return '<div style="background:#fff;border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'      +'<div style="flex:1;min-width:0">'      +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')      +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'      +autoreLabel      +(isBozza      ? '<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'      : '<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:10px;padding:3px 7px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'      +(isBozza      ?'<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>'      :'')      +'</div>'      +'</div>'      +ptNum      +'</div>';
+    var bgCol=s.ng?'#ffcdd2':(isBozza?'#fce4ec':(daCompletare?'#fffde7':'#e8f5e9'));
+    return '<div style="background:'+bgCol+';border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'      +'<div style="flex:1;min-width:0">'      +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')      +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'      +autoreLabel      +(isBozza      ? '<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'      : '<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:10px;padding:3px 7px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'      +(isBozza      ?'<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>'      :'')      +'</div>'      +'</div>'      +ptNum      +'</div>';
   }).join('');
 }
 async function homeElimina(id, e){
