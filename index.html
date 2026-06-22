@@ -2778,7 +2778,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v88';
+const APP_VERSION='v89';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4080,7 +4080,9 @@ function adminSetTab(tab){
   if(isDeg) renderAdminDeg(); else renderAdminVino();
 }
 
-function _adminPt(sid){return _adminPunti.find(function(p){return p.analiticaId==sid;});}
+// Lookup punti per una scheda admin — raw Supabase restituisce analitica_id
+// (snake_case), non analiticaId. Controlla entrambi per retrocompatibilità.
+function _adminPt(sid){return _adminPunti.find(function(p){return (p.analitica_id||p.analiticaId)==sid;});}
 
 function renderAdminDeg(){
   var el=document.getElementById('admin-ct-deg');
@@ -4147,13 +4149,18 @@ function renderAdminVino(){
       h+='<div style="padding:7px 12px;border-bottom:1px solid #f9f9f4;display:flex;align-items:center;gap:8px">';
       h+='<div style="flex:1">';
       h+='<div style="font-size:11px;font-weight:600;color:#444">'+(s.autore&&s.autore.trim()?s.autore:nomeDisplay())+'</div>';
-      h+='<div style="font-size:9px;color:#aaa">'+(s.tipo==='bozza'?'⚡ bozza guida':'scheda completa')+'</div>';
+      var _isNg=s.ng===true||s.ng==='true';
+      var _isBozza=s.tipo==='bozza';
+      var _hasAnalitica=!_isBozza&&analiticaSembraCompilata(s);
+      var _lbl=_isNg?'🚫 N.G.':(_isBozza?'⚡ bozza guida':(_hasAnalitica?'✓ analitica + punti':'🎯 solo punteggio VITAE'));
+      var _lcol=_isNg?'#888':(_isBozza?'#c8800a':(_hasAnalitica?'#2e7d32':'#0277bd'));
+      h+='<div style="font-size:9px;color:'+_lcol+'">'+_lbl+'</div>';
       h+='</div>';
       if(pt){
-        var pv=fmtPt(pt.punteggio);
+        var pv=parseFloat(pt.punteggio||0);
         ptArr.push(pv);
         h+='<div style="text-align:right;flex-shrink:0">';
-        h+='<div style="font-size:18px;font-weight:900;color:var(--m)">'+pv+'</div>';
+        h+='<div style="font-size:18px;font-weight:900;color:var(--m)">'+pv.toFixed(1)+'</div>';
         h+='<div style="font-size:9px;color:#aaa">'+(pt.fascia||'')+'</div>';
         h+='</div>';
       } else {
