@@ -1798,7 +1798,6 @@ function onLogin(user){
   var _ab=document.getElementById('admin-btn');
   if(_ab) _ab.style.display=(user.email===ADMIN_EMAIL)?'':'none';
   caricaSchedeDB();
-  caricaDenominazioniDB();
   mostraHome();
 }
 
