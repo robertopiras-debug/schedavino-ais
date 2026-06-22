@@ -1201,45 +1201,29 @@ var SEZIONI_AP=[
 
 // ─── CALCOLO TEORICO CONDIVISO (usato da anteprima analitica E scheda a punti) ───
 function calcolaTeoricoAIS(par){
-  // par = oggetto sc dell'analitica (par.qvis, par.qolf, par.qgus, par.qtot, par.iolf, ecc.)
-  var Q=Q2V; // riusa la costante condivisa invece di una copia locale separata (v55)
-  var vm={'Moderatamente intenso':7,'Intenso':8,'Molto intenso':9};
-  var vc={'Moderatamente complesso':7,'Complesso':8,'Ampio':9};
-  var ve={'Poco equil.':7,'Med. equil.':8,'Equilibrato':9};
-  var vp={'Mod. pers.':7,'Persistente':8,'Molto pers.':9};
-  var va={'Poco armonico':7,'Mediamente armonico':8,'Armonico':9};
-
+  // Logica uniforme (allineata a caricaDaAnalitica v82): il giudizio di sezione
+  // via Q2V determina TUTTI i parametri della sezione — Eccellente=10, Ottimo=9,
+  // Distinto=8, Buono=7. Nessun override da descrittori (iolf, colf, equi, pers,
+  // armo): quelli compaiono solo come hint testuali in scheda a punti.
+  // Effetto collaterale: eliminato il rounding artifact che causava la domanda
+  // "9+27+36+18=89 o 90?" — con valori interi uniformi non ci sono .5 intermedi.
+  var Q=Q2V;
   var pVis=0, pOlf=0, pGus=0, pFin=0;
 
   // VISIVO — Aspetto (peso 1)
-  if(par.qvis) pVis=parseFloat((Q[par.qvis]*1).toFixed(1));
+  if(par.qvis) pVis=Q[par.qvis]*1;
 
-  // OLFATTIVO — Intensità 0.5 + Purezza/Eleganza 1 + Complessità/Attrattiva 1.5
-  if(par.qolf){
-    var vOlf=Q[par.qolf];
-    var vIolf=par.iolf&&vm[par.iolf]?vm[par.iolf]:vOlf;
-    var vColf=par.colf&&vc[par.colf]?vc[par.colf]:vOlf;
-    pOlf=parseFloat((vIolf*0.5 + vOlf*1 + vColf*1.5).toFixed(1));
-  }
+  // OLFATTIVO — Intensità(0.5) + Purezza(1) + Complessità(1.5) = 3 totale
+  if(par.qolf) pOlf=Q[par.qolf]*3;
 
-  // GUSTO — Int/Str 0.5 + Equilibrio 1 + Espressività 1 + Persistenza 1.5
-  if(par.qgus){
-    var vGus=Q[par.qgus];
-    var vIgus=par.igus&&vm[par.igus]?vm[par.igus]:vGus;
-    var vEqui=par.equi&&ve[par.equi]?ve[par.equi]:vGus;
-    var vPers=par.pers&&vp[par.pers]?vp[par.pers]:vGus;
-    pGus=parseFloat((vIgus*0.5 + vEqui*1 + vGus*1 + vPers*1.5).toFixed(1));
-  }
+  // GUSTO — Intensità(0.5) + Equilibrio(1) + Espressività(1) + Persistenza(1.5) = 4 totale
+  if(par.qgus) pGus=Q[par.qgus]*4;
 
-  // FINALE — Armonia 0.5 + Qualità/Carattere 1.5
-  if(par.qtot){
-    var vFin=Q[par.qtot];
-    var vArmo=par.armo&&va[par.armo]?va[par.armo]:vFin;
-    pFin=parseFloat((vArmo*0.5 + vFin*1.5).toFixed(1));
-  }
+  // FINALE — Armonia(0.5) + Qualità(1.5) = 2 totale
+  if(par.qtot) pFin=Q[par.qtot]*2;
 
   return {pVis:pVis, pOlf:pOlf, pGus:pGus, pFin:pFin,
-          totale:parseFloat((pVis+pOlf+pGus+pFin).toFixed(1))};
+          totale:pVis+pOlf+pGus+pFin};
 }
 
 function aggiornaAnteprima(){
