@@ -2778,7 +2778,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v93';
+const APP_VERSION='v94';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4225,7 +4225,7 @@ function renderAdminVino(){
       h+='</div>';
       // Riga 2: delta per sezione (solo se abbiamo i voti)
       if(sezArr.length>1){
-        var sezDef=[{k:'v',lb:'Vis',mx:10},{k:'o',lb:'Olf',mx:30},{k:'g',lb:'Gus',mx:40},{k:'f',lb:'Fin',mx:20}];
+        var sezDef=[{k:'v',lb:'Visivo',mx:10},{k:'o',lb:'Olfattivo',mx:30},{k:'g',lb:'Gusto-olfattivo',mx:40},{k:'f',lb:'Considerazioni finali',mx:20}];
         h+='<div style="padding:5px 12px;background:#f2f2fa;font-size:10px;color:#555;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid #e8e8f4;align-items:center">';
         h+='<span style="color:#888;font-weight:700">Δ sezione</span>';
         h+='<span style="color:#bbb;font-style:italic;font-size:9px">scarto max−min dei subtotali per sezione tra i degustatori</span>';
