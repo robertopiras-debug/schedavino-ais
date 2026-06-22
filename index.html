@@ -2379,6 +2379,24 @@ function aggiornaBarre(){
 }
 
 function validaScheda(){
+  // Se N.G. è spuntato, la scheda descrive un campione difettato che per
+  // definizione non può avere l'analitica compilata. Bloccarla sui campi
+  // sensoriali sarebbe una contraddizione logica: si valida solo produttore
+  // e nome, identico alla logica bozza.
+  var isNGEdit=document.getElementById('w-ng')&&document.getElementById('w-ng').checked;
+  if(isNGEdit){
+    var pErrNG=!document.getElementById('wP').value.trim();
+    var nErrNG=!document.getElementById('wN').value.trim();
+    if(pErrNG||nErrNG){
+      var righeNG=[];
+      if(pErrNG) righeNG.push('Produttore');
+      if(nErrNG) righeNG.push('Nome vino');
+      mostraModaleErrore('Inserisci almeno produttore e nome', righeNG.map(function(m){return'<span style=\"color:#888\">Identificativi:</span> '+m;}));
+      return false;
+    }
+    return true; // N.G.: il resto non è valutabile per definizione
+  }
+
   // Se stiamo aggiornando una bozza VITAE, valida solo gli identificativi:
   // i parametri analitici non esistono ancora e non devono bloccare.
   // La transizione bozza→completa avviene esclusivamente via scheda a punti.
@@ -2760,7 +2778,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v86';
+const APP_VERSION='v87';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
