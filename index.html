@@ -2778,7 +2778,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v95';
+const APP_VERSION='v96';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -2957,6 +2957,30 @@ function initSupabase(){
 
 window.addEventListener('load', function(){
   document.querySelectorAll('.app-version').forEach(function(el){ el.textContent=APP_VERSION; });
+  // ── Migrazione one-shot v96: fascia ricalcolata su tutti i record ais_punti ──
+  // Versioni pre-v55 salvavano la fascia con soglie diverse (es. 88→'Ottimo'
+  // invece di 'Distinto'). Il flag 'ais_mig_fascia_v96' garantisce che giri
+  // UNA SOLA VOLTA e mai più, anche dopo futuri aggiornamenti dell'app.
+  if(!localStorage.getItem('ais_mig_fascia_v96')){
+    try{
+      var migPunti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+      var migFixed=0;
+      migPunti.forEach(function(p){
+        var correct=fasciaP(parseFloat(p.punteggio)||0);
+        if(p.fascia!==correct){ p.fascia=correct; migFixed++; }
+      });
+      if(migFixed>0){
+        localStorage.setItem('ais_punti',JSON.stringify(migPunti));
+        // Rimette in coda sync i record corretti → Supabase verrà aggiornato
+        // al prossimo avvio/login tramite il meccanismo pending sync esistente
+        var migPending=JSON.parse(localStorage.getItem('ais_punti_pending_sync')||'[]');
+        migPunti.forEach(function(p){ if(migPending.indexOf(String(p.id))<0) migPending.push(String(p.id)); });
+        localStorage.setItem('ais_punti_pending_sync',JSON.stringify(migPending));
+        console.log('[v96 migration] fascia corretta in '+migFixed+' record; accodati per sync Supabase.');
+      }
+      localStorage.setItem('ais_mig_fascia_v96','1');
+    }catch(e){ console.error('[v96 migration] errore:',e); }
+  }
   initSupabase();
 });
 
@@ -4130,7 +4154,7 @@ function renderAdminDeg(){
       if(pt){
         h+='<div style="text-align:right;flex-shrink:0">';
         h+='<div style="font-size:17px;font-weight:900;color:var(--m)">'+fmtPt(pt.punteggio)+'</div>';
-        h+='<div style="font-size:9px;color:#aaa">'+( pt.fascia||'')+'</div>';
+        h+='<div style="font-size:9px;color:#aaa">'+fasciaP(parseFloat(pt.punteggio)||0)+'</div>';
         h+='</div>';
       } else {
         h+='<div style="font-size:10px;color:#ccc">—</div>';
@@ -4190,7 +4214,7 @@ function renderAdminVino(){
         });
         h+='<div style="text-align:right;flex-shrink:0">';
         h+='<div style="font-size:18px;font-weight:900;color:var(--m)">'+pv.toFixed(1)+'</div>';
-        h+='<div style="font-size:9px;color:#aaa">'+(pt.fascia||'')+'</div>';
+        h+='<div style="font-size:9px;color:#aaa">'+fasciaP(parseFloat(pt.punteggio)||0)+'</div>';
         h+='</div>';
       } else {
         h+='<div style="font-size:10px;color:#ccc">no punti</div>';
