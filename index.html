@@ -2760,7 +2760,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v81';
+const APP_VERSION='v85';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3111,15 +3111,18 @@ function aggiornaSlider(paramId){
       else if(delta<0)   c.classList.add('conf-giu');
     }
   });
-  // Badge delta
+  // Badge delta — punti pesati reali (delta × peso), non passi di scala.
+  // Complessità peso 1.5: ▲+1 voto → +1.5 pt sul totale, non +1.
   var dbEl=document.getElementById('db-'+paramId);
   if(dbEl){
     dbEl.className='p-delta';
     dbEl.innerHTML='';
     if(conf){
       if(variato){
+        var pParam=PARAMS.find(function(x){return x.id===paramId;});
+        var deltaPt=pParam?parseFloat((delta*pParam.peso).toFixed(1)):delta;
         dbEl.classList.add(delta>0?'d-su':'d-giu');
-        dbEl.innerHTML=(delta>0?'▲':'▼')+('<br>')+(delta>0?'+':'')+delta;
+        dbEl.innerHTML=(delta>0?'▲':'▼')+'<br>'+(deltaPt>0?'+':'')+deltaPt+' pt';
       } else {
         dbEl.classList.add('d-pari');
         dbEl.innerHTML='✓';
