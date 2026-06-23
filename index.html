@@ -2793,7 +2793,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v103';
+const APP_VERSION='v104';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4180,14 +4180,11 @@ async function generaNota(){
       body:JSON.stringify({
         model:'claude-sonnet-4-6',
         max_tokens:1000,
-        system:'Sei un sommelier AIS che redige le note di degustazione per la Guida VITAE. '+
-          'Il tuo stile è tecnico-narrativo, preciso nella terminologia AIS (limpido, brillante, rubino, '+
-          'complesso, persistente, ecc.) ma fluido e coinvolgente nella forma, come una recensione di qualità. '+
-          'Scrivi in italiano. La nota deve avere 3 paragrafi senza titoli: '+
-          '1) esame visivo e olfattivo, 2) esame gusto-olfattivo, '+
-          '3) giudizio finale con riferimento alla fascia qualitativa e al punteggio se disponibile. '+
-          'Usa esclusivamente le informazioni fornite — non inventare nulla. '+
-          'Lunghezza: 220-320 parole. Nessun elenco puntato, solo prosa.',
+        system:'Sei un sommelier AIS che scrive note di degustazione per la Guida VITAE. '+
+          'Stile: diretto, preciso, terminologia AIS. NIENTE perifrasi, superlativi inutili o aggettivi ridondanti. '+
+          'Struttura in 3 paragrafi brevi senza titoli: 1) visivo e olfattivo, 2) gusto-olfattivo, '+
+          '3) una sola frase di giudizio finale con fascia qualitativa e punteggio se disponibile. '+
+          'Lunghezza MASSIMA: 160 parole. Usa solo le informazioni fornite, non inventare nulla.',
         messages:[{role:'user',content:'Scrivi la nota di degustazione per questo vino:\n\n'+msgPrompt}]
       })
     });
