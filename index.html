@@ -2793,7 +2793,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v108';
+const APP_VERSION='v109';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4104,7 +4104,7 @@ async function generaNota(){
   // Raccoglie tutti i dati disponibili dalla scheda corrente
   var d=gd();
   var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
-  var pt=d.id?punti.find(function(x){return x.analiticaId==d.id;}):null;
+  var pt=editingId?punti.find(function(x){return x.analiticaId==editingId;}):null;
 
   // Costruisce il riepilogo dati per il prompt
   var datiVino=[
