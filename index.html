@@ -2804,7 +2804,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v113';
+const APP_VERSION='v114';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4305,8 +4305,8 @@ async function generaNota(){
           'Stile: diretto, preciso, terminologia AIS. NIENTE perifrasi, superlativi inutili o aggettivi ridondanti. '+
           'Struttura in 3 paragrafi brevi senza titoli: 1) visivo e olfattivo, 2) gusto-olfattivo, '+
           '3) una sola frase di giudizio finale. '+
-          'La frase finale DEVE chiudersi con: fascia qualitativa seguita dal punteggio in punti, '+
-          'nel formato esatto "Eccellente – 94 punti" oppure "Ottimo – 91 punti" ecc. '+
+          'La frase finale DEVE chiudersi con: fascia qualitativa seguita dal punteggio esatto indicato nel campo PUNTEGGIO TOTALE dei dati forniti, '+
+          'nel formato "Eccellente – [punteggio] punti" usando il numero preciso dai dati, non un numero inventato. '+
           'NON usare stelle, viti, tralci o simboli grafici di alcun tipo. '+
           'Prima di ogni serie di descrittori specifica sempre la categoria sensoriale (frutta, floreale, spezie, erbaceo, ecc.). '+
           'REGOLA CRITICA: la fascia qualitativa finale DEVE essere esattamente quella indicata nel campo FASCIA dei dati forniti — non ricalcolarla. '+
