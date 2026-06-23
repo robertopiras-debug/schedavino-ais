@@ -709,6 +709,17 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   </div>
 </div>
 
+</div>
+
+<div style="margin:10px 7px;border:1px solid var(--b);border-radius:6px;overflow:hidden">
+  <div onclick="toggleTableau()" style="background:#2a2a2a;color:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+    <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">📋 Tableau de bord</span>
+    <span style="font-size:9px;opacity:.7;flex:1">parametri selezionati + note libere per sezione — solo uso interno</span>
+    <span id="tableau-arrow" style="font-size:11px;opacity:.7">▼</span>
+  </div>
+  <div id="tableau-body" style="display:none"></div>
+</div>
+
 <div style="margin:10px 7px;border:1px solid var(--b);border-radius:6px;overflow:hidden">
   <div style="background:var(--d);color:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px">
     <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">✍ Nota di degustazione</span>
@@ -2793,7 +2804,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v111';
+const APP_VERSION='v112';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4086,7 +4097,92 @@ async function salvaRapida(){
 // ─── ADMIN ────────────────────────────────────────────────────────────────
 var ADMIN_EMAIL='robertopiras@keynes.it';
 
-// ─── CHIAVE API ANTHROPIC ────────────────────────────────────────────────────
+// ─── TABLEAU DE BORD ─────────────────────────────────────────────────────────
+// Legge SOLO dati reali: sc (parametri), mx (descrittori multi-chip),
+// note libere dal DOM, punteggi confermati da ais_punti.
+// Non inventa nulla — se un campo è vuoto, la cella è vuota.
+function toggleTableau(){
+  var body=document.getElementById('tableau-body');
+  var arrow=document.getElementById('tableau-arrow');
+  if(!body) return;
+  if(body.style.display==='none'){
+    body.style.display='block';
+    arrow.textContent='▲';
+    body.innerHTML=generaTableauHTML();
+  } else {
+    body.style.display='none';
+    arrow.textContent='▼';
+  }
+}
+
+function generaTableauHTML(){
+  var par=sc||{};
+  var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var pt=editingId?punti.find(function(x){return x.analiticaId==editingId;}):null;
+  var v=pt?pt.voti||{}:{};
+
+  function riga(label,parametri,nota,subtotale){
+    var pTxt=parametri.filter(Boolean).join(' · ')||'<em style="color:#aaa">—</em>';
+    var nTxt=nota?('<span style="font-style:italic;color:#555">'+nota+'</span>'):'<em style="color:#aaa">—</em>';
+    var subTxt=subtotale||'';
+    return '<div style="border-top:1px solid #f0ede8">'+
+      '<div style="background:#f8f6f2;padding:6px 12px;font-size:11px;font-weight:700;color:#555;display:flex;justify-content:space-between">'+
+      '<span>'+label+'</span><span style="color:#888;font-weight:400">'+subTxt+'</span></div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;font-size:12px;line-height:1.5">'+
+      '<div style="padding:8px 12px;border-right:1px solid #f0ede8"><div style="font-size:10px;color:#aaa;margin-bottom:3px">Parametri selezionati</div>'+pTxt+'</div>'+
+      '<div style="padding:8px 12px"><div style="font-size:10px;color:#aaa;margin-bottom:3px">Nota libera</div>'+nTxt+'</div>'+
+      '</div></div>';
+  }
+
+  // ── VISIVO ──
+  var subV=v.aspetto?'Aspetto '+v.aspetto+'/10 → '+(v.aspetto*1).toFixed(1)+' pt':'';
+  var parVis=[par.limpidezza, par.colore, par.int_colore,
+    (mx.sfumatura||[]).join(', '),
+    (mx.desc_vis||[]).join(', '),
+    par.qvis?'Qualità: '+par.qvis:''].filter(Boolean);
+  var rVis=riga('Esame visivo', parVis, document.getElementById('nota-vis')?document.getElementById('nota-vis').value:'', subV);
+
+  // ── OLFATTIVO ──
+  var pOlf=pt?(v.iolf*0.5+v.purez*1+v.compl*1.5).toFixed(1)+'/'+'30 pt':'';
+  var parOlf=[par.iolf?'Intensità: '+par.iolf:'',
+    par.colf?'Complessità: '+par.colf:'',
+    (mx.dolf||[]).length?'Descrittori: '+(mx.dolf||[]).join(', '):'',
+    par.qolf?'Qualità: '+par.qolf:''].filter(Boolean);
+  var rOlf=riga('Esame olfattivo', parOlf, document.getElementById('nolf')?document.getElementById('nolf').value:'', pOlf);
+
+  // ── GUSTO-OLFATTIVO ──
+  var pGus=pt?(v.igus*0.5+v.equi*1+v.espr*1+v.pers*1.5).toFixed(1)+'/40 pt':'';
+  var parGus=[par.igus?'Intensità: '+par.igus:'',
+    par.equi?'Equilibrio: '+par.equi:'',
+    par.pers?'Persistenza: '+par.pers:'',
+    par.armo?'Armonia: '+par.armo:'',
+    par.qgus?'Qualità: '+par.qgus:''].filter(Boolean);
+  var rGus=riga('Esame gusto-olfattivo', parGus, document.getElementById('ngus')?document.getElementById('ngus').value:'', pGus);
+
+  // ── CONSIDERAZIONI FINALI ──
+  var pFin=pt?(v.armo*0.5+v.qual*1.5).toFixed(1)+'/20 pt':'';
+  var stelle=sv>0?'★'.repeat(sv)+'☆'.repeat(5-sv):'';
+  var parFin=[par.evoluzione?'Stato evolutivo: '+par.evoluzione:'',
+    par.qtot?'Qualità: '+par.qtot:'',
+    stelle].filter(Boolean);
+  var rFin=riga('Considerazioni finali', parFin, document.getElementById('nfin')?document.getElementById('nfin').value:'', pFin);
+
+  // ── PUNTEGGIO ──
+  var rigaPt='';
+  if(pt){
+    var fas=fasciaP(parseFloat(pt.punteggio)||0);
+    rigaPt='<div style="border-top:1px solid #f0ede8;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:#fafaf8">'+
+      '<span style="font-size:11px;color:#888">Punteggio confermato (scheda a punti)</span>'+
+      '<span style="font-size:16px;font-weight:900;color:var(--m)">'+parseFloat(pt.punteggio).toFixed(1)+' <span style="font-size:11px;font-weight:400;color:#888">'+fas+'</span></span></div>';
+  } else if(par.qvis||par.qolf||par.qgus||par.qtot){
+    var est=calcolaTeoricoAIS(par);
+    rigaPt='<div style="border-top:1px solid #f0ede8;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:#fafaf8">'+
+      '<span style="font-size:11px;color:#888">Stima teorica (scheda a punti non ancora compilata)</span>'+
+      '<span style="font-size:16px;font-weight:900;color:#c8a000">~'+est.totale.toFixed(1)+' <span style="font-size:11px;font-weight:400;color:#888">'+fasciaP(est.totale)+'</span></span></div>';
+  }
+
+  return rVis+rOlf+rGus+rFin+rigaPt;
+}
 // Salvata in localStorage (mai nel codice sorgente che finisce su GitHub).
 // Ogni utente la inserisce una volta sola; l'admin la gestisce dal pannello.
 function getAnthropicKey(){ return localStorage.getItem('ais_anthropic_key')||''; }
