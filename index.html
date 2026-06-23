@@ -2793,7 +2793,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v106';
+const APP_VERSION='v107';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4145,11 +4145,13 @@ async function generaNota(){
     d.nota_fin?'Considerazioni finali: '+d.nota_fin:''
   ].filter(Boolean).join('\n');
 
-  var datiPunti='';
+    var datiPunti='';
   if(pt){
     var v=pt.voti||{};
+    var fas=fasciaP(parseFloat(pt.punteggio)||0);
     datiPunti=[
-      'PUNTEGGIO FINALE: '+parseFloat(pt.punteggio).toFixed(1)+'/100 ('+fasciaP(parseFloat(pt.punteggio))+')',
+      '*** PUNTEGGIO TOTALE: '+parseFloat(pt.punteggio).toFixed(1)+'/100 ***',
+      '*** FASCIA: '+fas+' *** ← usare OBBLIGATORIAMENTE questa nel giudizio finale',
       'Aspetto: '+( v.aspetto||'—')+'/10',
       'Intensità olfattiva: '+(v.iolf||'—')+' | Purezza/Eleganza: '+(v.purez||'—')+' | Complessità: '+(v.compl||'—'),
       'Intensità gusto: '+(v.igus||'—')+' | Equilibrio: '+(v.equi||'—')+' | Espressività: '+(v.espr||'—')+' | Persistenza: '+(v.pers||'—'),
@@ -4183,8 +4185,10 @@ async function generaNota(){
         system:'Sei un sommelier AIS che scrive note di degustazione per la Guida VITAE. '+
           'Stile: diretto, preciso, terminologia AIS. NIENTE perifrasi, superlativi inutili o aggettivi ridondanti. '+
           'Struttura in 3 paragrafi brevi senza titoli: 1) visivo e olfattivo, 2) gusto-olfattivo, '+
-          '3) una sola frase di giudizio finale con fascia qualitativa e punteggio se disponibile. '+
+          '3) una sola frase di giudizio finale con fascia qualitativa e punteggio. '+
           'Prima di ogni serie di descrittori specifica sempre la categoria sensoriale (frutta, floreale, spezie, erbaceo, ecc.). '+
+          'REGOLA CRITICA: la fascia qualitativa finale (Accettabile/Buono/Distinto/Ottimo/Eccellente) '+
+          'DEVE essere esattamente quella indicata nel campo FASCIA dei dati forniti — non ricalcolarla. '+
           'Lunghezza MASSIMA: 120 parole. Usa solo le informazioni fornite, non inventare nulla.',
         messages:[{role:'user',content:'Scrivi la nota di degustazione per questo vino:\n\n'+msgPrompt}]
       })
