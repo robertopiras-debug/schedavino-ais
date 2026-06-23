@@ -2793,7 +2793,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v102';
+const APP_VERSION='v103';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4157,7 +4157,7 @@ async function generaNota(){
     ].join('\n');
   }
 
-  var prompt='DATI VINO\n'+datiVino+
+  var msgPrompt='DATI VINO\n'+datiVino+
     '\n\nDESCRITTORI SENSORIALI\n'+datiSensoriali+
     (noteLibere?'\n\nNOTE LIBERE DEL DEGUSTATORE\n'+noteLibere:'')+
     (datiPunti?'\n\nPUNTEGGI CONFERMATI IN SCHEDA A PUNTI\n'+datiPunti:'');
@@ -4188,7 +4188,7 @@ async function generaNota(){
           '3) giudizio finale con riferimento alla fascia qualitativa e al punteggio se disponibile. '+
           'Usa esclusivamente le informazioni fornite — non inventare nulla. '+
           'Lunghezza: 220-320 parole. Nessun elenco puntato, solo prosa.',
-        messages:[{role:'user',content:'Scrivi la nota di degustazione per questo vino:\n\n'+prompt}]
+        messages:[{role:'user',content:'Scrivi la nota di degustazione per questo vino:\n\n'+msgPrompt}]
       })
     });
 
