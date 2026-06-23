@@ -633,6 +633,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="dv"></div>
     <div class="ph2 mg">Qualità olfattiva</div>
     <div class="qr"><div class="qo" data-g="qolf">Accettabile</div><div class="qo" data-g="qolf">Buono</div><div class="qo" data-g="qolf">Distinto</div><div class="qo" data-g="qolf">Ottimo</div><div class="qo" data-g="qolf">Eccellente</div></div>
+    <div id="riconosc-olf" style="padding:0 7px 4px"></div>
     <div class="nw"><textarea id="nolf" placeholder="Note libere olfattive..."></textarea></div>
   </div>
 </div>
@@ -647,11 +648,11 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="dt"></div>
     <div class="tw">
       <div class="tc2"><div class="ph2">Alcolicità</div><div class="og"><div class="o" data-g="alco">Poco caldo</div><div class="o" data-g="alco">Moderatamente caldo</div><div class="o" data-g="alco">Caldo</div><div class="o" data-g="alco">Molto caldo</div><div class="o" data-g="alco">Alcolico</div></div></div>
-      <div class="tc2" id="blk-tann"><div class="ph2">Tannicità</div><div id="note-tann"></div><div class="og"><div class="o" data-g="tann">Poco tannico</div><div class="o" data-g="tann">Moderatamente tannico</div><div class="o" data-g="tann">Tannico</div><div class="o" data-g="tann">Tenace</div><div class="o" data-g="tann">Astringente</div></div></div>
+      <div class="tc2" id="blk-tann"><div class="ph2">Tannicità</div><div id="note-tann"></div><div class="og"><div class="o" data-g="tann">Poco tannico</div><div class="o" data-g="tann">Moderatamente tannico</div><div class="o" data-g="tann">Tannico</div><div class="o" data-g="tann">Tenace</div><div class="o" data-g="tann">Astringente</div></div><div id="riconosc-tann" style="padding:4px 0 2px"></div></div>
     </div>
     <div class="dt"></div>
     <div class="tw">
-      <div class="tc2"><div class="ph2">Rotondità</div><div class="og"><div class="o" data-g="roto">Poco morbido</div><div class="o" data-g="roto">Moderatamente morbido</div><div class="o" data-g="roto">Morbido</div><div class="o" data-g="roto">Vellutato</div><div class="o" data-g="roto">Pastoso</div></div></div>
+      <div class="tc2"><div class="ph2">Rotondità</div><div class="og"><div class="o" data-g="roto">Poco morbido</div><div class="o" data-g="roto">Moderatamente morbido</div><div class="o" data-g="roto">Morbido</div><div class="o" data-g="roto">Vellutato</div><div class="o" data-g="roto">Pastoso</div></div><div id="riconosc-roto" style="padding:4px 0 2px"></div></div>
       <div class="tc2"><div class="ph2">Sapidità</div><div class="og"><div class="o" data-g="sapi">Poco sapido</div><div class="o" data-g="sapi">Moderatamente sapido</div><div class="o" data-g="sapi">Sapido</div><div class="o" data-g="sapi">Saporito</div><div class="o" data-g="sapi">Salato</div></div></div>
     </div>
     <div class="dt"></div>
@@ -1138,7 +1139,7 @@ function getVitigni(){
 
 function famDaColore(col){var b=['Verdolino','Paglierino','Dorato','Ambrato','Mogano'],r=['Fiore di pesco','Ramato','Salmone','Corallo','Peonia'];if(b.includes(col))return'bianco';if(r.includes(col))return'rosato';return'rosso';}
 
-let sc={},mx={},sv=0,curDenom=null;
+let sc={},mx={},sv=0,curDenom=null,riconoscimenti={};
 
 function tog(id){var b=document.getElementById('sb-'+id),a=document.getElementById('ar-'+id);var op=b.classList.toggle('op');a.classList.toggle('op',op);aggiornaBarre();}
 // Gruppi con scala progressiva — supportano doppia selezione adiacente
@@ -1197,7 +1198,7 @@ function pk(el){
   // Aggiorna anteprima se cambiano parametri che influenzano la stima
   if(['iolf','colf','igus','equi','pers','armo'].indexOf(g)>-1) aggiornaAnteprima();
 }
-function pkm(el){var g=el.dataset.g;el.classList.toggle('sel');if(!mx[g])mx[g]=[];var v=el.textContent.trim(),i=mx[g].indexOf(v);if(i>-1)mx[g].splice(i,1);else mx[g].push(v);}
+function pkm(el){var g=el.dataset.g;el.classList.toggle('sel');if(!mx[g])mx[g]=[];var v=el.textContent.trim(),i=mx[g].indexOf(v);if(i>-1)mx[g].splice(i,1);else mx[g].push(v);if(g==='dolf')aggiornaRiconoscimentiOlf();}
 function pkq(el){
   _schedaToccata=true;
   var g=el.dataset.g;
@@ -1493,7 +1494,7 @@ function apriInPunti(id, e){
 function nuovaScheda(){
   _schedaToccata=false;
   editingId=null;
-  selBase='';selColore='';selMenzione='';selVitigni=[];sv=0;sc={};mx={};
+  selBase='';selColore='';selMenzione='';selVitigni=[];sv=0;sc={};mx={};riconoscimenti={};
   document.getElementById('wAutore').value=(typeof nomeDisplay==='function')?nomeDisplay():'';
   document.getElementById('wP').value='';
   document.getElementById('wN').value='';
@@ -1960,6 +1961,7 @@ async function salvaSuDB(scheda){
     nota_vis: scheda.nota_vis||'',
     nota_fin: scheda.nota_fin||'',
     nota_degustazione: scheda.nota_degustazione||'',
+    riconoscimenti: JSON.stringify(scheda.riconoscimenti||{}),
     stelle: scheda.stelle||0,
     dt: scheda.dt||'',
     tipo: scheda.tipo||'completa',
@@ -2286,7 +2288,7 @@ function gd(){
   var vitigniStr=getVitigni();
   var tipCombinata=[selColore,selMenzione,selBase,notaLib].filter(Boolean).join(' ');
   var _autoreVal=document.getElementById('wAutore').value; salvaNomeUtente(_autoreVal);
-  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:document.getElementById('nota-degustazione').value,stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
+  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],riconoscimenti:Object.assign({},riconoscimenti),nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:document.getElementById('nota-degustazione').value,stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
 }
 
 /* toast(m) già definita sopra — duplicato rimosso (stesso comportamento, debito tecnico) */
@@ -2585,6 +2587,7 @@ function loadS(id){
   // ── Stato interno ──
   sc=Object.assign({},s.parametri||{});
   mx={dolf:s.descrittori||[],sfumatura:s.sfumature||[],desc_vis:s.desc_vis||[]};
+  riconoscimenti=Object.assign({},s.riconoscimenti||{});
 
   // ── Regione e denominazione ──
   if(s.regione){document.getElementById('wR').value=s.regione;rDen('');}
@@ -2720,6 +2723,9 @@ function loadS(id){
         });
       }
     });
+    // Ripristina riconoscimenti e aggiorna UI
+    aggiornaRiconoscimentiOlf();
+    aggiornaRiconoscimentiGus();
   }, 80);
 
   // ── Ripristina sezione spumante/frizzante ──
@@ -2769,6 +2775,53 @@ function loadS(id){
 }
 
 
+// ─── RICONOSCIMENTI ──────────────────────────────────────────────────────────
+var FAMIGLIE_RICONOSC=['Floreale','Fruttato','Speziato','Vegetale',
+  'Empireumatico','Balsamico','Pasticceria/Panificazione','Minerale'];
+var PLACEHOLDER_RICONOSC={
+  'Floreale':'es. rosa, violetta, gelsomino, zagara...',
+  'Fruttato':'es. pesca bianca, ciliegia, frutti di bosco...',
+  'Speziato':'es. pepe nero, chiodi di garofano, cannella...',
+  'Vegetale':'es. erba falciata, peperone verde, fieno...',
+  'Empireumatico':'es. caffè, cioccolato, tabacco, catrame...',
+  'Balsamico':'es. resina, menta, eucalipto...',
+  'Pasticceria/Panificazione':'es. vaniglia, crosta di pane, burro...',
+  'Minerale':'es. pietra focaia, grafite, gesso...'
+};
+function aggiornaRiconoscimentiOlf(){
+  var cont=document.getElementById('riconosc-olf');
+  if(!cont) return;
+  var attivi=(mx.dolf||[]).filter(function(f){return FAMIGLIE_RICONOSC.indexOf(f)>-1;});
+  if(!attivi.length){cont.innerHTML='';return;}
+  var html='<div style="background:#fafaf0;border:1px solid #e8e4d8;border-radius:4px;padding:8px 10px;margin-top:4px">';
+  html+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Riconoscimenti olfattivi</div>';
+  attivi.forEach(function(f){
+    var val=(riconoscimenti['olf_'+f]||'').replace(/"/g,'&quot;');
+    html+='<div style="margin-bottom:5px"><label style="font-size:11px;color:#666;display:block;margin-bottom:2px">'+f+'</label>';
+    html+='<input type="text" value="'+val+'" placeholder="'+PLACEHOLDER_RICONOSC[f]+'" '+
+      'style="width:100%;border:1px solid #ddd;border-radius:3px;padding:4px 6px;font-size:12px;box-sizing:border-box" '+
+      'oninput="riconoscimenti[\'olf_'+f+'\']=this.value"></div>';
+  });
+  html+='</div>';
+  cont.innerHTML=html;
+}
+function aggiornaRiconoscimentiGus(){
+  var contT=document.getElementById('riconosc-tann');
+  var contR=document.getElementById('riconosc-roto');
+  if(contT){
+    var valT=(riconoscimenti['tannino']||'').replace(/"/g,'&quot;');
+    contT.innerHTML=sc.tann?'<input type="text" value="'+valT+'" placeholder="es. setoso, asciutto, verde, cioccolato fondente..." '+
+      'style="width:100%;border:1px solid #ddd;border-radius:3px;padding:4px 6px;font-size:12px;box-sizing:border-box;margin-top:2px" '+
+      'oninput="riconoscimenti[\'tannino\']=this.value">':'';
+  }
+  if(contR){
+    var valR=(riconoscimenti['rotondita']||'').replace(/"/g,'&quot;');
+    contR.innerHTML=sc.roto?'<input type="text" value="'+valR+'" placeholder="es. piena, vellutata, rotonda, calore evidente..." '+
+      'style="width:100%;border:1px solid #ddd;border-radius:3px;padding:4px 6px;font-size:12px;box-sizing:border-box;margin-top:2px" '+
+      'oninput="riconoscimenti[\'rotondita\']=this.value">':'';
+  }
+}
+
 // Event delegation globale unico
 document.addEventListener('click', function(e){
   var el = e.target;
@@ -2778,7 +2831,7 @@ document.addEventListener('click', function(e){
   if(chip && chip.dataset.g){
     var g = chip.dataset.g;
     if(g==='sfumatura'||g==='desc_vis'||g==='dolf') pkm(chip);
-    else pk(chip);
+    else { pk(chip); if(g==='tann'||g==='roto') aggiornaRiconoscimentiGus(); }
     return;
   }
 
@@ -2804,7 +2857,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v114';
+const APP_VERSION='v115';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4246,7 +4299,10 @@ async function generaNota(){
     (!escludiQSez&&par.qvis)?'Qualità visiva: '+par.qvis:'',
     par.iolf?'Intensità olfattiva: '+par.iolf:'',
     par.colf?'Complessità olfattiva: '+par.colf:'',
-    (d.descrittori&&d.descrittori.length)?'Descrittori olfattivi: '+d.descrittori.join(', '):'',
+    (d.descrittori&&d.descrittori.length)?'Descrittori olfattivi: '+d.descrittori.map(function(f){
+      var rico=d.riconoscimenti&&d.riconoscimenti['olf_'+f];
+      return rico?f+' ('+rico+')':f;
+    }).join(', '):'',
     (d.sfumature&&d.sfumature.length)?'Sfumature: '+d.sfumature.join(', '):'',
     (!escludiQSez&&par.qolf)?'Qualità olfattiva: '+par.qolf:'',
     par.igus?'Intensità gusto: '+par.igus:'',
