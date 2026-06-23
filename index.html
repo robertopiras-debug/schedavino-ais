@@ -2793,7 +2793,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v110';
+const APP_VERSION='v111';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3794,13 +3794,14 @@ function filtraHomeSchede(){
     // nemmeno punteggiata) e da N.G. (priorità sopra, qui irrilevante).
     var daCompletare=!isBozza && !s.ng && !analiticaSembraCompilata(s);
     var badgeDaCompletare=daCompletare?'<span title="Punteggio confermato ma la scheda analitica non è mai stata compilata" style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Da completare</span>':'';
+    var badgeNota=(s.nota_degustazione&&s.nota_degustazione.trim())?'<span title="Nota di degustazione presente" style="font-size:9px;font-weight:700;background:#e8eaf6;color:#3949ab;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">✍ nota</span>':'';
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
     // Badge "non sincronizzata": vale sia per la scheda analitica sia per
     // il punteggio collegato — basta che uno dei due non sia confermato sul cloud.
     var nonSync=pendingSyncS.indexOf(String(s.id))>-1 || (val && pendingSyncP.indexOf(String(val.id))>-1);
     var badgeSync=nonSync?'<span title="In attesa di sincronizzazione cloud" style="font-size:9px;font-weight:800;background:#fff3cd;color:#7a5400;border:1px solid #f5a800;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle">☁️⚠</span>':'';
-    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza+badgeNG+badgeDaCompletare+badgeSync;
+    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza+badgeNG+badgeDaCompletare+badgeNota+badgeSync;
     var ptNum=s.ng
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:18px;font-weight:900;color:#a00;line-height:1.1">N.G.</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">difettato</div>'        +'</div>'      :(val
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:22px;font-weight:900;color:var(--m);line-height:1.1">'+fmtPt(val.punteggio)+'</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">'+fasciaP(parseFloat(val.punteggio)||0)+'</div>'        +'</div>'      :'<div style="min-width:54px;flex-shrink:0;text-align:right">'        +'<div style="font-size:10px;color:#ccc">—</div>'        +'</div>');
@@ -4119,8 +4120,8 @@ async function generaNota(){
   var descrittoriPresenti=((d.descrittori||[]).length + (d.sfumature||[]).length + (d.desc_vis||[]).length) >= 3;
   var descrittoriAnalitici=[par.iolf,par.colf,par.igus,par.equi,par.pers,par.armo,par.limpidezza,par.colore].filter(Boolean).length;
   if(!notePresenti && !descrittoriPresenti && descrittoriAnalitici<2){
-    toast('⛔ Dati analitici insufficienti — compila almeno le note libere di una sezione prima di generare.');
-    alert('La nota AI richiede dati reali dalla scheda analitica.\n\nCompila almeno:\n• una nota libera (visiva, olfattiva, gusto-olfattiva o finale)\noppure\n• almeno 3 descrittori chip selezionati\n\nSenza dati il modello inventa. Non lo permettiamo.');
+    toast('⛔ Dati analitici insufficienti — compila almeno una nota libera prima di generare.');
+    alert('La nota AI richiede dati reali dalla scheda analitica.\n\nCompila almeno una nota libera:\nvisiva, olfattiva, gusto-olfattiva o considerazioni finali.\n\nSenza dati il modello inventa. Non lo permettiamo.');
     return;
   }
   var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
