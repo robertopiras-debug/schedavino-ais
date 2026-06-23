@@ -2857,7 +2857,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v115';
+const APP_VERSION='v116';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4196,19 +4196,26 @@ function generaTableauHTML(){
   var rVis=riga('Esame visivo', parVis, document.getElementById('nota-vis')?document.getElementById('nota-vis').value:'', subV);
 
   // ── OLFATTIVO ──
-  var pOlf=pt?(v.iolf*0.5+v.purez*1+v.compl*1.5).toFixed(1)+'/'+'30 pt':'';
+  var pOlf=pt?(v.iolf*0.5+v.purez*1+v.compl*1.5).toFixed(1)+'/30 pt':'';
+  var dolfConRico=(mx.dolf||[]).map(function(f){
+    var r=riconoscimenti['olf_'+f];
+    return r?f+' ('+r+')':f;
+  });
   var parOlf=[par.iolf?'Intensità: '+par.iolf:'',
     par.colf?'Complessità: '+par.colf:'',
-    (mx.dolf||[]).length?'Descrittori: '+(mx.dolf||[]).join(', '):'',
+    dolfConRico.length?'Descrittori: '+dolfConRico.join(', '):'',
     par.qolf?'Qualità: '+par.qolf:''].filter(Boolean);
   var rOlf=riga('Esame olfattivo', parOlf, document.getElementById('nolf')?document.getElementById('nolf').value:'', pOlf);
 
   // ── GUSTO-OLFATTIVO ──
   var pGus=pt?(v.igus*0.5+v.equi*1+v.espr*1+v.pers*1.5).toFixed(1)+'/40 pt':'';
+  var tannNote=sc.tann?(sc.tann+(riconoscimenti['tannino']?' — '+riconoscimenti['tannino']:'')):'';
+  var rotoNote=sc.roto?(sc.roto+(riconoscimenti['rotondita']?' — '+riconoscimenti['rotondita']:'')):'';
   var parGus=[par.igus?'Intensità: '+par.igus:'',
     par.equi?'Equilibrio: '+par.equi:'',
     par.pers?'Persistenza: '+par.pers:'',
-    par.armo?'Armonia: '+par.armo:'',
+    tannNote?'Tannicità: '+tannNote:'',
+    rotoNote?'Rotondità: '+rotoNote:'',
     par.qgus?'Qualità: '+par.qgus:''].filter(Boolean);
   var rGus=riga('Esame gusto-olfattivo', parGus, document.getElementById('ngus')?document.getElementById('ngus').value:'', pGus);
 
