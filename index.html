@@ -2793,7 +2793,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v101';
+const APP_VERSION='v102';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4174,7 +4174,8 @@ async function generaNota(){
       headers:{
         'Content-Type':'application/json',
         'x-api-key':key,
-        'anthropic-version':'2023-06-01'
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
       },
       body:JSON.stringify({
         model:'claude-sonnet-4-6',
@@ -4193,13 +4194,15 @@ async function generaNota(){
 
     if(res.status===401){
       localStorage.removeItem('ais_anthropic_key');
-      status.textContent='❌ Chiave API non valida — verrà chiesta di nuovo al prossimo tentativo.';
-      btn.disabled=false; return;
+      var msg='❌ Chiave API non valida o scaduta — verrà chiesta di nuovo al prossimo tentativo.';
+      status.style.display='block'; status.textContent=msg;
+      alert(msg); btn.disabled=false; return;
     }
     if(!res.ok){
       var errTxt=await res.text();
-      status.textContent='❌ Errore API ('+res.status+'): '+errTxt.substring(0,120);
-      btn.disabled=false; return;
+      var msg2='❌ Errore API ('+res.status+'): '+errTxt.substring(0,200);
+      status.style.display='block'; status.textContent=msg2;
+      alert(msg2); btn.disabled=false; return;
     }
 
     var data=await res.json();
@@ -4208,7 +4211,9 @@ async function generaNota(){
     status.style.display='none';
     toast('✍ Nota generata — rileggi, modifica se necessario, poi salva');
   } catch(e){
-    status.textContent='❌ Errore di rete: '+e.message;
+    var msg3='❌ Errore di rete/CORS: '+e.message+'\n\nSe è la prima volta, verifica che la chiave API sia corretta.';
+    status.style.display='block'; status.textContent=msg3;
+    alert(msg3);
   }
   btn.disabled=false;
 }
