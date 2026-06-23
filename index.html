@@ -2793,7 +2793,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v105';
+const APP_VERSION='v106';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4184,6 +4184,7 @@ async function generaNota(){
           'Stile: diretto, preciso, terminologia AIS. NIENTE perifrasi, superlativi inutili o aggettivi ridondanti. '+
           'Struttura in 3 paragrafi brevi senza titoli: 1) visivo e olfattivo, 2) gusto-olfattivo, '+
           '3) una sola frase di giudizio finale con fascia qualitativa e punteggio se disponibile. '+
+          'Prima di ogni serie di descrittori specifica sempre la categoria sensoriale (frutta, floreale, spezie, erbaceo, ecc.). '+
           'Lunghezza MASSIMA: 120 parole. Usa solo le informazioni fornite, non inventare nulla.',
         messages:[{role:'user',content:'Scrivi la nota di degustazione per questo vino:\n\n'+msgPrompt}]
       })
