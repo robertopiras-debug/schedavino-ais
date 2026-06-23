@@ -2804,7 +2804,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v112';
+const APP_VERSION='v113';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4254,9 +4254,7 @@ async function generaNota(){
     par.pers?'Persistenza: '+par.pers:'',
     par.armo?'Armonia: '+par.armo:'',
     (!escludiQSez&&par.qgus)?'Qualità gusto-olfattiva: '+par.qgus:'',
-    par.evoluzione?'Stato evolutivo: '+par.evoluzione:'',
-    (!escludiQSez&&par.qtot)?'Qualità complessiva: '+par.qtot:'',
-    par.stelle?'Stelle (0-5): '+par.stelle:''
+    par.evoluzione?'Stato evolutivo: '+par.evoluzione:''
   ].filter(Boolean).join('\n');
 
   var noteLibere=[
@@ -4306,10 +4304,12 @@ async function generaNota(){
         system:'Sei un sommelier AIS che scrive note di degustazione per la Guida VITAE. '+
           'Stile: diretto, preciso, terminologia AIS. NIENTE perifrasi, superlativi inutili o aggettivi ridondanti. '+
           'Struttura in 3 paragrafi brevi senza titoli: 1) visivo e olfattivo, 2) gusto-olfattivo, '+
-          '3) una sola frase di giudizio finale con fascia qualitativa e punteggio. '+
+          '3) una sola frase di giudizio finale. '+
+          'La frase finale DEVE chiudersi con: fascia qualitativa seguita dal punteggio in punti, '+
+          'nel formato esatto "Eccellente – 94 punti" oppure "Ottimo – 91 punti" ecc. '+
+          'NON usare stelle, viti, tralci o simboli grafici di alcun tipo. '+
           'Prima di ogni serie di descrittori specifica sempre la categoria sensoriale (frutta, floreale, spezie, erbaceo, ecc.). '+
-          'REGOLA CRITICA: la fascia qualitativa finale (Accettabile/Buono/Distinto/Ottimo/Eccellente) '+
-          'DEVE essere esattamente quella indicata nel campo FASCIA dei dati forniti — non ricalcolarla. '+
+          'REGOLA CRITICA: la fascia qualitativa finale DEVE essere esattamente quella indicata nel campo FASCIA dei dati forniti — non ricalcolarla. '+
           'Lunghezza MASSIMA: 120 parole. Usa solo le informazioni fornite, non inventare nulla.',
         messages:[{role:'user',content:'Scrivi la nota di degustazione per questo vino:\n\n'+
           (datiPunti?datiPunti+'\n\n':'')+
@@ -4336,7 +4336,9 @@ async function generaNota(){
     var testo=data.content&&data.content[0]?data.content[0].text:'';
     document.getElementById('nota-degustazione').value=testo;
     status.style.display='none';
-    toast('✍ Nota generata — rileggi, modifica se necessario, poi salva');
+    // Salva automaticamente così la nota non va persa
+    savLocal();
+    toast('✍ Nota generata e salvata automaticamente');
   } catch(e){
     var msg3='❌ Errore di rete/CORS: '+e.message+'\n\nSe è la prima volta, verifica che la chiave API sia corretta.';
     status.style.display='block'; status.textContent=msg3;
