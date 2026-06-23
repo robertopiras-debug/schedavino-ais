@@ -2793,7 +2793,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v109';
+const APP_VERSION='v110';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4101,8 +4101,28 @@ async function generaNota(){
     key=k.trim();
   }
 
-  // Raccoglie tutti i dati disponibili dalla scheda corrente
+  // ── Guardia 1: campione N.G. ─────────────────────────────────────────────
   var d=gd();
+  if(d.ng){
+    toast('⛔ Campione N.G. — nessuna nota di degustazione generabile per un campione difettato.');
+    return;
+  }
+
+  // ── Guardia 2: dati analitici insufficienti ──────────────────────────────
+  // Richiede almeno una nota libera di sezione OPPURE almeno 3 descrittori
+  // chip selezionati. Senza dati reali il modello inventa — inaccettabile.
+  var par=d.parametri||{};
+  var notePresenti=(d.nota_vis||'').trim().length>0 ||
+                   (d.nota_olf||'').trim().length>0 ||
+                   (d.nota_gus||'').trim().length>0 ||
+                   (d.nota_fin||'').trim().length>0;
+  var descrittoriPresenti=((d.descrittori||[]).length + (d.sfumature||[]).length + (d.desc_vis||[]).length) >= 3;
+  var descrittoriAnalitici=[par.iolf,par.colf,par.igus,par.equi,par.pers,par.armo,par.limpidezza,par.colore].filter(Boolean).length;
+  if(!notePresenti && !descrittoriPresenti && descrittoriAnalitici<2){
+    toast('⛔ Dati analitici insufficienti — compila almeno le note libere di una sezione prima di generare.');
+    alert('La nota AI richiede dati reali dalla scheda analitica.\n\nCompila almeno:\n• una nota libera (visiva, olfattiva, gusto-olfattiva o finale)\noppure\n• almeno 3 descrittori chip selezionati\n\nSenza dati il modello inventa. Non lo permettiamo.');
+    return;
+  }
   var punti=JSON.parse(localStorage.getItem('ais_punti')||'[]');
   var pt=editingId?punti.find(function(x){return x.analiticaId==editingId;}):null;
 
