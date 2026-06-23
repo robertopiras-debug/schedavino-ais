@@ -2793,7 +2793,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v107';
+const APP_VERSION='v108';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4118,23 +4118,27 @@ async function generaNota(){
   ].join('\n');
 
   var par=d.parametri||{};
+  // Se esiste un record punti confermato, esclude i giudizi qualitativi di sezione
+  // (qvis/qolf/qgus/qtot) dai dati sensoriali: sono stime preliminari superate
+  // dai voti singoli confermati in punti e confondono il modello sul giudizio finale.
+  var escludiQSez=!!pt;
   var datiSensoriali=[
     par.limpidezza?'Limpidezza: '+par.limpidezza:'',
     par.colore?'Colore: '+par.colore:'',
     par.int_colore?'Intensità colore: '+par.int_colore:'',
-    par.qvis?'Qualità visiva complessiva: '+par.qvis:'',
+    (!escludiQSez&&par.qvis)?'Qualità visiva: '+par.qvis:'',
     par.iolf?'Intensità olfattiva: '+par.iolf:'',
     par.colf?'Complessità olfattiva: '+par.colf:'',
     (d.descrittori&&d.descrittori.length)?'Descrittori olfattivi: '+d.descrittori.join(', '):'',
     (d.sfumature&&d.sfumature.length)?'Sfumature: '+d.sfumature.join(', '):'',
-    par.qolf?'Qualità olfattiva: '+par.qolf:'',
+    (!escludiQSez&&par.qolf)?'Qualità olfattiva: '+par.qolf:'',
     par.igus?'Intensità gusto: '+par.igus:'',
     par.equi?'Equilibrio: '+par.equi:'',
     par.pers?'Persistenza: '+par.pers:'',
     par.armo?'Armonia: '+par.armo:'',
-    par.qgus?'Qualità gusto-olfattiva: '+par.qgus:'',
+    (!escludiQSez&&par.qgus)?'Qualità gusto-olfattiva: '+par.qgus:'',
     par.evoluzione?'Stato evolutivo: '+par.evoluzione:'',
-    par.qtot?'Qualità complessiva: '+par.qtot:'',
+    (!escludiQSez&&par.qtot)?'Qualità complessiva: '+par.qtot:'',
     par.stelle?'Stelle (0-5): '+par.stelle:''
   ].filter(Boolean).join('\n');
 
@@ -4190,7 +4194,11 @@ async function generaNota(){
           'REGOLA CRITICA: la fascia qualitativa finale (Accettabile/Buono/Distinto/Ottimo/Eccellente) '+
           'DEVE essere esattamente quella indicata nel campo FASCIA dei dati forniti — non ricalcolarla. '+
           'Lunghezza MASSIMA: 120 parole. Usa solo le informazioni fornite, non inventare nulla.',
-        messages:[{role:'user',content:'Scrivi la nota di degustazione per questo vino:\n\n'+msgPrompt}]
+        messages:[{role:'user',content:'Scrivi la nota di degustazione per questo vino:\n\n'+
+          (datiPunti?datiPunti+'\n\n':'')+
+          'DATI VINO\n'+datiVino+
+          '\n\nDESCRITTORI SENSORIALI\n'+datiSensoriali+
+          (noteLibere?'\n\nNOTE LIBERE DEL DEGUSTATORE\n'+noteLibere:'')}]
       })
     });
 
