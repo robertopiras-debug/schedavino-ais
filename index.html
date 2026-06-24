@@ -2857,7 +2857,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v117';
+const APP_VERSION='v118';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4283,7 +4283,8 @@ function apriSchedaLettura(sid){
   h+='</div>';
 
   if(!isNG){
-    var parVis=[par.limpidezza,par.colore,par.int_colore].filter(Boolean);
+    var parVis=[par.limpidezza,par.colore,par.int_colore,
+      par.qvis?'Qualità visiva: '+par.qvis:''].filter(Boolean);
     h+=sez('Esame visivo',parVis,s.nota_vis,v.aspetto?'Aspetto '+v.aspetto+'/10':'');
 
     var dolfStr=dolf.map(function(f){var r=rico['olf_'+f];return r?f+' ('+r+')':f;});
