@@ -1657,6 +1657,8 @@ function doLogout(){
   accessToken=null; refreshToken=null; currentUser=null;
   var _ab=document.getElementById('admin-btn');
   if(_ab) _ab.style.display='none';
+  var _ak2=document.getElementById('apikey-btn');
+  if(_ak2) _ak2.style.display='none';
   var _ao=document.getElementById('admin-overlay');
   if(_ao) _ao.style.display='none';
   var ho=document.getElementById('home-overlay');
@@ -1822,6 +1824,8 @@ function onLogin(user){
   // Mostra pulsante admin solo per l'email amministratore
   var _ab=document.getElementById('admin-btn');
   if(_ab) _ab.style.display=(user.email===ADMIN_EMAIL)?'':'none';
+  var _ak=document.getElementById('apikey-btn');
+  if(_ak) _ak.style.display=(user.email===ADMIN_EMAIL)?'':'none';
   caricaSchedeDB();
   mostraHome();
 }
@@ -2864,7 +2868,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v122';
+const APP_VERSION='v123';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4374,6 +4378,27 @@ function apriSchedaLettura(sid){
   document.getElementById('modal-lettura').style.display='block';
 }
 
+function gestisciApiKey(){
+  var current=getAnthropicKey();
+  var masked=current?current.substring(0,12)+'...'+current.slice(-4):'(non impostata)';
+  var scelta=window.confirm(
+    'Chiave API Anthropic attuale:\n'+masked+
+    '\n\nOK = inserisci/sostituisci chiave\nAnnulla = rimuovi chiave attuale'
+  );
+  if(scelta){
+    var nuova=prompt('Inserisci la chiave API Anthropic (sk-ant-...):\n(salvata solo in questo browser, mai online)');
+    if(nuova&&nuova.trim()){
+      setAnthropicKey(nuova.trim());
+      toast('✅ Chiave API salvata');
+    }
+  } else {
+    if(current){
+      localStorage.removeItem('ais_anthropic_key');
+      toast('🗑 Chiave API rimossa');
+    }
+  }
+}
+
 function getAnthropicKey(){ return localStorage.getItem('ais_anthropic_key')||''; }
 function setAnthropicKey(k){ localStorage.setItem('ais_anthropic_key', k.trim()); }
 
@@ -4780,6 +4805,7 @@ function renderAdminVino(){
       </div>
     </div>
     <span id="admin-btn" style="display:none;font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;font-weight:600;margin-right:8px" onclick="mostraAdmin()">📊</span>
+    <span id="apikey-btn" style="display:none;font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;font-weight:600;margin-right:8px" onclick="gestisciApiKey()" title="Gestisci chiave API Anthropic">⚙️</span>
     <span style="font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;font-weight:600" onclick="doLogout()">Esci</span>
   </div>
   <div style="padding:14px 12px 6px;display:flex;gap:8px">
