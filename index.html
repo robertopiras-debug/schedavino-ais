@@ -1853,12 +1853,18 @@ async function caricaSchedeDB(){
     // ma non cancella schede locali che non sono ancora su DB
     var locale=JSON.parse(localStorage.getItem('ais_s')||'[]');
     var dbMap={};
-    data.forEach(function(r){dbMap[String(r.id)]=Object.assign({},r,{
-      parametri:r.parametri||{},
-      descrittori:r.descrittori||[],
-      sfumature:r.sfumature||[],
-      desc_vis:r.desc_vis||[]
-    });});
+    data.forEach(function(r){
+      var rawR=r.riconoscimenti||{};
+      dbMap[String(r.id)]=Object.assign({},r,{
+        parametri:r.parametri||{},
+        descrittori:r.descrittori||[],
+        sfumature:r.sfumature||[],
+        desc_vis:r.desc_vis||[],
+        // riconoscimenti arriva dal cloud come stringa TEXT (JSON.stringify in salvaSuDB)
+        // — va parsato qui altrimenti loadS() riceve una stringa e Object.assign fallisce
+        riconoscimenti:typeof rawR==='string'?(rawR.trim()?JSON.parse(rawR):{}):(rawR||{})
+      });
+    });
     // Aggiunge le schede locali che non esistono ancora su DB (confronto String)
     locale.forEach(function(s){
       if(!dbMap[String(s.id)]) dbMap[String(s.id)]=s;
@@ -2587,7 +2593,8 @@ function loadS(id){
   // ── Stato interno ──
   sc=Object.assign({},s.parametri||{});
   mx={dolf:s.descrittori||[],sfumatura:s.sfumature||[],desc_vis:s.desc_vis||[]};
-  riconoscimenti=Object.assign({},s.riconoscimenti||{});
+  var rawRico=s.riconoscimenti||{};
+  riconoscimenti=Object.assign({},typeof rawRico==='string'?(rawRico.trim()?JSON.parse(rawRico):{}):(rawRico||{}));
 
   // ── Regione e denominazione ──
   if(s.regione){document.getElementById('wR').value=s.regione;rDen('');}
@@ -2857,7 +2864,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v121';
+const APP_VERSION='v122';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
