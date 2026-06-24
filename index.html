@@ -2869,7 +2869,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v124';
+const APP_VERSION='v125';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4408,7 +4408,14 @@ async function caricaApiKeyDaSupa(){
     var r=await fetch(SUPA_URL+'/rest/v1/admin_settings?user_email=eq.'+encodeURIComponent(currentUser.email),{headers:supaHeaders()});
     if(!r.ok) return;
     var rows=await r.json();
-    if(rows&&rows.length&&rows[0].anthropic_key) localStorage.setItem('ais_anthropic_key',rows[0].anthropic_key);
+    if(rows&&rows.length&&rows[0].anthropic_key){
+      // Cloud ha la chiave → la cacha in localStorage
+      localStorage.setItem('ais_anthropic_key',rows[0].anthropic_key);
+    } else {
+      // Cloud è vuoto → se localStorage ha già la chiave, la salva su cloud automaticamente
+      var local=localStorage.getItem('ais_anthropic_key');
+      if(local) await salvaApiKeyOnSupa(local);
+    }
   }catch(e){ console.warn('caricaApiKey:',e); }
 }
 async function salvaApiKeyOnSupa(key){
