@@ -2857,7 +2857,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v119';
+const APP_VERSION='v120';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4256,14 +4256,14 @@ function apriSchedaLettura(sid){
   var rico={};
   try{ rico=JSON.parse(s.riconoscimenti||'{}'); }catch(e){}
 
-  function sez(titolo,righe,nota,ptLabel){
+  function sez(titolo,contenutoSx,nota,ptLabel){
     var h2='<div style="border-bottom:1px solid #f0ede8">';
     h2+='<div style="background:#f5f3ef;padding:6px 14px;font-size:11px;font-weight:700;color:#555;display:flex;justify-content:space-between">';
     h2+='<span>'+titolo+'</span><span style="color:#888;font-weight:400">'+(ptLabel||'')+'</span></div>';
     h2+='<div style="display:grid;grid-template-columns:1fr 1fr;font-size:12px">';
-    h2+='<div style="padding:8px 14px;border-right:1px solid #f0ede8">';
-    h2+='<div style="font-size:10px;color:#aaa;margin-bottom:3px">Parametri selezionati</div>';
-    h2+=righe.filter(Boolean).join('<br>')||'<em style="color:#ccc">—</em>';
+    h2+='<div style="padding:8px 14px;line-height:1.7;border-right:1px solid #f0ede8">';
+    var html=Array.isArray(contenutoSx)?contenutoSx.filter(Boolean).join('<br>'):contenutoSx;
+    h2+=html||'<em style="color:#ccc">—</em>';
     h2+='</div><div style="padding:8px 14px">';
     h2+='<div style="font-size:10px;color:#aaa;margin-bottom:3px">Nota libera</div>';
     h2+=nota?('<span style="color:#444;font-style:italic">'+nota+'</span>'):'<em style="color:#ccc">—</em>';
@@ -4295,34 +4295,60 @@ function apriSchedaLettura(sid){
   h+='</div>';
 
   if(!isNG){
-    // Etichette subtotale: voti confermati se pt, stima teorica se bozza
-    function ptSez(conf, stima, max){
+    function ptSez(conf,stima,max){
       if(conf!==null) return '<strong>'+parseFloat(conf).toFixed(1)+'</strong>/'+max+' pt';
       if(stima!==null) return '~'+parseFloat(stima).toFixed(1)+'/'+max+' pt (stima)';
       return '';
     }
-    var ptV= ptSez(pt?v.aspetto*1:null, est?est.pVis:null, 10);
-    var ptO= ptSez(pt?((v.iolf||0)*0.5+(v.purez||0)+(v.compl||0)*1.5):null, est?est.pOlf:null, 30);
-    var ptG= ptSez(pt?((v.igus||0)*0.5+(v.equi||0)+(v.espr||0)+(v.pers||0)*1.5):null, est?est.pGus:null, 40);
-    var ptF= ptSez(pt?((v.armo||0)*0.5+(v.qual||0)*1.5):null, est?est.pFin:null, 20);
-    var parVis=[par.limpidezza,par.colore,par.int_colore,
-      par.qvis?'Qualità visiva: '+par.qvis:''].filter(Boolean);
-    h+=sez('Esame visivo',parVis,s.nota_vis,ptV);
+    // Con punti confermati: mostra voti×peso per parametro (spiega il calcolo)
+    // Senza punti: mostra chip analitici
+    function righeVoti(params){
+      return params.map(function(p){
+        var voto=v[p.id]||0;
+        var contr=parseFloat((voto*p.peso).toFixed(1));
+        return p.label+': <strong style="color:var(--m)">'+voto+'</strong>'+
+          '<span style="font-size:10px;color:#aaa"> ×'+p.peso+' = '+contr+' pt</span>';
+      }).join('<br>');
+    }
+    var ptV=ptSez(pt?v.aspetto*1:null,est?est.pVis:null,10);
+    var ptO=ptSez(pt?((v.iolf||0)*0.5+(v.purez||0)+(v.compl||0)*1.5):null,est?est.pOlf:null,30);
+    var ptG=ptSez(pt?((v.igus||0)*0.5+(v.equi||0)+(v.espr||0)+(v.pers||0)*1.5):null,est?est.pGus:null,40);
+    var ptF=ptSez(pt?((v.armo||0)*0.5+(v.qual||0)*1.5):null,est?est.pFin:null,20);
 
+    // VISIVO
+    var colSxV=pt?righeVoti([{label:'Aspetto',id:'aspetto',peso:1}]):
+      [par.limpidezza,par.colore,par.int_colore,par.qvis?'Qualità visiva: '+par.qvis:''].filter(Boolean).join('<br>');
+    h+=sez('Esame visivo',colSxV,s.nota_vis,ptV);
+
+    // OLFATTIVO
     var dolfStr=dolf.map(function(f){var r=rico['olf_'+f];return r?f+' ('+r+')':f;});
-    var parOlf=[par.iolf?'Intensità: '+par.iolf:'',par.colf?'Complessità: '+par.colf:'',
-      dolfStr.length?'Descrittori: '+dolfStr.join(', '):'',par.qolf?'Qualità: '+par.qolf:''].filter(Boolean);
-    h+=sez('Esame olfattivo',parOlf,s.nota_olf,ptO);
+    var colSxO=pt?righeVoti([
+      {label:'Intensità',id:'iolf',peso:0.5},
+      {label:'Purezza/Eleganza',id:'purez',peso:1},
+      {label:'Complessità/Attrattiva',id:'compl',peso:1.5}]):
+      [par.iolf?'Intensità: '+par.iolf:'',par.colf?'Complessità: '+par.colf:'',
+       dolfStr.length?'Descrittori: '+dolfStr.join(', '):'',par.qolf?'Qualità: '+par.qolf:''].filter(Boolean).join('<br>');
+    h+=sez('Esame olfattivo',colSxO,s.nota_olf,ptO);
 
+    // GUSTO
     var tannNote=par.tann?(par.tann+(rico['tannino']?' — '+rico['tannino']:'')):'';
     var rotoNote=par.roto?(par.roto+(rico['rotondita']?' — '+rico['rotondita']:'')):'';
-    var parGus=[par.igus?'Intensità: '+par.igus:'',par.equi?'Equilibrio: '+par.equi:'',
-      par.pers?'Persistenza: '+par.pers:'',tannNote?'Tannicità: '+tannNote:'',
-      rotoNote?'Rotondità: '+rotoNote:'',par.qgus?'Qualità: '+par.qgus:''].filter(Boolean);
-    h+=sez('Esame gusto-olfattivo',parGus,s.nota_gus,ptG);
+    var colSxG=pt?righeVoti([
+      {label:'Intensità/Struttura',id:'igus',peso:0.5},
+      {label:'Equilibrio',id:'equi',peso:1},
+      {label:'Espressività/Eleganza',id:'espr',peso:1},
+      {label:'Persistenza/Attrattiva',id:'pers',peso:1.5}]):
+      [par.igus?'Intensità: '+par.igus:'',par.equi?'Equilibrio: '+par.equi:'',
+       par.pers?'Persistenza: '+par.pers:'',tannNote?'Tannicità: '+tannNote:'',
+       rotoNote?'Rotondità: '+rotoNote:'',par.qgus?'Qualità: '+par.qgus:''].filter(Boolean).join('<br>');
+    h+=sez('Esame gusto-olfattivo',colSxG,s.nota_gus,ptG);
 
-    var parFin=[par.evoluzione?'Stato evolutivo: '+par.evoluzione:'',par.qtot?'Qualità: '+par.qtot:''].filter(Boolean);
-    h+=sez('Considerazioni finali',parFin,s.nota_fin,ptF);
+    // FINALI
+    var colSxF=pt?righeVoti([
+      {label:'Armonia complessiva',id:'armo',peso:0.5},
+      {label:'Qualità/Carattere',id:'qual',peso:1.5}]):
+      [par.evoluzione?'Stato evolutivo: '+par.evoluzione:'',par.qtot?'Qualità: '+par.qtot:''].filter(Boolean).join('<br>');
+    h+=sez('Considerazioni finali',colSxF,s.nota_fin,ptF);
 
     if(pt){
       h+='<div style="padding:10px 14px;background:#fafaf8;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee">';
