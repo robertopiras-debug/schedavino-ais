@@ -2857,7 +2857,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v118';
+const APP_VERSION='v119';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4272,25 +4272,46 @@ function apriSchedaLettura(sid){
   }
 
   var isNG=s.ng===true||s.ng==='true';
+  var isBozza=s.tipo==='bozza';
   var v=pt?pt.voti||{}:{};
+  // Stima teorica per le bozze (nessuna scheda a punti confermata)
+  var est=(!pt&&par)?calcolaTeoricoAIS(par):null;
 
   var h='<div style="padding:12px 14px;border-bottom:1px solid #eee;background:#fafafa">';
   h+='<div style="font-size:15px;font-weight:800;color:var(--d)">'+(s.produttore?s.produttore+' — ':'')+( s.nome||'—')+'</div>';
   h+='<div style="font-size:11px;color:#888;margin-top:2px">';
   h+=[s.annata,s.denominazione,s.tipologia,s.gradazione?s.gradazione+'% vol':''].filter(Boolean).join(' · ')+'</div>';
-  h+='<div style="font-size:11px;color:#aaa;margin-top:2px">👤 '+(s.autore||'—')+'</div>';
+  h+='<div style="margin-top:5px;display:flex;align-items:center;gap:8px">';
+  h+='<span style="font-size:11px;color:#aaa">👤 '+(s.autore||'—')+'</span>';
+  if(pt){
+    h+='<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#e8f5e9;color:#2e7d32">✓ Scheda a punti confermata</span>';
+  } else if(isBozza){
+    h+='<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#fff8e1;color:#c8800a">⚡ Bozza Guida VITAE</span>';
+  } else {
+    h+='<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;background:#e3f2fd;color:#1565c0">🎯 Solo punteggio VITAE</span>';
+  }
+  h+='</div>';
   if(isNG) h+='<div style="margin-top:6px;padding:5px 10px;background:#ffcdd2;border-radius:4px;font-size:11px;color:#a00;font-weight:700">🚫 Campione N.G.'+(s.ng_motivo?' — '+s.ng_motivo:'')+'</div>';
   h+='</div>';
 
   if(!isNG){
+    // Etichette subtotale: voti confermati se pt, stima teorica se bozza
+    function ptSez(conf, stima, max){
+      if(conf!==null) return '<strong>'+parseFloat(conf).toFixed(1)+'</strong>/'+max+' pt';
+      if(stima!==null) return '~'+parseFloat(stima).toFixed(1)+'/'+max+' pt (stima)';
+      return '';
+    }
+    var ptV= ptSez(pt?v.aspetto*1:null, est?est.pVis:null, 10);
+    var ptO= ptSez(pt?((v.iolf||0)*0.5+(v.purez||0)+(v.compl||0)*1.5):null, est?est.pOlf:null, 30);
+    var ptG= ptSez(pt?((v.igus||0)*0.5+(v.equi||0)+(v.espr||0)+(v.pers||0)*1.5):null, est?est.pGus:null, 40);
+    var ptF= ptSez(pt?((v.armo||0)*0.5+(v.qual||0)*1.5):null, est?est.pFin:null, 20);
     var parVis=[par.limpidezza,par.colore,par.int_colore,
       par.qvis?'Qualità visiva: '+par.qvis:''].filter(Boolean);
-    h+=sez('Esame visivo',parVis,s.nota_vis,v.aspetto?'Aspetto '+v.aspetto+'/10':'');
+    h+=sez('Esame visivo',parVis,s.nota_vis,ptV);
 
     var dolfStr=dolf.map(function(f){var r=rico['olf_'+f];return r?f+' ('+r+')':f;});
     var parOlf=[par.iolf?'Intensità: '+par.iolf:'',par.colf?'Complessità: '+par.colf:'',
       dolfStr.length?'Descrittori: '+dolfStr.join(', '):'',par.qolf?'Qualità: '+par.qolf:''].filter(Boolean);
-    var ptO=pt?((v.iolf||0)*0.5+(v.purez||0)*1+(v.compl||0)*1.5).toFixed(1)+'/30 pt':'';
     h+=sez('Esame olfattivo',parOlf,s.nota_olf,ptO);
 
     var tannNote=par.tann?(par.tann+(rico['tannino']?' — '+rico['tannino']:'')):'';
@@ -4298,11 +4319,9 @@ function apriSchedaLettura(sid){
     var parGus=[par.igus?'Intensità: '+par.igus:'',par.equi?'Equilibrio: '+par.equi:'',
       par.pers?'Persistenza: '+par.pers:'',tannNote?'Tannicità: '+tannNote:'',
       rotoNote?'Rotondità: '+rotoNote:'',par.qgus?'Qualità: '+par.qgus:''].filter(Boolean);
-    var ptG=pt?((v.igus||0)*0.5+(v.equi||0)*1+(v.espr||0)*1+(v.pers||0)*1.5).toFixed(1)+'/40 pt':'';
     h+=sez('Esame gusto-olfattivo',parGus,s.nota_gus,ptG);
 
     var parFin=[par.evoluzione?'Stato evolutivo: '+par.evoluzione:'',par.qtot?'Qualità: '+par.qtot:''].filter(Boolean);
-    var ptF=pt?((v.armo||0)*0.5+(v.qual||0)*1.5).toFixed(1)+'/20 pt':'';
     h+=sez('Considerazioni finali',parFin,s.nota_fin,ptF);
 
     if(pt){
