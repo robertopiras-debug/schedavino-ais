@@ -2857,7 +2857,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v120';
+const APP_VERSION='v121';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4438,6 +4438,8 @@ async function generaNota(){
     par.equi?'Equilibrio: '+par.equi:'',
     par.pers?'Persistenza: '+par.pers:'',
     par.armo?'Armonia: '+par.armo:'',
+    par.tann?(par.tann+(d.riconoscimenti&&d.riconoscimenti['tannino']?' ('+d.riconoscimenti['tannino']+')':'')):'',
+    par.roto?(par.roto+(d.riconoscimenti&&d.riconoscimenti['rotondita']?' ('+d.riconoscimenti['rotondita']+')':'')):'',
     (!escludiQSez&&par.qgus)?'Qualità gusto-olfattiva: '+par.qgus:'',
     par.evoluzione?'Stato evolutivo: '+par.evoluzione:''
   ].filter(Boolean).join('\n');
