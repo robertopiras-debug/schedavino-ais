@@ -2869,7 +2869,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v125';
+const APP_VERSION='v126';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4381,21 +4381,28 @@ function apriSchedaLettura(sid){
 
 function gestisciApiKey(){
   var current=getAnthropicKey();
-  var masked=current?current.substring(0,12)+'...'+current.slice(-4):'(non impostata)';
-  var scelta=window.confirm(
-    'Chiave API Anthropic attuale:\n'+masked+
-    '\n\nOK = inserisci/sostituisci chiave\nAnnulla = rimuovi chiave attuale'
-  );
-  if(scelta){
-    var nuova=prompt('Inserisci la chiave API Anthropic (sk-ant-...):\n(salvata in cloud — disponibile su tutti i dispositivi)');
+  if(current){
+    // Chiave già presente: chiedi cosa fare
+    var scelta=window.confirm(
+      'Chiave API Anthropic attuale:\n'+current.substring(0,12)+'...'+current.slice(-4)+
+      '\n\nOK = inserisci una chiave diversa\nAnnulla = esci senza modifiche'
+    );
+    if(!scelta) return; // Annulla = non fa nulla
+    // Se vuole sostituire, chiedi la nuova
+    var nuova=prompt('Inserisci la nuova chiave API Anthropic (sk-ant-...):');
     if(nuova&&nuova.trim()) setAnthropicKeyAsync(nuova.trim());
   } else {
-    if(current){
-      localStorage.removeItem('ais_anthropic_key');
-      salvaApiKeyOnSupa('');
-      toast('\ud83d\uddd1 Chiave API rimossa');
-    }
+    // Nessuna chiave: vai diretto all'inserimento
+    var nuova2=prompt('Nessuna chiave API impostata.\nInserisci la chiave Anthropic (sk-ant-...):\n(salvata in cloud — disponibile su tutti i dispositivi)');
+    if(nuova2&&nuova2.trim()) setAnthropicKeyAsync(nuova2.trim());
   }
+}
+function rimuoviApiKey(){
+  if(!getAnthropicKey()){ toast('Nessuna chiave da rimuovere'); return; }
+  if(!window.confirm('Confermi la rimozione della chiave API Anthropic?\nDovrai reinserirla per generare note di degustazione.')) return;
+  localStorage.removeItem('ais_anthropic_key');
+  salvaApiKeyOnSupa('');
+  toast('\ud83d\uddd1 Chiave API rimossa');
 }
 
 function getAnthropicKey(){ return localStorage.getItem('ais_anthropic_key')||''; }
