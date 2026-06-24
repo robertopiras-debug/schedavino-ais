@@ -2857,7 +2857,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v116';
+const APP_VERSION='v117';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4245,6 +4245,82 @@ function generaTableauHTML(){
 }
 // Salvata in localStorage (mai nel codice sorgente che finisce su GitHub).
 // Ogni utente la inserisce una volta sola; l'admin la gestisce dal pannello.
+// ─── SCHEDA IN SOLA LETTURA (admin) ──────────────────────────────────────────
+function apriSchedaLettura(sid){
+  var s=_adminSchede.find(function(x){return String(x.id)===String(sid);});
+  if(!s){ toast('Scheda non trovata'); return; }
+  var pt=_adminPt(s.id);
+  var par=s.parametri||{};
+  function parseArr(v){ return Array.isArray(v)?v:(typeof v==='string'&&v.trim().startsWith('[')? JSON.parse(v):[]);}
+  var dolf=parseArr(s.descrittori);
+  var rico={};
+  try{ rico=JSON.parse(s.riconoscimenti||'{}'); }catch(e){}
+
+  function sez(titolo,righe,nota,ptLabel){
+    var h2='<div style="border-bottom:1px solid #f0ede8">';
+    h2+='<div style="background:#f5f3ef;padding:6px 14px;font-size:11px;font-weight:700;color:#555;display:flex;justify-content:space-between">';
+    h2+='<span>'+titolo+'</span><span style="color:#888;font-weight:400">'+(ptLabel||'')+'</span></div>';
+    h2+='<div style="display:grid;grid-template-columns:1fr 1fr;font-size:12px">';
+    h2+='<div style="padding:8px 14px;border-right:1px solid #f0ede8">';
+    h2+='<div style="font-size:10px;color:#aaa;margin-bottom:3px">Parametri selezionati</div>';
+    h2+=righe.filter(Boolean).join('<br>')||'<em style="color:#ccc">—</em>';
+    h2+='</div><div style="padding:8px 14px">';
+    h2+='<div style="font-size:10px;color:#aaa;margin-bottom:3px">Nota libera</div>';
+    h2+=nota?('<span style="color:#444;font-style:italic">'+nota+'</span>'):'<em style="color:#ccc">—</em>';
+    h2+='</div></div></div>';
+    return h2;
+  }
+
+  var isNG=s.ng===true||s.ng==='true';
+  var v=pt?pt.voti||{}:{};
+
+  var h='<div style="padding:12px 14px;border-bottom:1px solid #eee;background:#fafafa">';
+  h+='<div style="font-size:15px;font-weight:800;color:var(--d)">'+(s.produttore?s.produttore+' — ':'')+( s.nome||'—')+'</div>';
+  h+='<div style="font-size:11px;color:#888;margin-top:2px">';
+  h+=[s.annata,s.denominazione,s.tipologia,s.gradazione?s.gradazione+'% vol':''].filter(Boolean).join(' · ')+'</div>';
+  h+='<div style="font-size:11px;color:#aaa;margin-top:2px">👤 '+(s.autore||'—')+'</div>';
+  if(isNG) h+='<div style="margin-top:6px;padding:5px 10px;background:#ffcdd2;border-radius:4px;font-size:11px;color:#a00;font-weight:700">🚫 Campione N.G.'+(s.ng_motivo?' — '+s.ng_motivo:'')+'</div>';
+  h+='</div>';
+
+  if(!isNG){
+    var parVis=[par.limpidezza,par.colore,par.int_colore].filter(Boolean);
+    h+=sez('Esame visivo',parVis,s.nota_vis,v.aspetto?'Aspetto '+v.aspetto+'/10':'');
+
+    var dolfStr=dolf.map(function(f){var r=rico['olf_'+f];return r?f+' ('+r+')':f;});
+    var parOlf=[par.iolf?'Intensità: '+par.iolf:'',par.colf?'Complessità: '+par.colf:'',
+      dolfStr.length?'Descrittori: '+dolfStr.join(', '):'',par.qolf?'Qualità: '+par.qolf:''].filter(Boolean);
+    var ptO=pt?((v.iolf||0)*0.5+(v.purez||0)*1+(v.compl||0)*1.5).toFixed(1)+'/30 pt':'';
+    h+=sez('Esame olfattivo',parOlf,s.nota_olf,ptO);
+
+    var tannNote=par.tann?(par.tann+(rico['tannino']?' — '+rico['tannino']:'')):'';
+    var rotoNote=par.roto?(par.roto+(rico['rotondita']?' — '+rico['rotondita']:'')):'';
+    var parGus=[par.igus?'Intensità: '+par.igus:'',par.equi?'Equilibrio: '+par.equi:'',
+      par.pers?'Persistenza: '+par.pers:'',tannNote?'Tannicità: '+tannNote:'',
+      rotoNote?'Rotondità: '+rotoNote:'',par.qgus?'Qualità: '+par.qgus:''].filter(Boolean);
+    var ptG=pt?((v.igus||0)*0.5+(v.equi||0)*1+(v.espr||0)*1+(v.pers||0)*1.5).toFixed(1)+'/40 pt':'';
+    h+=sez('Esame gusto-olfattivo',parGus,s.nota_gus,ptG);
+
+    var parFin=[par.evoluzione?'Stato evolutivo: '+par.evoluzione:'',par.qtot?'Qualità: '+par.qtot:''].filter(Boolean);
+    var ptF=pt?((v.armo||0)*0.5+(v.qual||0)*1.5).toFixed(1)+'/20 pt':'';
+    h+=sez('Considerazioni finali',parFin,s.nota_fin,ptF);
+
+    if(pt){
+      h+='<div style="padding:10px 14px;background:#fafaf8;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee">';
+      h+='<span style="font-size:11px;color:#888">Punteggio confermato</span>';
+      h+='<span style="font-size:18px;font-weight:900;color:var(--m)">'+parseFloat(pt.punteggio).toFixed(1)+
+        ' <span style="font-size:11px;font-weight:400;color:#888">'+fasciaP(parseFloat(pt.punteggio))+'</span></span></div>';
+    }
+    if(s.nota_degustazione&&s.nota_degustazione.trim()){
+      h+='<div style="padding:10px 14px;border-top:1px solid #f0ede8">';
+      h+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Nota di degustazione</div>';
+      h+='<div style="font-size:13px;line-height:1.7;color:#333;font-family:Georgia,serif">'+s.nota_degustazione.replace(/\n/g,'<br>')+'</div></div>';
+    }
+  }
+
+  document.getElementById('modal-lettura-body').innerHTML=h;
+  document.getElementById('modal-lettura').style.display='block';
+}
+
 function getAnthropicKey(){ return localStorage.getItem('ais_anthropic_key')||''; }
 function setAnthropicKey(k){ localStorage.setItem('ais_anthropic_key', k.trim()); }
 
@@ -4540,6 +4616,8 @@ function renderAdminVino(){
       var _lcol=_isNg?'#888':(_isBozza?'#c8800a':(_hasAnalitica?'#2e7d32':'#0277bd'));
       h+='<div style="font-size:9px;color:'+_lcol+'">'+_lbl+'</div>';
       h+='</div>';
+      h+='<button onclick="apriSchedaLettura(\''+s.id+'\')" title="Leggi scheda in sola lettura" '+
+        'style="background:#f0f0f0;border:1px solid #ddd;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;color:#555;white-space:nowrap">👁 Leggi</button>';
       if(pt){
         var pv=parseFloat(pt.punteggio||0);
         ptArr.push(pv);
@@ -4791,6 +4869,18 @@ function renderAdminVino(){
   <div style="padding:0 12px">
     <div id="admin-loading" style="text-align:center;padding:30px;color:#aaa;font-size:13px">Caricamento dati...</div>
     <div id="admin-ct-deg" style="display:none"></div>
+
+    <!-- Modal sola lettura scheda collega -->
+    <div id="modal-lettura" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);overflow-y:auto">
+      <div style="max-width:600px;margin:20px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+        <div style="background:var(--d);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:13px;font-weight:700;flex:1">👁 Scheda in sola lettura</span>
+          <button onclick="document.getElementById('modal-lettura').style.display='none'"
+            style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px">✕ Chiudi</button>
+        </div>
+        <div id="modal-lettura-body" style="padding:0"></div>
+      </div>
+    </div>
     <div id="admin-ct-vino" style="display:none"></div>
   </div>
 </div>
