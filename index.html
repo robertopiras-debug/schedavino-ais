@@ -1826,6 +1826,7 @@ function onLogin(user){
   if(_ab) _ab.style.display=(user.email===ADMIN_EMAIL)?'':'none';
   var _ak=document.getElementById('apikey-btn');
   if(_ak) _ak.style.display=(user.email===ADMIN_EMAIL)?'':'none';
+  if(user.email===ADMIN_EMAIL) caricaApiKeyDaSupa();
   caricaSchedeDB();
   mostraHome();
 }
@@ -2868,7 +2869,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v123';
+const APP_VERSION='v124';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4386,21 +4387,46 @@ function gestisciApiKey(){
     '\n\nOK = inserisci/sostituisci chiave\nAnnulla = rimuovi chiave attuale'
   );
   if(scelta){
-    var nuova=prompt('Inserisci la chiave API Anthropic (sk-ant-...):\n(salvata solo in questo browser, mai online)');
-    if(nuova&&nuova.trim()){
-      setAnthropicKey(nuova.trim());
-      toast('✅ Chiave API salvata');
-    }
+    var nuova=prompt('Inserisci la chiave API Anthropic (sk-ant-...):\n(salvata in cloud — disponibile su tutti i dispositivi)');
+    if(nuova&&nuova.trim()) setAnthropicKeyAsync(nuova.trim());
   } else {
     if(current){
       localStorage.removeItem('ais_anthropic_key');
-      toast('🗑 Chiave API rimossa');
+      salvaApiKeyOnSupa('');
+      toast('\ud83d\uddd1 Chiave API rimossa');
     }
   }
 }
 
 function getAnthropicKey(){ return localStorage.getItem('ais_anthropic_key')||''; }
 function setAnthropicKey(k){ localStorage.setItem('ais_anthropic_key', k.trim()); }
+
+// ─── CHIAVE API ANTHROPIC su Supabase admin_settings ─────────────────────────
+async function caricaApiKeyDaSupa(){
+  if(!currentUser) return;
+  try{
+    var r=await fetch(SUPA_URL+'/rest/v1/admin_settings?user_email=eq.'+encodeURIComponent(currentUser.email),{headers:supaHeaders()});
+    if(!r.ok) return;
+    var rows=await r.json();
+    if(rows&&rows.length&&rows[0].anthropic_key) localStorage.setItem('ais_anthropic_key',rows[0].anthropic_key);
+  }catch(e){ console.warn('caricaApiKey:',e); }
+}
+async function salvaApiKeyOnSupa(key){
+  if(!currentUser) return false;
+  try{
+    var r=await fetch(SUPA_URL+'/rest/v1/admin_settings?on_conflict=user_email',{
+      method:'POST',
+      headers:Object.assign(supaHeaders(),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({user_email:currentUser.email,anthropic_key:key})
+    });
+    return r.ok;
+  }catch(e){ console.warn('salvaApiKey:',e); return false; }
+}
+async function setAnthropicKeyAsync(k){
+  setAnthropicKey(k);
+  var ok=await salvaApiKeyOnSupa(k.trim());
+  toast(ok?'✅ Chiave API salvata su cloud':'✅ Chiave API salvata in locale (cloud non raggiunto)');
+}
 
 // ─── GENERA NOTA DI DEGUSTAZIONE ─────────────────────────────────────────────
 async function generaNota(){
