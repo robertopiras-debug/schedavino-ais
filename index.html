@@ -2378,12 +2378,11 @@ function validaSezione(sezione){
 }
 
 function validaDatiId(){
+  // Produttore, regione e denominazione sono facoltativi:
+  // nella degustazione alla cieca non sono noti.
+  // Obbligatori: nome/codice campione, modalità, colore.
   var mancanti=[];
-  if(!document.getElementById('wP').value.trim()) mancanti.push('Produttore');
-  if(!document.getElementById('wN').value.trim()) mancanti.push('Nome vino');
-  var reg=document.getElementById('wR').value;
-  if(!reg) mancanti.push('Regione');
-  if(!document.getElementById('dS').value.trim()) mancanti.push('Denominazione');
+  if(!document.getElementById('wN').value.trim()) mancanti.push('Nome / codice campione');
   if(!selBase) mancanti.push('Modalità (fermo/frizzante/spumante)');
   if(!selColore) mancanti.push('Colore (bianco/rosato/rosso)');
   return mancanti;
@@ -2423,13 +2422,10 @@ function validaScheda(){
   // e nome, identico alla logica bozza.
   var isNGEdit=document.getElementById('w-ng')&&document.getElementById('w-ng').checked;
   if(isNGEdit){
-    var pErrNG=!document.getElementById('wP').value.trim();
     var nErrNG=!document.getElementById('wN').value.trim();
-    if(pErrNG||nErrNG){
-      var righeNG=[];
-      if(pErrNG) righeNG.push('Produttore');
-      if(nErrNG) righeNG.push('Nome vino');
-      mostraModaleErrore('Inserisci almeno produttore e nome', righeNG.map(function(m){return'<span style=\"color:#888\">Identificativi:</span> '+m;}));
+    if(nErrNG){
+      mostraModaleErrore('Inserisci almeno il nome o codice campione',
+        ['<span style="color:#888">Identificativi:</span> Nome / codice campione']);
       return false;
     }
     return true; // N.G.: il resto non è valutabile per definizione
@@ -2456,13 +2452,10 @@ function validaScheda(){
     // Denominazione, Modalità, Colore) impediva di salvare anche una
     // sola modifica minima — es. aggiungere solo l'annata — perché la
     // Guida VITAE non ha mai raccolto una Regione fin dall'inizio.
-    var pErr=!document.getElementById('wP').value.trim();
     var nErr=!document.getElementById('wN').value.trim();
-    if(pErr||nErr){
-      var righeBozza=[];
-      if(pErr) righeBozza.push('Produttore');
-      if(nErr) righeBozza.push('Nome vino');
-      mostraModaleErrore('Compila almeno produttore e nome prima di salvare', righeBozza.map(function(m){return'<span style="color:#888">Identificativi:</span> '+m;}));
+    if(nErr){
+      mostraModaleErrore('Inserisci almeno il nome o codice campione prima di salvare',
+        ['<span style="color:#888">Identificativi:</span> Nome / codice campione']);
       window.scrollTo({top:0,behavior:'smooth'});
       return false;
     }
@@ -2869,7 +2862,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v126';
+const APP_VERSION='v127';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
