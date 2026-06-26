@@ -2862,7 +2862,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v129';
+const APP_VERSION='v130';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4722,7 +4722,7 @@ function renderAdminVino(){
     var multi=v.schede.length>1;
     h+='<div style="background:#fff;border-radius:4px;margin:8px 0;border-left:4px solid '+(multi?'var(--m)':'#ddd')+';box-shadow:0 1px 3px rgba(0,0,0,.08)">';
     h+='<div style="padding:10px 12px;border-bottom:1px solid #f4f4ec">';
-    h+='<div style="font-size:13px;font-weight:700;color:var(--d)">'+(v.produttore||'—')+(v.nome?' — '+v.nome:'')+'</div>';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--d)">'+(v.produttore?v.produttore+' — ':'')+(v.nome||'—')+'</div>';
     h+='<div style="font-size:10px;color:#888;margin-top:2px">'+(v.annata||'')+'</div>';
     if(multi) h+='<div style="font-size:10px;color:var(--m);font-weight:700;margin-top:3px">⚖ '+v.schede.length+' degustatori</div>';
     h+='</div>';
