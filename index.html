@@ -2862,7 +2862,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v128';
+const APP_VERSION='v129';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4704,13 +4704,14 @@ function renderAdminVino(){
     // di schede dello stesso campione compilate con metodi diversi).
     var key=[(s.nome||'').trim().toLowerCase(),(s.annata||'').toString().trim()].join('|');
     if(!byVino[key]){
-      // Raccoglie il primo produttore reale trovato (esclude "VITAE" e vuoto)
-      var prod=(s.produttore||'').trim();
-      byVino[key]={produttore:(prod&&prod.toUpperCase()!=='VITAE')?prod:'',nome:s.nome,annata:s.annata,schede:[]};
-    } else if(!byVino[key].produttore){
-      // Aggiorna il produttore se una scheda successiva ce l'ha
+      byVino[key]={produttore:s.produttore||'',nome:s.nome,annata:s.annata,schede:[]};
+    } else {
+      // Preferisce il produttore reale (non vuoto e non 'VITAE') se disponibile
       var prod2=(s.produttore||'').trim();
-      if(prod2&&prod2.toUpperCase()!=='VITAE') byVino[key].produttore=prod2;
+      var curProd=(byVino[key].produttore||'').trim();
+      if(prod2 && prod2.toUpperCase()!=='VITAE' && (!curProd||curProd.toUpperCase()==='VITAE')){
+        byVino[key].produttore=prod2;
+      }
     }
     byVino[key].schede.push(s);
   });
