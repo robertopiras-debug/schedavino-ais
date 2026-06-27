@@ -969,6 +969,16 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 
 <!-- Azioni -->
+<!-- Nota degustazione AI — Punti -->
+<div id="nota-pt-wrap" style="border-top:0.5px solid var(--b);padding:10px 14px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+    <span style="font-size:12px;font-weight:700;color:var(--d)">Nota di degustazione</span>
+    <button id="btnGenNotaPt" onclick="generaNotaPunti()" style="background:var(--m);color:#fff;border:none;border-radius:4px;padding:5px 12px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">✨ Genera con AI</button>
+  </div>
+  <div id="nota-pt-status" style="display:none;font-size:10px;color:#888;margin-bottom:5px;font-style:italic"></div>
+  <textarea id="nota-degustazione-pt" rows="6" placeholder="La nota di degustazione generata dall'AI apparirà qui. Puoi anche scriverla manualmente." style="width:100%;font-size:11px;font-family:Georgia,serif;border:1px solid var(--b);border-radius:4px;padding:8px;background:var(--r);color:var(--d);line-height:1.65;resize:vertical;"></textarea>
+</div>
+
 <div class="acts-p" id="actsP" style="display:none">
   <button class="btn btn-d" style="flex:1" onclick="salvaPunti()">Aggiorna</button>
 </div>
@@ -2929,7 +2939,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v157';
+const APP_VERSION='v158';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3767,6 +3777,7 @@ function salvaPunti(){
     nota_olf:document.getElementById('nota-olf-pt')?document.getElementById('nota-olf-pt').value:'',
     nota_gus:document.getElementById('nota-gus-pt')?document.getElementById('nota-gus-pt').value:'',
     nota_fin:document.getElementById('nota-fin-pt')?document.getElementById('nota-fin-pt').value:'',
+    nota_degustazione:document.getElementById('nota-degustazione-pt')?document.getElementById('nota-degustazione-pt').value:'',
     dt:dt
   };
 
@@ -3862,6 +3873,7 @@ function loadP(id){
   var no=document.getElementById('nota-olf-pt'); if(no) no.value=s.nota_olf||'';
   var ng=document.getElementById('nota-gus-pt'); if(ng) ng.value=s.nota_gus||'';
   var nf=document.getElementById('nota-fin-pt'); if(nf) nf.value=s.nota_fin||'';
+  var nd=document.getElementById('nota-degustazione-pt'); if(nd) nd.value=s.nota_degustazione||'';
   editingIdP=typeof id==="string"?parseInt(id):id;
   mostraScheda();
   if(analiticaP){
@@ -4709,6 +4721,93 @@ async function setAnthropicKeyAsync(k){
 }
 
 // ─── GENERA NOTA DI DEGUSTAZIONE ─────────────────────────────────────────────
+async function generaNotaPunti(){
+  // ── Guardia 1: tutti i parametri devono essere confermati ────────────────
+  var nonConf=PARAMS.filter(function(p){return !votiConfermati.has(p.id);});
+  if(nonConf.length){
+    var nomiP={aspetto:'Aspetto',iolf:'Intensità olf.',purez:'Purezza/Eleganza',compl:'Complessità olf.',igus:'Intensità gusto',equi:'Equilibrio',espr:'Espressività',pers:'Persistenza',armo:'Armonia',qual:'Qualità/Carattere'};
+    alert('⛔ Scheda incompleta — conferma tutti i parametri prima di generare la nota.\n\nParametri mancanti:\n'+nonConf.map(function(p){return '• '+(nomiP[p.id]||p.id);}).join('\n'));
+    return;
+  }
+  // ── Guardia 2: API key ───────────────────────────────────────────────────
+  var key=getAnthropicKey();
+  if(!key){
+    var k=prompt('Inserisci la chiave API Anthropic (sk-ant-...):\n(salvata solo nel browser)');
+    if(!k||!k.trim()){toastP('Chiave API non inserita');return;}
+    setAnthropicKey(k); key=k.trim();
+  }
+  // ── Costruzione prompt ───────────────────────────────────────────────────
+  var tot=parseFloat(document.getElementById('heroNum').textContent)||0;
+  var fas=fasciaP(tot);
+  var v=Object.assign({},voti);
+  // Info vino
+  var infoVino=analiticaP?[
+    'Produttore: '+(analiticaP.produttore||'N/D'),
+    'Vino: '+(analiticaP.nome||'N/D'),
+    'Annata: '+(analiticaP.annata||'N/D'),
+    'Denominazione: '+(analiticaP.denominazione||'N/D'),
+    'Tipologia: '+(analiticaP.tipologia||'N/D'),
+    'Vitigni: '+(analiticaP.vitigni||'N/D'),
+    'Gradazione: '+(analiticaP.gradazione||'N/D')+'% vol'
+  ].join('\n'):'Vino: N/D';
+  // Punteggi per sezione
+  var subV=0,subO=0,subG=0,subF=0;
+  PARAMS.forEach(function(p){
+    var c=(v[p.id]||0)*p.peso;
+    if(p.sez==='V') subV+=c; if(p.sez==='O') subO+=c;
+    if(p.sez==='G') subG+=c; if(p.sez==='F') subF+=c;
+  });
+  function lbSezP(pt,max){var s=pt/max*10;return s>=9.4?'Eccellente':s>=9?'Ottimo':s>=8.5?'Distinto':s>=8?'Buono':'Accettabile';}
+  var punteggi=[
+    '*** PUNTEGGIO TOTALE: '+tot.toFixed(1)+'/100 — FASCIA: '+fas+' *** ← usare OBBLIGATORIAMENTE nel giudizio',
+    'Esame visivo: '+subV.toFixed(1)+'/10 ('+lbSezP(subV,10)+')',
+    '  Aspetto: '+(v.aspetto||'—')+'/10',
+    'Esame olfattivo: '+subO.toFixed(1)+'/30 ('+lbSezP(subO,30)+')',
+    '  Intensità: '+(v.iolf||'—')+' | Purezza/Eleganza: '+(v.purez||'—')+' | Complessità: '+(v.compl||'—'),
+    'Esame gusto-olfattivo: '+subG.toFixed(1)+'/40 ('+lbSezP(subG,40)+')',
+    '  Intensità/struttura: '+(v.igus||'—')+' | Equilibrio: '+(v.equi||'—')+' | Espressività: '+(v.espr||'—')+' | Persistenza: '+(v.pers||'—'),
+    'Considerazioni finali: '+subF.toFixed(1)+'/20 ('+lbSezP(subF,20)+')',
+    '  Armonia: '+(v.armo||'—')+' | Qualità/Carattere: '+(v.qual||'—')
+  ].join('\n');
+  // Note libere
+  var nvPt=document.getElementById('nota-vis-pt'); var noPt=document.getElementById('nota-olf-pt');
+  var ngPt=document.getElementById('nota-gus-pt'); var nfPt=document.getElementById('nota-fin-pt');
+  var noteSez=[
+    nvPt&&nvPt.value.trim()?'Note visive: '+nvPt.value.trim():'',
+    noPt&&noPt.value.trim()?'Note olfattive: '+noPt.value.trim():'',
+    ngPt&&ngPt.value.trim()?'Note gusto-olfattive: '+ngPt.value.trim():'',
+    nfPt&&nfPt.value.trim()?'Considerazioni finali: '+nfPt.value.trim():''
+  ].filter(Boolean).join('\n');
+  var prompt='DATI VINO\n'+infoVino+'\n\nPUNTEGGI SCHEDA A PUNTI AIS\n'+punteggi+(noteSez?'\n\nNOTE DEL DEGUSTATORE\n'+noteSez:'');
+  // ── Chiamata API ─────────────────────────────────────────────────────────
+  var status=document.getElementById('nota-pt-status');
+  var btn=document.getElementById('btnGenNotaPt');
+  status.style.display='block'; status.textContent='⏳ Generazione in corso…'; btn.disabled=true;
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',max_tokens:1000,
+        system:'Sei un sommelier AIS che scrive note di degustazione per la Guida VITAE. '+
+          'Stile: diretto, preciso, terminologia AIS. Niente perifrasi o superlativi inutili. '+
+          'Struttura: visivo → olfattivo → gusto-olfattivo → considerazioni finali → giudizio con fascia. '+
+          'Lunghezza: 120-180 parole. Lingua: italiano. '+
+          'REGOLA ASSOLUTA: la fascia nel giudizio finale DEVE essere quella indicata nei dati (es. Distinto, Ottimo, Eccellente) — non inventare una fascia diversa.',
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    var json=await res.json();
+    var testo=json.content&&json.content[0]?json.content[0].text:'';
+    if(!testo) throw new Error('Risposta vuota');
+    document.getElementById('nota-degustazione-pt').value=testo;
+    status.textContent='✓ Nota generata';
+    setTimeout(function(){status.style.display='none';},3000);
+  }catch(err){
+    status.textContent='⛔ Errore: '+err.message;
+  }finally{btn.disabled=false;}
+}
+
 async function generaNota(){
   var key=getAnthropicKey();
   if(!key){
