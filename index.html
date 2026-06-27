@@ -805,7 +805,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <div style="background:#222;color:#fff;padding:5px 12px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:0 -0px">Dati identificativi</div>
 
   <!-- Produttore + Nome -->
-  <div class="wf" style="margin:0;padding:6px 12px 0">
+  <div style="padding:6px 12px 4px">
     <div class="row" style="margin-bottom:4px">
       <div class="f"><div class="lbl">Produttore / Azienda</div>
         <input id="pt-produttore" type="text" placeholder="es. Argiolas, Santadi…" list="dl-produttori" oninput="ptSyncUp()">
@@ -887,7 +887,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   </div>
 
   <!-- Display legacy (usati da aggiornaTestataVino) -->
-  <div style="display:none"><span id="t-vino"></span><span id="t-annata"></span><span id="t-tipol"></span><span id="t-denom"></span><span id="pt-tipol"></span><span id="pt-denom"></span><span id="pt-nome"></span></div>
+  <div style="display:none"><span id="t-vino"></span><span id="t-annata"></span><span id="t-tipol"></span><span id="t-denom"></span></div>
 
   <!-- N.G. -->
   <div style="margin:8px 12px;padding:10px;background:#fff5f5;border:1px solid #e8b0b0;border-radius:4px">
@@ -2063,6 +2063,11 @@ async function caricaValutazioniDB(){
         voti:         r.voti||{},
         votiOriginali:r.voti_originali||{},
         nota:         r.nota||'',
+        nota_vis:     r.nota_vis||'',
+        nota_olf:     r.nota_olf||'',
+        nota_gus:     r.nota_gus||'',
+        nota_fin:     r.nota_fin||'',
+        nota_degustazione: r.nota_degustazione||'',
         dt:           r.dt||''
       };
       dbMap[r.id]=mapped;
@@ -2143,6 +2148,11 @@ async function salvaValutazioneDB(val){
     voti:           val.voti||{},
     voti_originali: val.votiOriginali||{},
     nota:           val.nota||'',
+    nota_vis:       val.nota_vis||'',
+    nota_olf:       val.nota_olf||'',
+    nota_gus:       val.nota_gus||'',
+    nota_fin:       val.nota_fin||'',
+    nota_degustazione: val.nota_degustazione||'',
     dt:             val.dt||''
   };
   var ok=await supaInsertOrUpdate('valutazioni_punti', row);
@@ -3016,7 +3026,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v164';
+const APP_VERSION='v165';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
