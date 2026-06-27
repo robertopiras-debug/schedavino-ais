@@ -983,8 +983,8 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 <div class="nav-bar">
   <button class="nav-btn" id="btn-home" onclick="mostraHome()" style="font-size:11px">🏠 Home</button>
-  <button class="nav-btn an attivo" id="btn-an" onclick="nascondiHome();mostraVista('analitica')">📋 Analitica</button>
-  <button class="nav-btn pt" id="btn-pt" onclick="nascondiHome();mostraVista('punti')">🎯 Punti</button>
+  <button class="nav-btn pt attivo" id="btn-pt" onclick="nascondiHome();mostraVista('punti')">🎯 Punti</button>
+  <button class="nav-btn an" id="btn-an" onclick="nascondiHome();mostraVista('analitica')">📋 Analitica</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -2934,7 +2934,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v154';
+const APP_VERSION='v155';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4025,11 +4025,8 @@ async function homeElimina(id, e){
 function homeApriScheda(id){
   var idNum=typeof id==='string'?parseInt(id,10):id;
   nascondiHome();
-  nuovaScheda();            // resetta form — include editingId=null
-  editingId=idNum;          // ripristinato subito
-  analiticaP=null;          // evita che mostraVista('analitica') ricarichi la scheda vecchia
-  mostraVista('analitica'); // porta alla vista corretta prima del setTimeout
-  setTimeout(function(){loadS(idNum);},80);
+  editingId=idNum;          // sincronizzaConAnalitica() lo usa per trovare la scheda
+  mostraVista('punti');     // priorità VITAE — analitica è opzione secondaria
 }
 function homeApriPunti(id){nascondiHome();apriInPunti(id,{stopPropagation:function(){}});}
 function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=nomeDisplay();}}
