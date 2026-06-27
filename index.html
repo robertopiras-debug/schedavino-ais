@@ -769,17 +769,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <div id="tableau-body" style="display:none"></div>
 </div>
 
-<div style="margin:10px 7px;border:1px solid var(--b);border-radius:6px;overflow:hidden">
-  <div style="background:var(--d);color:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px">
-    <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">✍ Nota di degustazione</span>
-    <span style="font-size:9px;opacity:.7;flex:1">generata con AI dal contenuto della scheda</span>
-    <button id="btnGenNota" onclick="generaNota()" style="background:var(--m);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">✨ Genera con AI</button>
-  </div>
-  <div id="nota-ai-status" style="display:none;padding:8px 12px;font-size:11px;color:#888;font-style:italic;background:#fafaf8"></div>
-  <div style="padding:8px">
-    <textarea id="nota-degustazione" placeholder="La nota di degustazione apparirà qui dopo la generazione AI, oppure puoi scriverla manualmente..." style="width:100%;min-height:130px;border:1px solid var(--b);border-radius:4px;padding:8px;font-size:12px;line-height:1.6;resize:vertical;box-sizing:border-box;font-family:Georgia,serif;color:var(--d)"></textarea>
-  </div>
-</div>
+<textarea id="nota-degustazione" style="display:none"></textarea>
 
 <div class="acts">
   <button class="btn bs" id="btnSav" onclick="savLocal()">Salva</button>
@@ -1589,6 +1579,7 @@ function nuovaScheda(){
   document.getElementById('ngus').value='';
   document.getElementById('nfin').value='';
   document.getElementById('nota-degustazione').value='';
+  var ndpt=document.getElementById('nota-degustazione-pt');if(ndpt)ndpt.value='';
   if(document.getElementById('an-foto-calice')) document.getElementById('an-foto-calice').value='';
   aggiornaFotoAnalitica();
   document.getElementById('dS').value='';
@@ -2386,7 +2377,7 @@ function gd(){
   var vitigniStr=getVitigni();
   var tipCombinata=[selColore,selMenzione,selBase,notaLib].filter(Boolean).join(' ');
   var _autoreVal=document.getElementById('wAutore').value; salvaNomeUtente(_autoreVal);
-  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],riconoscimenti:Object.assign({},riconoscimenti),nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:document.getElementById('nota-degustazione').value,foto_calice:document.getElementById('an-foto-calice')?document.getElementById('an-foto-calice').value:'',stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
+  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],riconoscimenti:Object.assign({},riconoscimenti),nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:(document.getElementById('nota-degustazione-pt')||{value:''}).value||(document.getElementById('nota-degustazione')||{value:''}).value,foto_calice:document.getElementById('an-foto-calice')?document.getElementById('an-foto-calice').value:'',stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
 }
 
 /* toast(m) già definita sopra — duplicato rimosso (stesso comportamento, debito tecnico) */
@@ -2681,7 +2672,7 @@ function loadS(id){
   document.getElementById('nolf').value=s.nota_olf||'';
   document.getElementById('ngus').value=s.nota_gus||'';
   document.getElementById('nfin').value=s.nota_fin||'';
-  document.getElementById('nota-degustazione').value=s.nota_degustazione||'';
+  document.getElementById('nota-degustazione').value=s.nota_degustazione||''; // campo hidden — la nota visibile è in nota-degustazione-pt (punti)
   if(document.getElementById('an-foto-calice')) document.getElementById('an-foto-calice').value=s.foto_calice||'';
   aggiornaFotoAnalitica();
   document.getElementById('nota-vis').value=s.nota_vis||'';
@@ -2969,7 +2960,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v161';
+const APP_VERSION='v162';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4917,7 +4908,9 @@ async function generaNotaPunti(){
     var testo=json.content&&json.content[0]?json.content[0].text:'';
     if(!testo) throw new Error('Risposta vuota');
     document.getElementById('nota-degustazione-pt').value=testo;
-    status.textContent='✓ Nota generata';
+    status.textContent='✓ Nota generata — salvataggio…';
+    // Auto-save immediato dopo generazione: non obbligare l'utente a premere Aggiorna
+    if(typeof salvaPunti==='function') salvaPunti();
     setTimeout(function(){status.style.display='none';},3000);
   }catch(err){
     status.textContent='⛔ Errore: '+err.message;
