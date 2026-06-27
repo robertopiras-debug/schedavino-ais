@@ -722,6 +722,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
       📷 Cambia
     </label>
     <button id="an-foto-rimuovi" onclick="anRimuoviFoto()" style="display:none;padding:4px 9px;background:#fff;border:1px solid #ddd;border-radius:3px;font-size:10px;color:#888;cursor:pointer">✕</button>
+    <button onclick="salvaFotoSolo()" style="padding:4px 9px;background:var(--m);color:#fff;border:none;border-radius:3px;font-size:10px;font-weight:700;cursor:pointer">💾 Salva foto</button>
   </div>
   <div id="an-foto-preview" style="display:none;padding:8px">
     <img id="an-foto-img" src="" style="max-width:100%;max-height:200px;border-radius:5px;object-fit:cover;display:block">
@@ -2889,7 +2890,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v136';
+const APP_VERSION='v137';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4527,6 +4528,34 @@ function anCaricaFoto(input){
 function anRimuoviFoto(){
   if(document.getElementById('an-foto-calice')) document.getElementById('an-foto-calice').value='';
   aggiornaFotoAnalitica();
+}
+// Salva solo la foto senza passare dalla validazione completa —
+// utile durante la degustazione cieca quando la scheda non è ancora finita.
+function salvaFotoSolo(){
+  if(!editingId){ toast('Salva prima la scheda per poter salvare la foto'); return; }
+  var foto=document.getElementById('an-foto-calice')?document.getElementById('an-foto-calice').value:'';
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var idx=schede.findIndex(function(x){return x.id==editingId;});
+  if(idx<0){ toast('Scheda non trovata in locale'); return; }
+  schede[idx].foto_calice=foto;
+  localStorage.setItem('ais_s',JSON.stringify(schede));
+  // Sync Supabase: aggiorna solo il campo foto_calice
+  if(currentUser){
+    supaEnsureToken().then(function(ok){
+      if(!ok) return;
+      fetch(SUPA_URL+'/rest/v1/schede_analitiche?id=eq.'+editingId,{
+        method:'PATCH',
+        headers:Object.assign(supaHeaders(),{'Prefer':'return=minimal'}),
+        body:JSON.stringify({foto_calice:foto})
+      }).then(function(r){
+        if(r.ok) toast('📷 Foto salvata');
+        else r.text().then(function(t){ toast('⚠ Foto salvata in locale — sync cloud fallito'); });
+      }).catch(function(){ toast('📷 Foto salvata in locale'); });
+    });
+  } else {
+    toast('📷 Foto salvata in locale');
+  }
+  aggiornaHomeSchede();
 }
 
 // ─── CHIAVE API ANTHROPIC su Supabase admin_settings ─────────────────────────
