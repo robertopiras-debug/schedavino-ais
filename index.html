@@ -135,8 +135,8 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .p-delta.d-pari{background:transparent;color:#bbb;border:1px solid #ddd;font-size:9px;font-weight:600}
 
 /* ─── SCHEDA A PUNTI AIS — griglia tabellare ─────────────────────────────── */
-.ais-pt-row{display:grid;grid-template-columns:minmax(0,1fr) 48px 48px 48px 48px;align-items:center;padding:6px 12px;border-bottom:0.5px solid var(--b);}
-.ais-pt-hdr-row{display:grid;grid-template-columns:minmax(0,1fr) 48px 48px 48px 48px;padding:4px 12px;background:#f9f7f4;border-bottom:0.5px solid var(--b);}
+.ais-pt-row{display:grid;grid-template-columns:minmax(0,1fr) 60px 60px 60px 60px;align-items:center;padding:7px 12px;border-bottom:0.5px solid var(--b);}
+.ais-pt-hdr-row{display:grid;grid-template-columns:minmax(0,1fr) 60px 60px 60px 60px;padding:5px 12px;background:#f9f7f4;border-bottom:0.5px solid var(--b);}
 .ais-pt-hdr-row span{text-align:center;font-size:12px;font-weight:600;color:#555;}
 .ais-pt-hdr-row span:first-child{text-align:left;font-size:10px;color:#aaa;}
 .ais-sez-hdr{background:var(--m);color:#fff;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
@@ -145,10 +145,10 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .ais-pname small{font-size:10px;color:#bbb;font-weight:400;}
 .ais-hint{font-size:10px;color:#aaa;font-style:italic;display:block;margin-top:1px;}
 /* cerchi radio AIS — sostituiscono i chip orizzontali */
-.voto-chip.ais-radio{width:32px;height:32px;border-radius:50%;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;transition:.1s;background:#fff;}
+.voto-chip.ais-radio{width:42px;height:42px;border-radius:50%;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;transition:.1s;background:#fff;}
 .voto-chip.ais-radio:hover{border-color:var(--m);}
 .voto-chip.ais-radio::after{content:'';width:0;height:0;border-radius:50%;background:#fff;transition:.1s;}
-.voto-chip.ais-radio.sel::after,.voto-chip.ais-radio.conf-base::after,.voto-chip.ais-radio.conf-su::after,.voto-chip.ais-radio.conf-giu::after{width:10px;height:10px;}
+.voto-chip.ais-radio.sel::after,.voto-chip.ais-radio.conf-base::after,.voto-chip.ais-radio.conf-su::after,.voto-chip.ais-radio.conf-giu::after{width:14px;height:14px;}
 .voto-chip.ais-radio.sel{background:#f5d800;border-color:#c8a000;}
 .voto-chip.ais-radio.sel::after{background:#5a3c00;}
 .voto-chip.ais-radio.conf-base{background:var(--m);border-color:var(--m);}
@@ -2894,7 +2894,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v142';
+const APP_VERSION='v143';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3267,13 +3267,13 @@ function inserisciHeaderColonne(){
   hdr.className='ais-pt-hdr-row';
   hdr.innerHTML='<span>Parametro (peso)</span><span>10</span><span>9</span><span>8</span><span>7</span>';
   target.parentNode.insertBefore(hdr, target);
-  // Logo AIS nel header scheda
+  // Logo AIS nel header scheda — usa il logo PNG originale già nell'app
   var logoEl=document.getElementById('ais-logo-pt');
   if(logoEl){
-    var logoP=document.querySelector('#punti-vista .logo-img, #punti-vista img.logo, .logo-ais');
-    if(!logoP){
-      // crea logo SVG semplificato
-      logoEl.innerHTML='<svg width="40" height="40" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="37" stroke="#555" stroke-width="2" fill="none"/><circle cx="40" cy="40" r="21" stroke="#555" stroke-width="1.5" fill="none"/><circle cx="40" cy="40" r="6" fill="#555"/><circle cx="40" cy="4" r="3" fill="#555"/><circle cx="58" cy="12" r="2.5" fill="#555"/><circle cx="68" cy="30" r="2.5" fill="#555"/><circle cx="65" cy="52" r="2" fill="#555"/><circle cx="50" cy="66" r="2" fill="#555"/><circle cx="28" cy="66" r="2" fill="#555"/><circle cx="14" cy="52" r="2" fill="#555"/><circle cx="11" cy="30" r="2" fill="#555"/><circle cx="22" cy="12" r="2" fill="#555"/></svg><div style="font-size:7px;color:#777;text-align:center;margin-top:2px">Associazione Italiana Sommelier</div>';
+    var existingLogo=document.querySelector('img[alt="Scheda di Valutazione del Vino AIS"]')||
+                     document.querySelector('img[alt="Scheda AIS"]');
+    if(existingLogo){
+      logoEl.innerHTML='<img src="'+existingLogo.src+'" style="height:42px;width:auto;display:block;margin:0 auto"><div style="font-size:7px;color:#777;text-align:center;margin-top:2px">Associazione Italiana Sommelier</div>';
     }
   }
 }
