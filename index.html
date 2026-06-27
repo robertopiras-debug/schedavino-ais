@@ -2939,7 +2939,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v159';
+const APP_VERSION='v160';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4793,10 +4793,11 @@ async function generaNotaPunti(){
       body:JSON.stringify({
         model:'claude-sonnet-4-6',max_tokens:1000,
         system:'Sei un sommelier AIS che scrive note di degustazione per la Guida VITAE. '+
-          'Stile: diretto, preciso, terminologia AIS. Niente perifrasi o superlativi inutili. '+
-          'Struttura: visivo → olfattivo → gusto-olfattivo → considerazioni finali → giudizio con fascia. '+
-          'Lunghezza: 120-180 parole. Lingua: italiano. '+
-          'REGOLA ASSOLUTA: la fascia nel giudizio finale DEVE essere quella indicata nei dati (es. Distinto, Ottimo, Eccellente) — non inventare una fascia diversa.',
+          'FORMATO OBBLIGATORIO: prosa continua, niente titoli di sezione, niente righe vuote, niente asterischi o markdown di alcun tipo. '+
+          'Un solo paragrafo compatto che scorre: visivo, olfattivo, gusto-olfattivo, considerazioni finali. '+
+          'Ultima parola della nota: SOLO il nome della fascia (es. "Ottimo" oppure "Distinto" oppure "Eccellente"). Nient\'altro dopo. '+
+          'Stile: preciso, diretto, terminologia AIS. Niente perifrasi o superlativi inutili. 100-150 parole. Lingua: italiano. '+
+          'REGOLA ASSOLUTA: la fascia finale DEVE corrispondere a quella indicata nei dati — non inventare.',
         messages:[{role:'user',content:prompt}]
       })
     });
