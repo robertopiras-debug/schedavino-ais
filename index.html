@@ -129,6 +129,18 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .p-delta.d-giu{background:#c8002a;color:#fff}
 .p-delta.d-pari{background:transparent;color:#bbb;border:1px solid #ddd;font-size:9px;font-weight:600}
 
+
+/* ─── NOTE DI SEZIONE ────────────────────────────────────────────────────── */
+.sez-body{display:grid;grid-template-columns:1fr 112px;}
+.params-col{border-right:0.5px solid var(--b);}
+.note-col{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:5px 7px;}
+.fsz-badge{font-size:11px;font-weight:600;text-align:center;padding:2px 5px;border-radius:4px;background:#f0f0ee;color:#666;white-space:nowrap;}
+.fsz-badge.f-eccel{background:#ede8f7;color:#3c3489;}
+.fsz-badge.f-ottimo{background:#fef0e0;color:#854f0b;}
+.fsz-badge.f-distinto{background:#e6f0fb;color:#185fa5;}
+.fsz-badge.f-buono{background:#e8f5ee;color:#0f6e56;}
+.fsz-badge.f-accettabile{background:#f0f0ee;color:#666;}
+.nota-sez{width:100%;font-size:11px;font-family:inherit;border:1px solid var(--b);border-radius:4px;padding:3px 5px;resize:none;background:var(--r);color:var(--d);line-height:1.4;}
 /* ─── SCHEDA A PUNTI AIS — griglia tabellare ─────────────────────────────── */
 .ais-pt-row{display:grid;grid-template-columns:minmax(0,1fr) 40px 40px 40px 40px;align-items:center;padding:5px 12px;border-bottom:0.5px solid var(--b);}
 .ais-pt-hdr-row{display:grid;grid-template-columns:minmax(0,1fr) 40px 40px 40px 40px;padding:4px 12px;background:#f9f7f4;border-bottom:0.5px solid var(--b);}
@@ -856,62 +868,92 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 <div id="sezV">
   <div class="ais-sez-hdr"><span>Esame visivo <span id="lbV" style="font-weight:400;opacity:.8;font-size:9px"></span></span><span id="subV" class="ais-sez-sub">—</span></div>
-  <div class="ais-pt-row">
-    <div class="ais-pname">Aspetto <small>×1</small><span id="db-aspetto" class="p-delta"></span><div style="display:none"><span id="vAspetto">7</span><span id="cAspetto">7 pt</span></div><div id="hAspetto" class="ais-hint"></div></div>
-    <div id="slw-aspetto" style="display:contents"></div>
+  <div class="sez-body">
+    <div class="params-col">
+      <div class="ais-pt-row" style="border-bottom:none">
+        <div class="ais-pname">Aspetto <small>×1</small><span id="db-aspetto" class="p-delta"></span><div style="display:none"><span id="vAspetto">7</span><span id="cAspetto">7 pt</span></div><div id="hAspetto" class="ais-hint"></div></div>
+        <div id="slw-aspetto" style="display:contents"></div>
+      </div>
+    </div>
+    <div class="note-col">
+      <div id="fsz-V" class="fsz-badge">—</div>
+      <textarea id="nota-vis-pt" class="nota-sez" rows="3" placeholder="Note visive…"></textarea>
+    </div>
   </div>
 </div>
 
 <div id="sezO">
   <div class="ais-sez-hdr"><span>Esame olfattivo <span id="lbO" style="font-weight:400;opacity:.8;font-size:9px"></span></span><span id="subO" class="ais-sez-sub">—</span></div>
-  <div class="ais-pt-row">
-    <div class="ais-pname">Intensità <small>×0.5</small><span id="db-iolf" class="p-delta"></span><div style="display:none"><span id="vIolf">7</span><span id="cIolf">3.5 pt</span></div><div id="hIolf" class="ais-hint"></div></div>
-    <div id="slw-iolf" style="display:contents"></div>
-  </div>
-  <div class="ais-pt-row">
-    <div class="ais-pname">Purezza, Eleganza <small>×1</small><span id="db-purez" class="p-delta"></span><div style="display:none"><span id="vPurez">7</span><span id="cPurez">7 pt</span></div><div id="hPurez" class="ais-hint"></div></div>
-    <div id="slw-purez" style="display:contents"></div>
-  </div>
-  <div class="ais-pt-row">
-    <div class="ais-pname">Complessità, Attrattiva <small>×1.5</small><span id="db-compl" class="p-delta"></span><div style="display:none"><span id="vCompl">7</span><span id="cCompl">10.5 pt</span></div><div id="hCompl" class="ais-hint"></div></div>
-    <div id="slw-compl" style="display:contents"></div>
+  <div class="sez-body">
+    <div class="params-col">
+      <div class="ais-pt-row">
+        <div class="ais-pname">Intensità <small>×0.5</small><span id="db-iolf" class="p-delta"></span><div style="display:none"><span id="vIolf">7</span><span id="cIolf">3.5 pt</span></div><div id="hIolf" class="ais-hint"></div></div>
+        <div id="slw-iolf" style="display:contents"></div>
+      </div>
+      <div class="ais-pt-row">
+        <div class="ais-pname">Purezza, Eleganza <small>×1</small><span id="db-purez" class="p-delta"></span><div style="display:none"><span id="vPurez">7</span><span id="cPurez">7 pt</span></div><div id="hPurez" class="ais-hint"></div></div>
+        <div id="slw-purez" style="display:contents"></div>
+      </div>
+      <div class="ais-pt-row" style="border-bottom:none">
+        <div class="ais-pname">Complessità, Attrattiva <small>×1.5</small><span id="db-compl" class="p-delta"></span><div style="display:none"><span id="vCompl">7</span><span id="cCompl">10.5 pt</span></div><div id="hCompl" class="ais-hint"></div></div>
+        <div id="slw-compl" style="display:contents"></div>
+      </div>
+    </div>
+    <div class="note-col">
+      <div id="fsz-O" class="fsz-badge">—</div>
+      <textarea id="nota-olf-pt" class="nota-sez" rows="6" placeholder="Note olfattive…"></textarea>
+    </div>
   </div>
 </div>
 
 <div id="sezG">
   <div class="ais-sez-hdr"><span>Esame gusto-olfattivo <span id="lbG" style="font-weight:400;opacity:.8;font-size:9px"></span></span><span id="subG" class="ais-sez-sub">—</span></div>
-  <div class="ais-pt-row">
-    <div class="ais-pname">Intensità, struttura <small>×0.5</small><span id="db-igus" class="p-delta"></span><div style="display:none"><span id="vIgus">7</span><span id="cIgus">3.5 pt</span></div><div id="hIgus" class="ais-hint"></div></div>
-    <div id="slw-igus" style="display:contents"></div>
-  </div>
-  <div class="ais-pt-row">
-    <div class="ais-pname">Equilibrio <small>×1</small><span id="db-equi" class="p-delta"></span><div style="display:none"><span id="vEqui">7</span><span id="cEqui">7 pt</span></div><div id="hEqui" class="ais-hint"></div></div>
-    <div id="slw-equi" style="display:contents"></div>
-  </div>
-  <div class="ais-pt-row">
-    <div class="ais-pname">Espressività, Eleganza <small>×1</small><span id="db-espr" class="p-delta"></span><div style="display:none"><span id="vEspr">7</span><span id="cEspr">7 pt</span></div><div id="hEspr" class="ais-hint"></div></div>
-    <div id="slw-espr" style="display:contents"></div>
-  </div>
-  <div class="ais-pt-row">
-    <div class="ais-pname">Persistenza, Attrattiva <small>×1.5</small><span id="db-pers" class="p-delta"></span><div style="display:none"><span id="vPers">7</span><span id="cPers">10.5 pt</span></div><div id="hPers" class="ais-hint"></div></div>
-    <div id="slw-pers" style="display:contents"></div>
+  <div class="sez-body">
+    <div class="params-col">
+      <div class="ais-pt-row">
+        <div class="ais-pname">Intensità, struttura <small>×0.5</small><span id="db-igus" class="p-delta"></span><div style="display:none"><span id="vIgus">7</span><span id="cIgus">3.5 pt</span></div><div id="hIgus" class="ais-hint"></div></div>
+        <div id="slw-igus" style="display:contents"></div>
+      </div>
+      <div class="ais-pt-row">
+        <div class="ais-pname">Equilibrio <small>×1</small><span id="db-equi" class="p-delta"></span><div style="display:none"><span id="vEqui">7</span><span id="cEqui">7 pt</span></div><div id="hEqui" class="ais-hint"></div></div>
+        <div id="slw-equi" style="display:contents"></div>
+      </div>
+      <div class="ais-pt-row">
+        <div class="ais-pname">Espressività, Eleganza <small>×1</small><span id="db-espr" class="p-delta"></span><div style="display:none"><span id="vEspr">7</span><span id="cEspr">7 pt</span></div><div id="hEspr" class="ais-hint"></div></div>
+        <div id="slw-espr" style="display:contents"></div>
+      </div>
+      <div class="ais-pt-row" style="border-bottom:none">
+        <div class="ais-pname">Persistenza, Attrattiva <small>×1.5</small><span id="db-pers" class="p-delta"></span><div style="display:none"><span id="vPers">7</span><span id="cPers">10.5 pt</span></div><div id="hPers" class="ais-hint"></div></div>
+        <div id="slw-pers" style="display:contents"></div>
+      </div>
+    </div>
+    <div class="note-col">
+      <div id="fsz-G" class="fsz-badge">—</div>
+      <textarea id="nota-gus-pt" class="nota-sez" rows="8" placeholder="Note gusto-olfattive…"></textarea>
+    </div>
   </div>
 </div>
 
 <div id="sezF">
   <div class="ais-sez-hdr"><span>Considerazioni finali <span id="lbF" style="font-weight:400;opacity:.8;font-size:9px"></span></span><span id="subF" class="ais-sez-sub">—</span></div>
-  <div class="ais-pt-row">
-    <div class="ais-pname">Armonia complessiva <small>×0.5</small><span id="db-armo" class="p-delta"></span><div style="display:none"><span id="vArmo">7</span><span id="cArmo">3.5 pt</span></div><div id="hArmo" class="ais-hint"></div></div>
-    <div id="slw-armo" style="display:contents"></div>
-  </div>
-  <div class="ais-pt-row" style="border-bottom:none">
-    <div class="ais-pname">Qualità, Carattere <small>×1.5</small><span id="db-qual" class="p-delta"></span><div style="display:none"><span id="vQual">7</span><span id="cQual">10.5 pt</span></div><div id="hQual" class="ais-hint"></div></div>
-    <div id="slw-qual" style="display:contents"></div>
-  </div>
-  <div style="padding:8px 12px">
-    <textarea id="notaP" placeholder="Note libere — motivazioni, divergenze, contesto..." style="width:100%;min-height:55px;resize:vertical;font-size:11px;border:1px solid #b0b0a0;border-radius:3px;padding:6px;background:#fafaf6"></textarea>
+  <div class="sez-body">
+    <div class="params-col">
+      <div class="ais-pt-row">
+        <div class="ais-pname">Armonia complessiva <small>×0.5</small><span id="db-armo" class="p-delta"></span><div style="display:none"><span id="vArmo">7</span><span id="cArmo">3.5 pt</span></div><div id="hArmo" class="ais-hint"></div></div>
+        <div id="slw-armo" style="display:contents"></div>
+      </div>
+      <div class="ais-pt-row" style="border-bottom:none">
+        <div class="ais-pname">Qualità, Carattere <small>×1.5</small><span id="db-qual" class="p-delta"></span><div style="display:none"><span id="vQual">7</span><span id="cQual">10.5 pt</span></div><div id="hQual" class="ais-hint"></div></div>
+        <div id="slw-qual" style="display:contents"></div>
+      </div>
+    </div>
+    <div class="note-col">
+      <div id="fsz-F" class="fsz-badge">—</div>
+      <textarea id="nota-fin-pt" class="nota-sez" rows="4" placeholder="Note finali…"></textarea>
+    </div>
   </div>
 </div>
+<textarea id="notaP" style="display:none"></textarea>
 
 <!-- COLONNA PIENA AIS -->
 <div id="colonnaPiena" style="border-top:2px solid var(--m)">
@@ -2892,7 +2934,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v150';
+const APP_VERSION='v151';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3368,6 +3410,22 @@ function calcolaTotale(){
   var lbO=document.getElementById('lbO'); if(lbO&&subO>0) lbO.textContent='· '+lbSez(subO,30);
   var lbG=document.getElementById('lbG'); if(lbG&&subG>0) lbG.textContent='· '+lbSez(subG,40);
   var lbF=document.getElementById('lbF'); if(lbF&&subF>0) lbF.textContent='· '+lbSez(subF,20);
+  // Badge fascia per colonna note di sezione
+  function aggiornaBadgeFascia(elId, pt, max){
+    var el=document.getElementById(elId); if(!el||!pt) return;
+    var lbl=lbSez(pt,max);
+    var cls='f-accettabile';
+    if(lbl==='Eccellente') cls='f-eccel';
+    else if(lbl==='Ottimo') cls='f-ottimo';
+    else if(lbl==='Distinto') cls='f-distinto';
+    else if(lbl==='Buono') cls='f-buono';
+    el.textContent=lbl;
+    el.className='fsz-badge '+cls;
+  }
+  aggiornaBadgeFascia('fsz-V',subV,10);
+  aggiornaBadgeFascia('fsz-O',subO,30);
+  aggiornaBadgeFascia('fsz-G',subG,40);
+  aggiornaBadgeFascia('fsz-F',subF,20);
 
   // Feedback coerenza: confronta totale con media ponderata dei voti effettivi
   if(analiticaP){
@@ -3699,6 +3757,10 @@ function salvaPunti(){
     voti:Object.assign({},voti),
     votiOriginali:Object.assign({},votiBase), // memoria del valore originale suggerito (analitica/Guida VITAE)
     nota:document.getElementById('notaP').value,
+    nota_vis:document.getElementById('nota-vis-pt')?document.getElementById('nota-vis-pt').value:'',
+    nota_olf:document.getElementById('nota-olf-pt')?document.getElementById('nota-olf-pt').value:'',
+    nota_gus:document.getElementById('nota-gus-pt')?document.getElementById('nota-gus-pt').value:'',
+    nota_fin:document.getElementById('nota-fin-pt')?document.getElementById('nota-fin-pt').value:'',
     dt:dt
   };
 
@@ -3772,6 +3834,10 @@ function loadP(id){
   aggiornaStatoPunti();
   calcolaTotale();
   document.getElementById('notaP').value=s.nota||'';
+  var nv=document.getElementById('nota-vis-pt'); if(nv) nv.value=s.nota_vis||'';
+  var no=document.getElementById('nota-olf-pt'); if(no) no.value=s.nota_olf||'';
+  var ng=document.getElementById('nota-gus-pt'); if(ng) ng.value=s.nota_gus||'';
+  var nf=document.getElementById('nota-fin-pt'); if(nf) nf.value=s.nota_fin||'';
   editingIdP=typeof id==="string"?parseInt(id):id;
   mostraScheda();
   if(analiticaP){
