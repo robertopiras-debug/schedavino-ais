@@ -135,9 +135,9 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .p-delta.d-pari{background:transparent;color:#bbb;border:1px solid #ddd;font-size:9px;font-weight:600}
 
 /* ─── SCHEDA A PUNTI AIS — griglia tabellare ─────────────────────────────── */
-.ais-pt-row{display:grid;grid-template-columns:minmax(0,1fr) 60px 60px 60px 60px;align-items:center;padding:7px 12px;border-bottom:0.5px solid var(--b);}
-.ais-pt-hdr-row{display:grid;grid-template-columns:minmax(0,1fr) 60px 60px 60px 60px;padding:5px 12px;background:#f9f7f4;border-bottom:0.5px solid var(--b);}
-.ais-pt-hdr-row span{text-align:center;font-size:12px;font-weight:600;color:#555;}
+.ais-pt-row{display:grid;grid-template-columns:minmax(0,1fr) 80px 80px 80px 80px;align-items:center;padding:9px 12px;border-bottom:0.5px solid var(--b);}
+.ais-pt-hdr-row{display:grid;grid-template-columns:minmax(0,1fr) 80px 80px 80px 80px;padding:6px 12px;background:#f9f7f4;border-bottom:0.5px solid var(--b);}
+.ais-pt-hdr-row span{text-align:center;font-size:15px;font-weight:700;color:#333;}
 .ais-pt-hdr-row span:first-child{text-align:left;font-size:10px;color:#aaa;}
 .ais-sez-hdr{background:var(--m);color:#fff;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
 .ais-sez-sub{font-size:11px;font-weight:500;opacity:.9;text-transform:none;letter-spacing:0;}
@@ -145,10 +145,10 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .ais-pname small{font-size:10px;color:#bbb;font-weight:400;}
 .ais-hint{font-size:10px;color:#aaa;font-style:italic;display:block;margin-top:1px;}
 /* cerchi radio AIS — sostituiscono i chip orizzontali */
-.voto-chip.ais-radio{width:42px;height:42px;border-radius:50%;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;transition:.1s;background:#fff;}
+.voto-chip.ais-radio{width:58px;height:58px;border-radius:50%;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;transition:.1s;background:#fff;}
 .voto-chip.ais-radio:hover{border-color:var(--m);}
 .voto-chip.ais-radio::after{content:'';width:0;height:0;border-radius:50%;background:#fff;transition:.1s;}
-.voto-chip.ais-radio.sel::after,.voto-chip.ais-radio.conf-base::after,.voto-chip.ais-radio.conf-su::after,.voto-chip.ais-radio.conf-giu::after{width:14px;height:14px;}
+.voto-chip.ais-radio.sel::after,.voto-chip.ais-radio.conf-base::after,.voto-chip.ais-radio.conf-su::after,.voto-chip.ais-radio.conf-giu::after{width:20px;height:20px;}
 .voto-chip.ais-radio.sel{background:#f5d800;border-color:#c8a000;}
 .voto-chip.ais-radio.sel::after{background:#5a3c00;}
 .voto-chip.ais-radio.conf-base{background:var(--m);border-color:var(--m);}
@@ -2894,7 +2894,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v143';
+const APP_VERSION='v144';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
