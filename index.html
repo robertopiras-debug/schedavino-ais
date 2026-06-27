@@ -2398,13 +2398,11 @@ function validaSezione(sezione){
 }
 
 function validaDatiId(){
-  // Produttore, regione e denominazione sono facoltativi:
-  // nella degustazione alla cieca non sono noti.
-  // Obbligatori: nome/codice campione, modalità, colore.
+  // Solo il nome/codice campione è obbligatorio — identifica univocamente il vino.
+  // Produttore, regione, denominazione, modalità e colore sono facoltativi:
+  // nella degustazione alla cieca non sono noti al momento della valutazione.
   var mancanti=[];
   if(!document.getElementById('wN').value.trim()) mancanti.push('Nome / codice campione');
-  if(!selBase) mancanti.push('Modalità (fermo/frizzante/spumante)');
-  if(!selColore) mancanti.push('Colore (bianco/rosato/rosso)');
   return mancanti;
 }
 
@@ -2890,7 +2888,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v138';
+const APP_VERSION='v139';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
