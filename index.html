@@ -2561,7 +2561,13 @@ function loadS(id){
   var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
   // confronto loose: gestisce id sia number (localStorage) sia string (Supabase)
   var s=l.find(function(x){return x.id==idNum;});
-  if(!s)return;
+  // Fallback: cerca in _homeSchede (include schede cloud non ancora in localStorage)
+  if(!s && typeof _homeSchede!=='undefined'){
+    s=_homeSchede.find(function(x){return x.id==idNum;});
+  }
+  // Se scheda non trovata: resetta il form invece di uscire senza fare nulla
+  // (senza reset la form mostrerebbe i dati della scheda precedente)
+  if(!s){ nuovaScheda(); toast('⚠ Scheda non trovata in locale — ricarica la pagina'); return; }
   // Se la scheda è una bozza, avvisa l'utente che può completarla
   if(s.tipo==='bozza'){
     toast('⚡ Bozza VITAE — completa i campi mancanti e salva come scheda definitiva');
@@ -2862,7 +2868,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v132';
+const APP_VERSION='v133';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3900,7 +3906,7 @@ async function homeElimina(id, e){
   }
 }
 
-function homeApriScheda(id){nascondiHome();setTimeout(function(){loadS(typeof id==="string"?parseInt(id):id);},50);}
+function homeApriScheda(id){nascondiHome();nuovaScheda();setTimeout(function(){loadS(typeof id==="string"?parseInt(id):id);},80);}
 function homeApriPunti(id){nascondiHome();apriInPunti(id,{stopPropagation:function(){}});}
 function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=nomeDisplay();}}
 
