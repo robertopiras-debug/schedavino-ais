@@ -134,7 +134,29 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .p-delta.d-giu{background:#c8002a;color:#fff}
 .p-delta.d-pari{background:transparent;color:#bbb;border:1px solid #ddd;font-size:9px;font-weight:600}
 
-/* Header sezione punti: stati */
+/* ─── SCHEDA A PUNTI AIS — griglia tabellare ─────────────────────────────── */
+.ais-pt-row{display:grid;grid-template-columns:minmax(0,1fr) 48px 48px 48px 48px;align-items:center;padding:6px 12px;border-bottom:0.5px solid var(--b);}
+.ais-pt-hdr-row{display:grid;grid-template-columns:minmax(0,1fr) 48px 48px 48px 48px;padding:4px 12px;background:#f9f7f4;border-bottom:0.5px solid var(--b);}
+.ais-pt-hdr-row span{text-align:center;font-size:12px;font-weight:600;color:#555;}
+.ais-pt-hdr-row span:first-child{text-align:left;font-size:10px;color:#aaa;}
+.ais-sez-hdr{background:var(--m);color:#fff;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.ais-sez-sub{font-size:11px;font-weight:500;opacity:.9;text-transform:none;letter-spacing:0;}
+.ais-pname{font-size:12px;color:var(--d);line-height:1.3;}
+.ais-pname small{font-size:10px;color:#bbb;font-weight:400;}
+.ais-hint{font-size:10px;color:#aaa;font-style:italic;display:block;margin-top:1px;}
+/* cerchi radio AIS — sostituiscono i chip orizzontali */
+.voto-chip.ais-radio{width:32px;height:32px;border-radius:50%;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;transition:.1s;background:#fff;}
+.voto-chip.ais-radio:hover{border-color:var(--m);}
+.voto-chip.ais-radio::after{content:'';width:0;height:0;border-radius:50%;background:#fff;transition:.1s;}
+.voto-chip.ais-radio.sel::after,.voto-chip.ais-radio.conf-base::after,.voto-chip.ais-radio.conf-su::after,.voto-chip.ais-radio.conf-giu::after{width:10px;height:10px;}
+.voto-chip.ais-radio.sel{background:#f5d800;border-color:#c8a000;}
+.voto-chip.ais-radio.sel::after{background:#5a3c00;}
+.voto-chip.ais-radio.conf-base{background:var(--m);border-color:var(--m);}
+.voto-chip.ais-radio.conf-base::after{background:#fff;}
+.voto-chip.ais-radio.conf-su{background:#1e9644;border-color:#0f5225;}
+.voto-chip.ais-radio.conf-su::after{background:#fff;}
+.voto-chip.ais-radio.conf-giu{background:#c8002a;border-color:#7a0018;}
+.voto-chip.ais-radio.conf-giu::after{background:#fff;}
 .sez-hd.stato-ok-p{background:#2e6b2e !important}
 .sez-hd.stato-warn-p{background:#b84a00 !important}
 .sez-hd.stato-inc-p{background:var(--d)}
@@ -817,18 +839,13 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 <!-- VISIVO -->
 <!-- Legenda stati chip -->
-<div id="legendaChip" style="display:flex;gap:8px;padding:6px 10px 8px;background:#f5f5f0;border-bottom:1px solid var(--b);flex-wrap:wrap">
-  <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#666">
-    <span style="display:inline-block;width:14px;height:14px;border-radius:2px;background:#f5d800;border:1px solid #c8a000;vertical-align:middle"></span>
-    Ereditato / da confermare
+<div id="legendaChip" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px;border-bottom:0.5px solid var(--b)">
+  <div style="display:flex;align-items:stretch;gap:10px">
+    <div style="width:4px;background:#7a4a6e;border-radius:2px;flex-shrink:0"></div>
+    <div style="font-size:12px;font-weight:600;color:#4a4a4a;line-height:1.35;letter-spacing:.01em">SCHEDA<br>DI VALUTAZIONE A PUNTI<br>DEL VINO</div>
   </div>
-  <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#666">
-    <span style="display:inline-block;width:14px;height:14px;border-radius:2px;background:var(--m);border:2px solid #f5d800;vertical-align:middle"></span>
-    Confermato (valore base)
-  </div>
-  <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#666">
-    <span style="display:inline-block;width:14px;height:14px;border-radius:2px;background:var(--m);border:2px solid #8a0050;vertical-align:middle"></span>
-    Variato rispetto al base
+  <div style="text-align:center">
+    <div id="ais-logo-pt"></div>
   </div>
 </div>
 
@@ -839,105 +856,80 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <div style="font-size:12px;color:#888">Nessun parametro può essere valutato. Togli il flag qui sopra per tornare alla valutazione normale.</div>
 </div>
 
-<div class="sez" id="sezV">
-  <div class="sez-hd"><span class="sez-hd-t">Esame Visivo<span id="lbV" style="font-weight:400;opacity:.7;margin-left:5px;font-size:9px"></span></span><span class="sez-sub" id="subV">—</span></div>
-  <div class="param" id="paramAspetto">
-    <div class="p-top">
-      <div><span class="p-name">Aspetto</span><span class="p-peso">peso 1 · max 10 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-aspetto" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vAspetto">7</div><div class="p-contributo" id="cAspetto">7 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-aspetto"></div>
-    <div class="hint" id="hAspetto">Inserimento manuale</div>
+<div id="sezV">
+  <div class="ais-sez-hdr"><span>Esame visivo <span id="lbV" style="font-weight:400;opacity:.8;font-size:9px"></span></span><span id="subV" class="ais-sez-sub">—</span></div>
+  <div class="ais-pt-row">
+    <div class="ais-pname">Aspetto <small>×1</small><span id="db-aspetto" class="p-delta"></span><div style="display:none"><span id="vAspetto">7</span><span id="cAspetto">7 pt</span></div><div id="hAspetto" class="ais-hint"></div></div>
+    <div id="slw-aspetto" style="display:contents"></div>
   </div>
 </div>
 
-<!-- OLFATTIVO -->
-<div class="sez" id="sezO">
-  <div class="sez-hd"><span class="sez-hd-t">Esame Olfattivo<span id="lbO" style="font-weight:400;opacity:.7;margin-left:5px;font-size:9px"></span></span><span class="sez-sub" id="subO">—</span></div>
-  <div class="param">
-    <div class="p-top">
-      <div><span class="p-name">Intensità</span><span class="p-peso">peso 0.5 · max 5 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-iolf" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vIolf">7</div><div class="p-contributo" id="cIolf">3.5 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-iolf"></div>
-    <div class="hint" id="hIolf">—</div>
+<div id="sezO">
+  <div class="ais-sez-hdr"><span>Esame olfattivo <span id="lbO" style="font-weight:400;opacity:.8;font-size:9px"></span></span><span id="subO" class="ais-sez-sub">—</span></div>
+  <div class="ais-pt-row">
+    <div class="ais-pname">Intensità <small>×0.5</small><span id="db-iolf" class="p-delta"></span><div style="display:none"><span id="vIolf">7</span><span id="cIolf">3.5 pt</span></div><div id="hIolf" class="ais-hint"></div></div>
+    <div id="slw-iolf" style="display:contents"></div>
   </div>
-  <div class="param">
-    <div class="p-top">
-      <div><span class="p-name">Purezza / Eleganza</span><span class="p-peso">peso 1 · max 10 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-purez" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vPurez">7</div><div class="p-contributo" id="cPurez">7 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-purez"></div>
-    <div class="hint" id="hPurez">—</div>
+  <div class="ais-pt-row">
+    <div class="ais-pname">Purezza, Eleganza <small>×1</small><span id="db-purez" class="p-delta"></span><div style="display:none"><span id="vPurez">7</span><span id="cPurez">7 pt</span></div><div id="hPurez" class="ais-hint"></div></div>
+    <div id="slw-purez" style="display:contents"></div>
   </div>
-  <div class="param">
-    <div class="p-top">
-      <div><span class="p-name">Complessità / Attrattiva</span><span class="p-peso">peso 1.5 · max 15 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-compl" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vCompl">7</div><div class="p-contributo" id="cCompl">10.5 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-compl"></div>
-    <div class="hint" id="hCompl">—</div>
+  <div class="ais-pt-row">
+    <div class="ais-pname">Complessità, Attrattiva <small>×1.5</small><span id="db-compl" class="p-delta"></span><div style="display:none"><span id="vCompl">7</span><span id="cCompl">10.5 pt</span></div><div id="hCompl" class="ais-hint"></div></div>
+    <div id="slw-compl" style="display:contents"></div>
   </div>
 </div>
 
-<!-- GUSTO -->
-<div class="sez" id="sezG">
-  <div class="sez-hd"><span class="sez-hd-t">Gusto-Olfattivo<span id="lbG" style="font-weight:400;opacity:.7;margin-left:5px;font-size:9px"></span></span><span class="sez-sub" id="subG">—</span></div>
-  <div class="param">
-    <div class="p-top">
-      <div><span class="p-name">Intensità / Struttura</span><span class="p-peso">peso 0.5 · max 5 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-igus" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vIgus">7</div><div class="p-contributo" id="cIgus">3.5 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-igus"></div>
-    <div class="hint" id="hIgus">—</div>
+<div id="sezG">
+  <div class="ais-sez-hdr"><span>Esame gusto-olfattivo <span id="lbG" style="font-weight:400;opacity:.8;font-size:9px"></span></span><span id="subG" class="ais-sez-sub">—</span></div>
+  <div class="ais-pt-row">
+    <div class="ais-pname">Intensità, struttura <small>×0.5</small><span id="db-igus" class="p-delta"></span><div style="display:none"><span id="vIgus">7</span><span id="cIgus">3.5 pt</span></div><div id="hIgus" class="ais-hint"></div></div>
+    <div id="slw-igus" style="display:contents"></div>
   </div>
-  <div class="param">
-    <div class="p-top">
-      <div><span class="p-name">Equilibrio</span><span class="p-peso">peso 1 · max 10 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-equi" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vEqui">7</div><div class="p-contributo" id="cEqui">7 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-equi"></div>
-    <div class="hint" id="hEqui">—</div>
+  <div class="ais-pt-row">
+    <div class="ais-pname">Equilibrio <small>×1</small><span id="db-equi" class="p-delta"></span><div style="display:none"><span id="vEqui">7</span><span id="cEqui">7 pt</span></div><div id="hEqui" class="ais-hint"></div></div>
+    <div id="slw-equi" style="display:contents"></div>
   </div>
-  <div class="param">
-    <div class="p-top">
-      <div><span class="p-name">Espressività / Eleganza</span><span class="p-peso">peso 1 · max 10 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-espr" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vEspr">7</div><div class="p-contributo" id="cEspr">7 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-espr"></div>
-    <div class="hint" id="hEspr">—</div>
+  <div class="ais-pt-row">
+    <div class="ais-pname">Espressività, Eleganza <small>×1</small><span id="db-espr" class="p-delta"></span><div style="display:none"><span id="vEspr">7</span><span id="cEspr">7 pt</span></div><div id="hEspr" class="ais-hint"></div></div>
+    <div id="slw-espr" style="display:contents"></div>
   </div>
-  <div class="param">
-    <div class="p-top">
-      <div><span class="p-name">Persistenza / Attrattiva</span><span class="p-peso">peso 1.5 · max 15 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-pers" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vPers">7</div><div class="p-contributo" id="cPers">10.5 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-pers"></div>
-    <div class="hint" id="hPers">—</div>
+  <div class="ais-pt-row">
+    <div class="ais-pname">Persistenza, Attrattiva <small>×1.5</small><span id="db-pers" class="p-delta"></span><div style="display:none"><span id="vPers">7</span><span id="cPers">10.5 pt</span></div><div id="hPers" class="ais-hint"></div></div>
+    <div id="slw-pers" style="display:contents"></div>
   </div>
 </div>
 
-<!-- FINALI -->
-<div class="sez" id="sezF">
-  <div class="sez-hd"><span class="sez-hd-t">Considerazioni Finali<span id="lbF" style="font-weight:400;opacity:.7;margin-left:5px;font-size:9px"></span></span><span class="sez-sub" id="subF">—</span></div>
-  <div class="param">
-    <div class="p-top">
-      <div><span class="p-name">Armonia complessiva</span><span class="p-peso">peso 0.5 · max 5 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-armo" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vArmo">7</div><div class="p-contributo" id="cArmo">3.5 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-armo"></div>
-    <div class="hint" id="hArmo">—</div>
+<div id="sezF">
+  <div class="ais-sez-hdr"><span>Considerazioni finali <span id="lbF" style="font-weight:400;opacity:.8;font-size:9px"></span></span><span id="subF" class="ais-sez-sub">—</span></div>
+  <div class="ais-pt-row">
+    <div class="ais-pname">Armonia complessiva <small>×0.5</small><span id="db-armo" class="p-delta"></span><div style="display:none"><span id="vArmo">7</span><span id="cArmo">3.5 pt</span></div><div id="hArmo" class="ais-hint"></div></div>
+    <div id="slw-armo" style="display:contents"></div>
   </div>
-  <div class="param">
-    <div class="p-top">
-      <div><span class="p-name">Qualità / Carattere</span><span class="p-peso">peso 1.5 · max 15 pt</span></div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px"><span id="db-qual" class="p-delta"></span><div style="text-align:right"><div class="p-voto" id="vQual">7</div><div class="p-contributo" id="cQual">10.5 pt</div></div></div>
-    </div>
-    <div class="sl-wrap" id="slw-qual"></div>
-    <div class="hint" id="hQual">—</div>
+  <div class="ais-pt-row" style="border-bottom:none">
+    <div class="ais-pname">Qualità, Carattere <small>×1.5</small><span id="db-qual" class="p-delta"></span><div style="display:none"><span id="vQual">7</span><span id="cQual">10.5 pt</span></div><div id="hQual" class="ais-hint"></div></div>
+    <div id="slw-qual" style="display:contents"></div>
   </div>
   <div style="padding:8px 12px">
     <textarea id="notaP" placeholder="Note libere — motivazioni, divergenze, contesto..." style="width:100%;min-height:55px;resize:vertical;font-size:11px;border:1px solid #b0b0a0;border-radius:3px;padding:6px;background:#fafaf6"></textarea>
+  </div>
+</div>
+
+<!-- COLONNA PIENA AIS -->
+<div id="colonnaPiena" style="border-top:2px solid var(--m)">
+  <div class="ais-pt-row" style="padding:3px 12px 0;background:#f9f7f4;border-bottom:0.5px solid var(--b)">
+    <div style="font-size:9px;color:#aaa;font-style:italic;align-self:center">Valore a colonna piena (solo calcolo rapido AIS)</div>
+    <div style="text-align:center;font-size:16px;font-weight:500;color:#ccc;line-height:1.3">100</div>
+    <div style="text-align:center;font-size:16px;font-weight:500;color:#ccc;line-height:1.3">90</div>
+    <div style="text-align:center;font-size:16px;font-weight:500;color:#ccc;line-height:1.3">80</div>
+    <div style="text-align:center;font-size:16px;font-weight:500;color:#ccc;line-height:1.3">70</div>
+  </div>
+  <div class="ais-pt-row" style="padding:4px 12px 8px">
+    <div style="font-size:10px;color:#aaa;font-style:italic;align-self:center">Punteggio calcolato</div>
+    <div id="cp10" style="text-align:center;font-size:20px;font-weight:500;color:transparent"></div>
+    <div id="cp9" style="text-align:center;font-size:20px;font-weight:500;color:transparent"></div>
+    <div id="cp8" style="text-align:center;font-size:20px;font-weight:500;color:transparent"></div>
+    <div id="cp7" style="text-align:center;font-size:20px;font-weight:500;color:transparent"></div>
   </div>
 </div>
 
@@ -2902,7 +2894,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v141';
+const APP_VERSION='v142';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3238,6 +3230,54 @@ function aggiornBasePunti(){
 // La scheda ufficiale AIS mostra SOLO i numeri 7-10 per parametro, mai le 5
 // parole (quelle sono riservate alla classificazione del punteggio TOTALE —
 // vedi fasciaP). Etichette testuali rimosse per non confondere i due livelli.
+function creaSlider(wrapId, paramId){
+  var wrap=document.getElementById(wrapId);
+  if(!wrap) return;
+  wrap.innerHTML='';
+  // display:contents fa sì che i 4 cerchi partecipino alla griglia del genitore
+  VOTI.forEach(function(v){
+    var chip=document.createElement('div');
+    chip.className='voto-chip ais-radio';
+    chip.dataset.param=paramId;
+    chip.dataset.voto=v;
+    wrap.appendChild(chip);
+  });
+  aggiornaSlider(paramId);
+}
+
+function aggiornaColonnaPiena(){
+  var tot=0;
+  PARAMS.forEach(function(p){ tot+=voti[p.id]*p.peso; });
+  tot=parseFloat(tot.toFixed(1));
+  var col=tot>=90?10:tot>=80?9:tot>=70?8:7;
+  [10,9,8,7].forEach(function(n){
+    var el=document.getElementById('cp'+n);
+    if(!el) return;
+    if(n===col){ el.textContent=tot.toFixed(1); el.style.color='var(--m)'; }
+    else { el.textContent=''; el.style.color='transparent'; }
+  });
+}
+
+function inserisciHeaderColonne(){
+  // Inserisce l'header 10/9/8/7 prima del primo sezV
+  var target=document.getElementById('sezV');
+  if(!target || document.getElementById('ais-col-hdr')) return;
+  var hdr=document.createElement('div');
+  hdr.id='ais-col-hdr';
+  hdr.className='ais-pt-hdr-row';
+  hdr.innerHTML='<span>Parametro (peso)</span><span>10</span><span>9</span><span>8</span><span>7</span>';
+  target.parentNode.insertBefore(hdr, target);
+  // Logo AIS nel header scheda
+  var logoEl=document.getElementById('ais-logo-pt');
+  if(logoEl){
+    var logoP=document.querySelector('#punti-vista .logo-img, #punti-vista img.logo, .logo-ais');
+    if(!logoP){
+      // crea logo SVG semplificato
+      logoEl.innerHTML='<svg width="40" height="40" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="37" stroke="#555" stroke-width="2" fill="none"/><circle cx="40" cy="40" r="21" stroke="#555" stroke-width="1.5" fill="none"/><circle cx="40" cy="40" r="6" fill="#555"/><circle cx="40" cy="4" r="3" fill="#555"/><circle cx="58" cy="12" r="2.5" fill="#555"/><circle cx="68" cy="30" r="2.5" fill="#555"/><circle cx="65" cy="52" r="2" fill="#555"/><circle cx="50" cy="66" r="2" fill="#555"/><circle cx="28" cy="66" r="2" fill="#555"/><circle cx="14" cy="52" r="2" fill="#555"/><circle cx="11" cy="30" r="2" fill="#555"/><circle cx="22" cy="12" r="2" fill="#555"/></svg><div style="font-size:7px;color:#777;text-align:center;margin-top:2px">Associazione Italiana Sommelier</div>';
+    }
+  }
+}
+
 const ETICHETTE={7:'',8:'',9:'',10:''};
 
 function creaSlider(wrapId, paramId){
@@ -3345,6 +3385,7 @@ function calcolaTotale(){
   document.getElementById('subO').textContent=subO.toFixed(1);
   document.getElementById('subG').textContent=subG.toFixed(1);
   document.getElementById('subF').textContent=subF.toFixed(1);
+  aggiornaColonnaPiena();
   // Label qualitative di sezione (media voti pesati → fascia)
   // Soglie proporzionali a fasciaP (70/80/85/90/94 diviso 10): un voto
   // uniforme 7/8/9/10 in una sezione produce esattamente la stessa parola
@@ -3598,10 +3639,10 @@ function mostraScheda(){
   // un 7 scelto. Qui si nasconde l'INTERA interfaccia di punteggio: niente
   // sezioni, niente chip, niente legenda, niente bottone Aggiorna (il
   // toggle N.G. si salva già da solo). Resta solo un avviso esplicito.
-  ['sezV','sezO','sezG','sezF'].forEach(function(id){
-    document.getElementById(id).style.display=isNG?'none':'block';
+  ['sezV','sezO','sezG','sezF','ais-col-hdr','colonnaPiena'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.style.display=isNG?'none':'block';
   });
-  document.getElementById('legendaChip').style.display=isNG?'none':'flex';
+  var lc=document.getElementById('legendaChip'); if(lc) lc.style.display=isNG?'none':'flex';
   document.getElementById('ngNotice').style.display=isNG?'block':'none';
   document.getElementById('actsP').style.display=isNG?'none':'flex';
   document.getElementById('heroAggiorna').style.display=isNG?'none':'flex';
@@ -3819,6 +3860,7 @@ function initPunti(){
   });
   localStorage.setItem('ais_punti',JSON.stringify(l));
   PARAMS.forEach(function(p){ creaSlider(p.slId, p.id); });
+  inserisciHeaderColonne();
   // Event delegation per chip voto
   document.getElementById('vista-punti').addEventListener('click',function(e){
     var chip=e.target.closest('.voto-chip');
