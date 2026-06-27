@@ -850,6 +850,10 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <div style="font-size:12px;color:#888">Nessun parametro può essere valutato. Togli il flag qui sopra per tornare alla valutazione normale.</div>
 </div>
 
+<div id="ais-col-hdr" class="ais-pt-hdr-row">
+  <span style="text-align:left;font-size:10px;color:#aaa;font-weight:400">Parametro (peso)</span>
+  <span>10</span><span>9</span><span>8</span><span>7</span>
+</div>
 <div id="sezV">
   <div class="ais-sez-hdr"><span>Esame visivo <span id="lbV" style="font-weight:400;opacity:.8;font-size:9px"></span></span><span id="subV" class="ais-sez-sub">—</span></div>
   <div class="ais-pt-row">
@@ -2888,7 +2892,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v148';
+const APP_VERSION='v149';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3253,21 +3257,16 @@ function aggiornaColonnaPiena(){
 }
 
 function inserisciHeaderColonne(){
-  // Inserisce l'header 10/9/8/7 prima del primo sezV
-  var target=document.getElementById('sezV');
-  if(!target || document.getElementById('ais-col-hdr')) return;
-  var hdr=document.createElement('div');
-  hdr.id='ais-col-hdr';
-  hdr.className='ais-pt-hdr-row';
-  hdr.innerHTML='<span>Parametro (peso)</span><span>10</span><span>9</span><span>8</span><span>7</span>';
-  target.parentNode.insertBefore(hdr, target);
-  // Logo AIS nel header scheda — usa il logo PNG originale già nell'app
+  // Header colonne è ora HTML statico — qui gestiamo solo il logo AIS
   var logoEl=document.getElementById('ais-logo-pt');
-  if(logoEl){
-    var existingLogo=document.querySelector('img[alt="Scheda di Valutazione del Vino AIS"]')||
-                     document.querySelector('img[alt="Scheda AIS"]');
-    if(existingLogo){
-      logoEl.innerHTML='<img src="'+existingLogo.src+'" style="height:42px;width:auto;display:block;margin:0 auto"><div style="font-size:7px;color:#777;text-align:center;margin-top:2px">Associazione Italiana Sommelier</div>';
+  if(logoEl && !logoEl.hasChildNodes()){
+    // Clona il SVG "Associazione Italiana Sommelier" già nel DOM (usato nell'header punti)
+    var svgSrc=document.getElementById('ais-logo-hd-punti');
+    if(svgSrc){
+      var clone=svgSrc.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.style.cssText='height:32px;width:auto;display:block;margin:0 auto';
+      logoEl.appendChild(clone);
     }
   }
 }
