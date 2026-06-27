@@ -135,9 +135,9 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .p-delta.d-pari{background:transparent;color:#bbb;border:1px solid #ddd;font-size:9px;font-weight:600}
 
 /* ─── SCHEDA A PUNTI AIS — griglia tabellare ─────────────────────────────── */
-.ais-pt-row{display:grid;grid-template-columns:minmax(0,1.4fr) 1fr 1fr 1fr 1fr;align-items:center;padding:9px 12px;border-bottom:0.5px solid var(--b);}
-.ais-pt-hdr-row{display:grid;grid-template-columns:minmax(0,1.4fr) 1fr 1fr 1fr 1fr;padding:6px 12px;background:#f9f7f4;border-bottom:0.5px solid var(--b);}
-.ais-pt-hdr-row span{text-align:center;font-size:15px;font-weight:700;color:#333;}
+.ais-pt-row{display:grid;grid-template-columns:minmax(0,1fr) 52px 52px 52px 52px;align-items:center;padding:8px 12px;border-bottom:0.5px solid var(--b);}
+.ais-pt-hdr-row{display:grid;grid-template-columns:minmax(0,1fr) 52px 52px 52px 52px;padding:6px 12px;background:#f9f7f4;border-bottom:0.5px solid var(--b);}
+.ais-pt-hdr-row span{text-align:center;font-size:13px;font-weight:600;color:#666;}
 .ais-pt-hdr-row span:first-child{text-align:left;font-size:10px;color:#aaa;}
 .ais-sez-hdr{background:var(--m);color:#fff;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
 .ais-sez-sub{font-size:11px;font-weight:500;opacity:.9;text-transform:none;letter-spacing:0;}
@@ -145,18 +145,17 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .ais-pname small{font-size:10px;color:#bbb;font-weight:400;}
 .ais-hint{font-size:10px;color:#aaa;font-style:italic;display:block;margin-top:1px;}
 /* cerchi radio AIS — sostituiscono i chip orizzontali */
-.voto-chip.ais-radio{width:clamp(38px,10vw,58px);height:clamp(38px,10vw,58px);border-radius:50%;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;transition:.1s;background:#fff;}
-.voto-chip.ais-radio:hover{border-color:var(--m);}
-.voto-chip.ais-radio::after{content:'';width:0;height:0;border-radius:50%;background:#fff;transition:.1s;}
-.voto-chip.ais-radio.sel::after,.voto-chip.ais-radio.conf-base::after,.voto-chip.ais-radio.conf-su::after,.voto-chip.ais-radio.conf-giu::after{width:clamp(12px,3.2vw,20px);height:clamp(12px,3.2vw,20px);}
-.voto-chip.ais-radio.sel{background:#f5d800;border-color:#c8a000;}
-.voto-chip.ais-radio.sel::after{background:#5a3c00;}
-.voto-chip.ais-radio.conf-base{background:var(--m);border-color:var(--m);}
-.voto-chip.ais-radio.conf-base::after{background:#fff;}
-.voto-chip.ais-radio.conf-su{background:#1e9644;border-color:#0f5225;}
-.voto-chip.ais-radio.conf-su::after{background:#fff;}
-.voto-chip.ais-radio.conf-giu{background:#c8002a;border-color:#7a0018;}
-.voto-chip.ais-radio.conf-giu::after{background:#fff;}
+.voto-chip.ais-radio{display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;width:44px;height:44px;font-size:28px;font-weight:900;color:#ddd;transition:color .1s, transform .08s;user-select:none;line-height:1;}
+.voto-chip.ais-radio::before{content:'✕';}
+.voto-chip.ais-radio:hover::before{color:#aaa;}
+.voto-chip.ais-radio.sel{color:#c8a000;}
+.voto-chip.ais-radio.sel::before{color:#c8a000;}
+.voto-chip.ais-radio.conf-base{color:var(--m);}
+.voto-chip.ais-radio.conf-base::before{color:var(--m);}
+.voto-chip.ais-radio.conf-su{color:#1e9644;}
+.voto-chip.ais-radio.conf-su::before{color:#1e9644;}
+.voto-chip.ais-radio.conf-giu{color:#c8002a;}
+.voto-chip.ais-radio.conf-giu::before{color:#c8002a;}
 .sez-hd.stato-ok-p{background:#2e6b2e !important}
 .sez-hd.stato-warn-p{background:#b84a00 !important}
 .sez-hd.stato-inc-p{background:var(--d)}
@@ -2894,7 +2893,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v145';
+const APP_VERSION='v146';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
