@@ -140,17 +140,17 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .ais-pname small{font-size:10px;color:#bbb;font-weight:400;}
 .ais-hint{font-size:10px;color:#aaa;font-style:italic;display:block;margin-top:1px;}
 /* cerchi radio AIS — sostituiscono i chip orizzontali */
-.voto-chip.ais-radio{display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;width:44px;height:44px;font-size:22px;font-weight:900;color:#ddd;border-radius:6px;background:transparent;transition:background .1s,color .1s;user-select:none;line-height:1;}
+.voto-chip.ais-radio{display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;width:44px;height:44px;font-size:22px;font-weight:900;color:transparent;border-radius:6px;background:transparent;transition:background .1s,color .1s;user-select:none;line-height:1;border:1.5px solid #e0ddd8;}
 .voto-chip.ais-radio::before{content:'✕';}
-.voto-chip.ais-radio:hover{background:#f0f0ee;}
+.voto-chip.ais-radio:hover{border-color:#bbb;}
 /* ereditato dall'analitica, non ancora confermato */
-.voto-chip.ais-radio.sel{background:#f5d800;color:#5a3c00;}
+.voto-chip.ais-radio.sel{background:#f5d800;color:#5a3c00;border-color:#c8a000;}
 /* confermato al valore base */
-.voto-chip.ais-radio.conf-base{background:var(--m);color:#fff;}
+.voto-chip.ais-radio.conf-base{background:var(--m);color:#fff;border-color:var(--m);}
 /* confermato, voto alzato rispetto al base */
-.voto-chip.ais-radio.conf-su{background:#1e9644;color:#fff;}
+.voto-chip.ais-radio.conf-su{background:#1e9644;color:#fff;border-color:#0f5225;}
 /* confermato, voto abbassato rispetto al base */
-.voto-chip.ais-radio.conf-giu{background:#c8002a;color:#fff;}
+.voto-chip.ais-radio.conf-giu{background:#c8002a;color:#fff;border-color:#7a0018;}
 .sez-hd.stato-ok-p{background:#2e6b2e !important}
 .sez-hd.stato-warn-p{background:#b84a00 !important}
 .sez-hd.stato-inc-p{background:var(--d)}
@@ -833,10 +833,10 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 <!-- VISIVO -->
 <!-- Legenda stati chip -->
-<div id="legendaChip" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px;border-bottom:0.5px solid var(--b)">
-  <div style="display:flex;align-items:stretch;gap:10px">
-    <div style="width:4px;background:#7a4a6e;border-radius:2px;flex-shrink:0"></div>
-    <div style="font-size:12px;font-weight:600;color:#4a4a4a;line-height:1.35;letter-spacing:.01em">SCHEDA<br>DI VALUTAZIONE A PUNTI<br>DEL VINO</div>
+<div id="legendaChip" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px;border-bottom:2px solid #e0ddd8;background:#fff">
+  <div style="display:flex;align-items:stretch;gap:12px">
+    <div style="width:5px;background:#7a4a6e;border-radius:2px;flex-shrink:0"></div>
+    <div style="font-size:14px;font-weight:700;color:#4a4a4a;line-height:1.4;letter-spacing:.02em">SCHEDA<br>DI VALUTAZIONE A PUNTI<br>DEL VINO</div>
   </div>
   <div style="text-align:center">
     <div id="ais-logo-pt"></div>
@@ -2888,7 +2888,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v147';
+const APP_VERSION='v148';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
