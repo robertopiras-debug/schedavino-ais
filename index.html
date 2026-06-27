@@ -2463,8 +2463,12 @@ function validaScheda(){
   // usa la validazione leggera anche per schede tipo='completa'.
   // Caso tipico: campione con solo punti che l'utente vuole rinominare
   // senza dover compilare l'intera scheda analitica.
-  var analiticaVuota=!sc.limpidezza && !sc.colore &&
-    !(mx.dolf||[]).length && !sc.iolf && !sc.qvis &&
+  // Le bozze VITAE impostano qvis/qolf/qgus/qtot ma NON i parametri
+  // descrittivi (limpidezza, colore, iolf, colf, igus, equi, dolf[]).
+  // Usare !sc.qvis come condizione era sbagliato: le bozze VITAE hanno
+  // qvis='Ottimo' e facevano fallire il check anche con analitica vuota.
+  var analiticaVuota=!sc.limpidezza && !sc.colore && !sc.iolf && !sc.colf &&
+    !(mx.dolf||[]).length && !sc.igus && !sc.equi &&
     !document.getElementById('nolf').value.trim() &&
     !document.getElementById('nota-vis').value.trim();
   if(analiticaVuota) isBozzaEdit=true;
@@ -2898,7 +2902,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v140';
+const APP_VERSION='v141';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
