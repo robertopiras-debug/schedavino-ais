@@ -106,27 +106,22 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .sl.stato-warn .sl-badge{background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.3)}
 .sl-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;border:1px solid transparent;margin-right:6px;transition:all .2s;white-space:nowrap}
 
-/* ═══ CHIP VOTO SCHEDA PUNTI — 3 STATI ═══ */
+/* ═══ CHIP VOTO SCHEDA PUNTI — vecchio layout (non ais-radio) ═══ */
 
-/* STATO 1 — Non confermato (ereditato da Guida VITAE): chip SELEZIONATO giallo */
-.voto-chip:not(.confermato).sel{background:#f5d800 !important;border:2px solid #8a7000 !important;opacity:1;box-shadow:0 0 0 2px #f5d80055}
-.voto-chip:not(.confermato).sel .vc-num{color:#3a2800 !important;font-size:14px;font-weight:900}
-.voto-chip:not(.confermato).sel .vc-lbl{color:#5a4000 !important}
-.voto-chip:not(.confermato):not(.sel){background:var(--r);border:1px solid var(--b);opacity:.75}
-/* STATO 2 — Confermato invariato: magenta (hai accettato la stima guida) */
-.voto-chip.conf-base{background:var(--m) !important;border:2px solid #8a0050 !important;opacity:1}
-.voto-chip.conf-base .vc-num{color:#fff !important;font-size:14px;font-weight:900}
-.voto-chip.conf-base .vc-lbl{color:rgba(255,255,255,.85) !important}
-/* STATO 3 — Confermato migliorato: verde */
-.voto-chip.conf-su{background:#1e9644 !important;border:2px solid #0f5225 !important;opacity:1}
-.voto-chip.conf-su .vc-num{color:#fff !important;font-size:14px;font-weight:900}
-.voto-chip.conf-su .vc-lbl{color:rgba(255,255,255,.85) !important}
-/* STATO 4 — Confermato peggiorato: rosso */
-.voto-chip.conf-giu{background:#c8002a !important;border:2px solid #7a0018 !important;opacity:1}
-.voto-chip.conf-giu .vc-num{color:#fff !important;font-size:14px;font-weight:900}
-.voto-chip.conf-giu .vc-lbl{color:rgba(255,255,255,.85) !important}
-/* Chip non selezionato confermato: neutro */
-.voto-chip.confermato:not(.sel){background:var(--r);border-color:var(--b);opacity:1}
+.voto-chip:not(.ais-radio):not(.confermato).sel{background:#f5d800 !important;border:2px solid #8a7000 !important;opacity:1;box-shadow:0 0 0 2px #f5d80055}
+.voto-chip:not(.ais-radio):not(.confermato).sel .vc-num{color:#3a2800 !important;font-size:14px;font-weight:900}
+.voto-chip:not(.ais-radio):not(.confermato).sel .vc-lbl{color:#5a4000 !important}
+.voto-chip:not(.ais-radio):not(.confermato):not(.sel){background:var(--r);border:1px solid var(--b);opacity:.75}
+.voto-chip:not(.ais-radio).conf-base{background:var(--m) !important;border:2px solid #8a0050 !important;opacity:1}
+.voto-chip:not(.ais-radio).conf-base .vc-num{color:#fff !important;font-size:14px;font-weight:900}
+.voto-chip:not(.ais-radio).conf-base .vc-lbl{color:rgba(255,255,255,.85) !important}
+.voto-chip:not(.ais-radio).conf-su{background:#1e9644 !important;border:2px solid #0f5225 !important;opacity:1}
+.voto-chip:not(.ais-radio).conf-su .vc-num{color:#fff !important;font-size:14px;font-weight:900}
+.voto-chip:not(.ais-radio).conf-su .vc-lbl{color:rgba(255,255,255,.85) !important}
+.voto-chip:not(.ais-radio).conf-giu{background:#c8002a !important;border:2px solid #7a0018 !important;opacity:1}
+.voto-chip:not(.ais-radio).conf-giu .vc-num{color:#fff !important;font-size:14px;font-weight:900}
+.voto-chip:not(.ais-radio).conf-giu .vc-lbl{color:rgba(255,255,255,.85) !important}
+.voto-chip:not(.ais-radio).confermato:not(.sel){background:var(--r);border-color:var(--b);opacity:1}
 /* Badge delta (a sinistra del numero voto) */
 .p-delta{font-size:11px;font-weight:800;line-height:1.2;text-align:center;border-radius:3px;padding:2px 4px;min-width:26px;transition:all .2s;flex-shrink:0}
 .p-delta:empty{display:none}
@@ -145,17 +140,17 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .ais-pname small{font-size:10px;color:#bbb;font-weight:400;}
 .ais-hint{font-size:10px;color:#aaa;font-style:italic;display:block;margin-top:1px;}
 /* cerchi radio AIS — sostituiscono i chip orizzontali */
-.voto-chip.ais-radio{display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;width:44px;height:44px;font-size:28px;font-weight:900;color:#ddd;transition:color .1s, transform .08s;user-select:none;line-height:1;}
+.voto-chip.ais-radio{display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;width:44px;height:44px;font-size:22px;font-weight:900;color:#ddd;border-radius:6px;background:transparent;transition:background .1s,color .1s;user-select:none;line-height:1;}
 .voto-chip.ais-radio::before{content:'✕';}
-.voto-chip.ais-radio:hover::before{color:#aaa;}
-.voto-chip.ais-radio.sel{color:#c8a000;}
-.voto-chip.ais-radio.sel::before{color:#c8a000;}
-.voto-chip.ais-radio.conf-base{color:var(--m);}
-.voto-chip.ais-radio.conf-base::before{color:var(--m);}
-.voto-chip.ais-radio.conf-su{color:#1e9644;}
-.voto-chip.ais-radio.conf-su::before{color:#1e9644;}
-.voto-chip.ais-radio.conf-giu{color:#c8002a;}
-.voto-chip.ais-radio.conf-giu::before{color:#c8002a;}
+.voto-chip.ais-radio:hover{background:#f0f0ee;}
+/* ereditato dall'analitica, non ancora confermato */
+.voto-chip.ais-radio.sel{background:#f5d800;color:#5a3c00;}
+/* confermato al valore base */
+.voto-chip.ais-radio.conf-base{background:var(--m);color:#fff;}
+/* confermato, voto alzato rispetto al base */
+.voto-chip.ais-radio.conf-su{background:#1e9644;color:#fff;}
+/* confermato, voto abbassato rispetto al base */
+.voto-chip.ais-radio.conf-giu{background:#c8002a;color:#fff;}
 .sez-hd.stato-ok-p{background:#2e6b2e !important}
 .sez-hd.stato-warn-p{background:#b84a00 !important}
 .sez-hd.stato-inc-p{background:var(--d)}
@@ -2893,7 +2888,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v146';
+const APP_VERSION='v147';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
