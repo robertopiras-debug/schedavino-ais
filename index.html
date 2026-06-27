@@ -712,8 +712,24 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 </div>
 
+<input type="hidden" id="an-foto-calice" value="">
+
 <div style="margin:10px 7px;border:1px solid var(--b);border-radius:6px;overflow:hidden">
-  <div onclick="toggleTableau()" style="background:#2a2a2a;color:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">
+  <div style="background:#f5f5f0;padding:7px 12px;font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:8px">
+    <span>📷 Foto calice</span>
+    <label style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:4px 9px;background:#fff;border:1px solid var(--b);border-radius:3px;font-size:10px;cursor:pointer;font-weight:600;color:var(--d)">
+      <input type="file" accept="image/*" capture="environment" style="display:none" onchange="anCaricaFoto(this)">
+      📷 Cambia
+    </label>
+    <button id="an-foto-rimuovi" onclick="anRimuoviFoto()" style="display:none;padding:4px 9px;background:#fff;border:1px solid #ddd;border-radius:3px;font-size:10px;color:#888;cursor:pointer">✕</button>
+  </div>
+  <div id="an-foto-preview" style="display:none;padding:8px">
+    <img id="an-foto-img" src="" style="max-width:100%;max-height:200px;border-radius:5px;object-fit:cover;display:block">
+  </div>
+  <div id="an-foto-empty" style="padding:10px 12px;font-size:11px;color:#aaa;font-style:italic">Nessuna foto — scatta dal telefono durante la degustazione</div>
+</div>
+
+<div style="margin:10px 7px;border:1px solid var(--b);border-radius:6px;overflow:hidden">
     <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">📋 Tableau de bord</span>
     <span style="font-size:9px;opacity:.7;flex:1">parametri selezionati + note libere per sezione — solo uso interno</span>
     <span id="tableau-arrow" style="font-size:11px;opacity:.7">▼</span>
@@ -1505,6 +1521,8 @@ function nuovaScheda(){
   document.getElementById('ngus').value='';
   document.getElementById('nfin').value='';
   document.getElementById('nota-degustazione').value='';
+  if(document.getElementById('an-foto-calice')) document.getElementById('an-foto-calice').value='';
+  aggiornaFotoAnalitica();
   document.getElementById('dS').value='';
   document.getElementById('w-ng').checked=false;
   document.getElementById('w-ng-motivo').value='';
@@ -1972,6 +1990,7 @@ async function salvaSuDB(scheda){
     nota_vis: scheda.nota_vis||'',
     nota_fin: scheda.nota_fin||'',
     nota_degustazione: scheda.nota_degustazione||'',
+    foto_calice: scheda.foto_calice||'',
     riconoscimenti: JSON.stringify(scheda.riconoscimenti||{}),
     stelle: scheda.stelle||0,
     dt: scheda.dt||'',
@@ -2299,7 +2318,7 @@ function gd(){
   var vitigniStr=getVitigni();
   var tipCombinata=[selColore,selMenzione,selBase,notaLib].filter(Boolean).join(' ');
   var _autoreVal=document.getElementById('wAutore').value; salvaNomeUtente(_autoreVal);
-  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],riconoscimenti:Object.assign({},riconoscimenti),nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:document.getElementById('nota-degustazione').value,stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
+  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],riconoscimenti:Object.assign({},riconoscimenti),nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:document.getElementById('nota-degustazione').value,foto_calice:document.getElementById('an-foto-calice')?document.getElementById('an-foto-calice').value:'',stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
 }
 
 /* toast(m) già definita sopra — duplicato rimosso (stesso comportamento, debito tecnico) */
@@ -2583,6 +2602,8 @@ function loadS(id){
   document.getElementById('ngus').value=s.nota_gus||'';
   document.getElementById('nfin').value=s.nota_fin||'';
   document.getElementById('nota-degustazione').value=s.nota_degustazione||'';
+  if(document.getElementById('an-foto-calice')) document.getElementById('an-foto-calice').value=s.foto_calice||'';
+  aggiornaFotoAnalitica();
   document.getElementById('nota-vis').value=s.nota_vis||'';
 
   // ── Campione N.G. ──
@@ -2868,7 +2889,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v135';
+const APP_VERSION='v136';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3870,13 +3891,14 @@ function filtraHomeSchede(){
     var daCompletare=!isBozza && !s.ng && !analiticaSembraCompilata(s);
     var badgeDaCompletare=daCompletare?'<span title="Punteggio confermato ma la scheda analitica non è mai stata compilata" style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Da completare</span>':'';
     var badgeNota=(s.nota_degustazione&&s.nota_degustazione.trim())?'<span title="Nota di degustazione presente" style="font-size:9px;font-weight:700;background:#e8eaf6;color:#3949ab;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">✍ nota</span>':'';
+    var badgeFoto=(s.foto_calice&&s.foto_calice.trim())?'<span title="Foto calice presente" style="font-size:9px;font-weight:700;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📷</span>':'';
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
     // Badge "non sincronizzata": vale sia per la scheda analitica sia per
     // il punteggio collegato — basta che uno dei due non sia confermato sul cloud.
     var nonSync=pendingSyncS.indexOf(String(s.id))>-1 || (val && pendingSyncP.indexOf(String(val.id))>-1);
     var badgeSync=nonSync?'<span title="In attesa di sincronizzazione cloud" style="font-size:9px;font-weight:800;background:#fff3cd;color:#7a5400;border:1px solid #f5a800;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle">☁️⚠</span>':'';
-    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza+badgeNG+badgeDaCompletare+badgeNota+badgeSync;
+    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza+badgeNG+badgeDaCompletare+badgeNota+badgeFoto+badgeSync;
     var ptNum=s.ng
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:18px;font-weight:900;color:#a00;line-height:1.1">N.G.</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">difettato</div>'        +'</div>'      :(val
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:22px;font-weight:900;color:var(--m);line-height:1.1">'+fmtPt(val.punteggio)+'</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">'+fasciaP(parseFloat(val.punteggio)||0)+'</div>'        +'</div>'      :'<div style="min-width:54px;flex-shrink:0;text-align:right">'        +'<div style="font-size:10px;color:#ccc">—</div>'        +'</div>');
@@ -3924,7 +3946,36 @@ function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=d
 var SCALA_AIS=[10,9,8,7];
 
 // ─── FORM RAPIDO — stato chip colore/base ────────────────────────────────────
-var _rpColore='', _rpBase='';
+var _rpColore='', _rpBase='', _rpFoto='';
+
+function rpCaricaFoto(input){
+  var file=input.files&&input.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var canvas=document.createElement('canvas');
+      var MAX=900; var w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      _rpFoto=canvas.toDataURL('image/jpeg',0.72);
+      document.getElementById('rp-foto-img').src=_rpFoto;
+      document.getElementById('rp-foto-preview').style.display='block';
+      document.getElementById('rp-foto-rimuovi').style.display='inline-flex';
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function rpRimuoviFoto(){
+  _rpFoto='';
+  document.getElementById('rp-foto-img').src='';
+  document.getElementById('rp-foto-preview').style.display='none';
+  document.getElementById('rp-foto-rimuovi').style.display='none';
+}
 function rpSetChip(gruppo, valore, el){
   if(gruppo==='colore') _rpColore=valore;
   else _rpBase=valore;
@@ -3935,10 +3986,11 @@ function rpSetChip(gruppo, valore, el){
   el.style.background='var(--m)'; el.style.color='#fff'; el.style.borderColor='var(--m)'; el.style.fontWeight='700';
 }
 function rpResetChips(){
-  _rpColore=''; _rpBase='';
+  _rpColore=''; _rpBase=''; _rpFoto='';
   document.querySelectorAll('[data-rp="colore"] span,[data-rp="base"] span').forEach(function(s){
     s.style.background='#fff'; s.style.color='#333'; s.style.borderColor='var(--b)'; s.style.fontWeight='400';
   });
+  rpRimuoviFoto();
 }
 
 var SEZIONI_RAPIDE=[
@@ -4146,6 +4198,7 @@ async function salvaRapida(){
     tipologia:tipologia,
     denominazione:document.getElementById('rp-denom-search').value.trim()||'',
     nota_fin:document.getElementById('rp-note').value||'',
+    foto_calice:_rpFoto||'',
     parametri:parametri,
     ng:isNG,
     ng_motivo:ng_motivo,
@@ -4395,6 +4448,11 @@ function apriSchedaLettura(sid){
       h+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Nota di degustazione</div>';
       h+='<div style="font-size:13px;line-height:1.7;color:#333;font-family:Georgia,serif">'+s.nota_degustazione.replace(/\n/g,'<br>')+'</div></div>';
     }
+    if(s.foto_calice&&s.foto_calice.trim()){
+      h+='<div style="padding:10px 14px;border-top:1px solid #f0ede8">';
+      h+='<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">📷 Foto calice</div>';
+      h+='<img src="'+s.foto_calice+'" style="max-width:100%;border-radius:6px;object-fit:cover"></div>';
+    }
   }
 
   document.getElementById('modal-lettura-body').innerHTML=h;
@@ -4429,6 +4487,47 @@ function rimuoviApiKey(){
 
 function getAnthropicKey(){ return localStorage.getItem('ais_anthropic_key')||''; }
 function setAnthropicKey(k){ localStorage.setItem('ais_anthropic_key', k.trim()); }
+
+function aggiornaFotoAnalitica(){
+  var val=document.getElementById('an-foto-calice')?document.getElementById('an-foto-calice').value:'';
+  var img=document.getElementById('an-foto-img');
+  var prev=document.getElementById('an-foto-preview');
+  var empty=document.getElementById('an-foto-empty');
+  var btn=document.getElementById('an-foto-rimuovi');
+  if(!img||!prev||!empty) return;
+  if(val){
+    img.src=val; prev.style.display='block'; empty.style.display='none';
+    if(btn) btn.style.display='inline-flex';
+  } else {
+    img.src=''; prev.style.display='none'; empty.style.display='block';
+    if(btn) btn.style.display='none';
+  }
+}
+function anCaricaFoto(input){
+  var file=input.files&&input.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var canvas=document.createElement('canvas');
+      var MAX=900; var w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      var b64=canvas.toDataURL('image/jpeg',0.72);
+      document.getElementById('an-foto-calice').value=b64;
+      aggiornaFotoAnalitica();
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function anRimuoviFoto(){
+  if(document.getElementById('an-foto-calice')) document.getElementById('an-foto-calice').value='';
+  aggiornaFotoAnalitica();
+}
 
 // ─── CHIAVE API ANTHROPIC su Supabase admin_settings ─────────────────────────
 async function caricaApiKeyDaSupa(){
@@ -4988,6 +5087,21 @@ function renderAdminVino(){
   <!-- Note libere -->
   <div style="margin:8px 12px 0">
     <textarea id="rp-note" placeholder="Note rapide (facoltative)..." style="width:100%;padding:10px;border:1px solid var(--b);border-radius:4px;font-size:12px;resize:vertical;min-height:60px;box-sizing:border-box;background:#fff"></textarea>
+  </div>
+
+  <!-- Foto calice -->
+  <div style="margin:8px 12px 0">
+    <div style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700;margin-bottom:5px">📷 Foto calice (facoltativa)</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <label style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:#fff;border:1px solid var(--b);border-radius:4px;font-size:12px;cursor:pointer;font-weight:600;color:var(--d)">
+        <input type="file" accept="image/*" capture="environment" style="display:none" onchange="rpCaricaFoto(this)">
+        📷 Scatta / Scegli
+      </label>
+      <button id="rp-foto-rimuovi" onclick="rpRimuoviFoto()" style="display:none;padding:7px 10px;background:#fff;border:1px solid #ddd;border-radius:4px;font-size:11px;color:#888;cursor:pointer">✕ Rimuovi</button>
+    </div>
+    <div id="rp-foto-preview" style="margin-top:6px;display:none">
+      <img id="rp-foto-img" src="" style="max-width:100%;max-height:160px;border-radius:6px;border:1px solid var(--b);object-fit:cover">
+    </div>
   </div>
 
   <!-- Campione difettato (N.G.) -->
