@@ -148,9 +148,9 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .ais-pt-hdr-row span:first-child{text-align:left;font-size:10px;color:#aaa;}
 .ais-sez-hdr{background:var(--m);color:#fff;padding:3px 12px;display:flex;justify-content:space-between;align-items:center;font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
 .ais-sez-sub{font-size:11px;font-weight:500;opacity:.9;text-transform:none;letter-spacing:0;}
-.ais-pname{font-size:11px;color:var(--d);line-height:1.2;}
-.ais-pname small{font-size:10px;color:#bbb;font-weight:400;}
-.ais-hint{font-size:9px;color:#aaa;font-style:italic;display:block;}
+.ais-pname{font-size:11px;color:var(--d);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.ais-pname small{font-size:9px;color:#bbb;font-weight:400;}
+.ais-hint{font-size:9px;color:#aaa;font-style:italic;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* cerchi radio AIS — sostituiscono i chip orizzontali */
 .voto-chip.ais-radio{display:flex;align-items:center;justify-content:center;cursor:pointer;margin:auto;width:32px;height:32px;font-size:16px;font-weight:900;color:transparent;border-radius:5px;background:transparent;transition:background .1s,color .1s;user-select:none;line-height:1;border:1.5px solid #e0ddd8;}
 .voto-chip.ais-radio::before{content:'✕';}
@@ -2934,7 +2934,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v152';
+const APP_VERSION='v153';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
