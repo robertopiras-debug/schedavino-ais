@@ -2929,7 +2929,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v156';
+const APP_VERSION='v157';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3585,6 +3585,17 @@ function caricaDaAnalitica(){
   }
 
   mostraScheda();
+  // ── Analitica → Punti: eredita note di sezione se i campi punti sono vuoti ──
+  var npMap=[
+    {pt:'nota-vis-pt', an:'nota_vis'},
+    {pt:'nota-olf-pt', an:'nota_olf'},
+    {pt:'nota-gus-pt', an:'nota_gus'},
+    {pt:'nota-fin-pt', an:'nota_fin'}
+  ];
+  npMap.forEach(function(m){
+    var el=document.getElementById(m.pt);
+    if(el && !el.value && analiticaP && analiticaP[m.an]) el.value=analiticaP[m.an];
+  });
 }
 
 function modalitaManuale(){
@@ -3767,6 +3778,24 @@ function salvaPunti(){
     l.unshift(d);
   }
   toastP('Valutazione salvata ✓ (sync in corso...)');
+  // ── Punti → Analitica: scrivi note di sezione sulla scheda analitica collegata ──
+  if(aId){
+    var schedeA=JSON.parse(localStorage.getItem('ais_s')||'[]');
+    var idxA=schedeA.findIndex(function(x){return x.id==aId;});
+    if(idxA>-1){
+      ['nota_vis','nota_olf','nota_gus','nota_fin'].forEach(function(k){
+        if(d[k]) schedeA[idxA][k]=d[k];  // scrive solo se la nota punti non è vuota
+      });
+      // Aggiorna anche i campi DOM analitica se la vista è aperta
+      var domMap={nota_vis:'nota-vis',nota_olf:'nolf',nota_gus:'ngus',nota_fin:'nfin'};
+      Object.keys(domMap).forEach(function(k){
+        var el=document.getElementById(domMap[k]);
+        if(el && d[k]) el.value=d[k];
+      });
+      localStorage.setItem('ais_s',JSON.stringify(schedeA));
+      if(typeof salvaSuDB==='function') salvaSuDB(schedeA[idxA]);
+    }
+  }
   if(isBozzaMode && aId){
     // La valutazione a punti è il passo che completa il flusso Guida VITAE:
     // qui — non più nella scheda analitica — la bozza diventa definitiva.
