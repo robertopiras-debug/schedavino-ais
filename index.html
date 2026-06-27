@@ -2868,7 +2868,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v133';
+const APP_VERSION='v134';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3917,6 +3917,24 @@ function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=d
 // vedi fasciaP). Tolto anche il 6: il pavimento del sistema è 7.
 var SCALA_AIS=[10,9,8,7];
 
+// ─── FORM RAPIDO — stato chip colore/base ────────────────────────────────────
+var _rpColore='', _rpBase='';
+function rpSetChip(gruppo, valore, el){
+  if(gruppo==='colore') _rpColore=valore;
+  else _rpBase=valore;
+  var cont=el.closest('[data-rp="'+gruppo+'"]');
+  if(cont) cont.querySelectorAll('span').forEach(function(s){
+    s.style.background='#fff'; s.style.color='#333'; s.style.borderColor='var(--b)'; s.style.fontWeight='400';
+  });
+  el.style.background='var(--m)'; el.style.color='#fff'; el.style.borderColor='var(--m)'; el.style.fontWeight='700';
+}
+function rpResetChips(){
+  _rpColore=''; _rpBase='';
+  document.querySelectorAll('[data-rp="colore"] span,[data-rp="base"] span').forEach(function(s){
+    s.style.background='#fff'; s.style.color='#333'; s.style.borderColor='var(--b)'; s.style.fontWeight='400';
+  });
+}
+
 var SEZIONI_RAPIDE=[
   {id:'vis',  label:'Esame Visivo',          peso:0.10, params:['aspetto']},
   {id:'olf',  label:'Esame Olfattivo',        peso:0.30, params:['iolf','purez','compl']},
@@ -4029,9 +4047,8 @@ function homeNuovaRapida(){
     var el=document.getElementById(id); if(el) el.value='';
   });
   document.getElementById('rp-denom-dd').style.display='none';
-  document.getElementById('rp-colore').value='';
-  document.getElementById('rp-base').value='';
   document.getElementById('rp-ng').checked=false;
+  rpResetChips();
   document.getElementById('rp-ng-motivo').style.display='none';
   document.getElementById('rp-preview').textContent='—';
   document.getElementById('rp-fascia').textContent='';
@@ -4094,8 +4111,8 @@ async function salvaRapida(){
   var now=new Date();
   var dt=now.toLocaleDateString("it-IT")+' '+now.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
   var id=Date.now();
-  var colore=document.getElementById('rp-colore').value;
-  var base=document.getElementById('rp-base').value;
+  var colore=_rpColore;
+  var base=_rpBase;
   var tipologia=[colore,base].filter(Boolean).join(' ');
 
   // Modalità guida: si salvano SOLO i 4 giudizi di sezione (descrittori AIS).
@@ -4921,21 +4938,19 @@ function renderAdminVino(){
       </div>
       <div>
         <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Colore</label>
-        <select id="rp-colore" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
-          <option value="">—</option>
-          <option>Bianco</option>
-          <option>Rosato</option>
-          <option>Rosso</option>
-        </select>
+        <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap" data-rp="colore">
+          <span onclick="rpSetChip('colore','Bianco',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Bianco</span>
+          <span onclick="rpSetChip('colore','Rosato',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Rosato</span>
+          <span onclick="rpSetChip('colore','Rosso',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Rosso</span>
+        </div>
       </div>
       <div>
         <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Modalità</label>
-        <select id="rp-base" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
-          <option value="">—</option>
-          <option>Fermo</option>
-          <option>Frizzante</option>
-          <option>Spumante</option>
-        </select>
+        <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap" data-rp="base">
+          <span onclick="rpSetChip('base','Fermo',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Fermo</span>
+          <span onclick="rpSetChip('base','Frizzante',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Frizzante</span>
+          <span onclick="rpSetChip('base','Spumante',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Spumante</span>
+        </div>
       </div>
     </div>
     <div class="rp-dw" style="position:relative">
