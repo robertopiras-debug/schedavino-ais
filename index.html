@@ -2459,6 +2459,16 @@ function validaScheda(){
     if(_cur && _cur.tipo==='bozza') isBozzaEdit=true;
   }
 
+  // Se l'analitica è vuota (nessun parametro, nessun descrittore, nessuna nota)
+  // usa la validazione leggera anche per schede tipo='completa'.
+  // Caso tipico: campione con solo punti che l'utente vuole rinominare
+  // senza dover compilare l'intera scheda analitica.
+  var analiticaVuota=!sc.limpidezza && !sc.colore &&
+    !(mx.dolf||[]).length && !sc.iolf && !sc.qvis &&
+    !document.getElementById('nolf').value.trim() &&
+    !document.getElementById('nota-vis').value.trim();
+  if(analiticaVuota) isBozzaEdit=true;
+
   var mId=validaDatiId();
   var righeErrore=[];
 
@@ -2888,7 +2898,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v139';
+const APP_VERSION='v140';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
