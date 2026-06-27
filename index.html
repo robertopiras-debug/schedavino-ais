@@ -131,7 +131,7 @@ input::placeholder,textarea::placeholder{color:#aaa}
 
 
 /* ─── NOTE DI SEZIONE ────────────────────────────────────────────────────── */
-.sez-body{display:grid;grid-template-columns:1fr 112px;}
+.sez-body{display:grid;grid-template-columns:minmax(0,1fr) 38%;}
 .params-col{border-right:0.5px solid var(--b);}
 .note-col{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:5px 7px;}
 .fsz-badge{font-size:11px;font-weight:600;text-align:center;padding:2px 5px;border-radius:4px;background:#f0f0ee;color:#666;white-space:nowrap;}
@@ -877,7 +877,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
     <div class="note-col">
       <div id="fsz-V" class="fsz-badge">—</div>
-      <textarea id="nota-vis-pt" class="nota-sez" rows="3" placeholder="Note visive…"></textarea>
+      <textarea id="nota-vis-pt" class="nota-sez" rows="4" placeholder="Note visive…"></textarea>
     </div>
   </div>
 </div>
@@ -949,7 +949,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
     <div class="note-col">
       <div id="fsz-F" class="fsz-badge">—</div>
-      <textarea id="nota-fin-pt" class="nota-sez" rows="4" placeholder="Note finali…"></textarea>
+      <textarea id="nota-fin-pt" class="nota-sez" rows="5" placeholder="Note finali…"></textarea>
     </div>
   </div>
 </div>
@@ -2934,7 +2934,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v151';
+const APP_VERSION='v152';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
