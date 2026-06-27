@@ -2939,7 +2939,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v158';
+const APP_VERSION='v159';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3620,6 +3620,9 @@ function aggiornaTestataVino(){
   var txt=analiticaP ? (analiticaP.produttore||'')+(analiticaP.nome?' — '+analiticaP.nome:'') : '—';
   var tv=document.getElementById('t-vino'); if(tv) tv.textContent=txt;
   var hv=document.getElementById('heroVino'); if(hv) hv.textContent=txt;
+  // Aggiorna anche il nome degustatore — copre il ramo short-circuit di sincronizzaConAnalitica
+  var ta=document.getElementById('t-autore');
+  if(ta) ta.textContent=(analiticaP&&analiticaP.autore)||nomeDisplay()||'—';
   // Sincronizza il toggle N.G. con lo stato salvato sulla scheda collegata
   var pNg=document.getElementById('p-ng');
   var pNgMotivo=document.getElementById('p-ng-motivo');
