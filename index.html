@@ -2868,7 +2868,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v134';
+const APP_VERSION='v135';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3906,7 +3906,13 @@ async function homeElimina(id, e){
   }
 }
 
-function homeApriScheda(id){nascondiHome();nuovaScheda();setTimeout(function(){loadS(typeof id==="string"?parseInt(id):id);},80);}
+function homeApriScheda(id){
+  var idNum=typeof id==='string'?parseInt(id,10):id;
+  nascondiHome();
+  nuovaScheda(); // azzera il form — include editingId=null
+  editingId=idNum; // ripristinato subito: sincronizzaConAnalitica() non trova null
+  setTimeout(function(){loadS(idNum);},80);
+}
 function homeApriPunti(id){nascondiHome();apriInPunti(id,{stopPropagation:function(){}});}
 function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=nomeDisplay();}}
 
