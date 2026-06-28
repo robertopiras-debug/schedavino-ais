@@ -3014,7 +3014,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v169';
+const APP_VERSION='v170';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4941,6 +4941,13 @@ async function generaNotaPunti(){
   if(nonConf.length){
     var nomiP={aspetto:'Aspetto',iolf:'Intensità olf.',purez:'Purezza/Eleganza',compl:'Complessità olf.',igus:'Intensità gusto',equi:'Equilibrio',espr:'Espressività',pers:'Persistenza',armo:'Armonia',qual:'Qualità/Carattere'};
     alert('⛔ Scheda incompleta — conferma tutti i parametri prima di generare la nota.\n\nParametri mancanti:\n'+nonConf.map(function(p){return '• '+(nomiP[p.id]||p.id);}).join('\n'));
+    return;
+  }
+  // ── Guardia 2: note olfattiva e gusto-olfattiva obbligatorie ─────────────
+  var nOlf=(document.getElementById('nota-olf-pt')||{value:''}).value.trim();
+  var nGus=(document.getElementById('nota-gus-pt')||{value:''}).value.trim();
+  if(!nOlf || !nGus){
+    alert('⛔ Note insufficienti — scrivi almeno la nota olfattiva e quella gusto-olfattiva prima di generare.\n\nSenza descrizione delle sensazioni la nota AI non ha contenuto su cui lavorare.');
     return;
   }
   // ── Guardia 2: API key ───────────────────────────────────────────────────
