@@ -3002,7 +3002,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v173';
+const APP_VERSION='v174';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3551,6 +3551,47 @@ function syncNotaSezRt(srcId, dstId){
   var dst=document.getElementById(dstId);
   // .value= non triggera oninput — nessun loop infinito
   if(src && dst && dst.value!==src.value) dst.value=src.value;
+}
+
+// ─── PULIZIA RECORD ORFANI SU SUPABASE ───────────────────────────────────────
+// Cancella da Supabase le schede che non esistono più in localStorage.
+// Il localStorage è la source of truth: se l'utente ha eliminato dalla home,
+// quella scheda non deve esistere nel cloud.
+async function purgeOrphansDB(){
+  if(!currentUser||!accessToken) return;
+  try{
+    // ID locali (source of truth)
+    var locali=JSON.parse(localStorage.getItem('ais_s')||'[]').map(function(s){return String(s.id);});
+    // ID cloud per questo utente
+    var cloud=await supaSelect('schede_analitiche',{user_email:currentUser.email});
+    if(!cloud||!cloud.length) return;
+    var orfani=cloud.filter(function(r){return locali.indexOf(String(r.id))===-1;});
+    if(!orfani.length){ toast('✓ Nessun orfano cloud trovato'); return; }
+    toast('🗑 Cancello '+orfani.length+' record orfani dal cloud…');
+    var ok=0,fail=0;
+    for(var i=0;i<orfani.length;i++){
+      var res=await supaDelete('schede_analitiche', orfani[i].id);
+      if(res) ok++; else fail++;
+    }
+    // Cancella anche i valutazioni_punti orfani
+    var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]').map(function(p){return String(p.id);});
+    try{
+      var cpRes=await fetch(SUPA_URL+'/rest/v1/valutazioni_punti?user_email=eq.'+encodeURIComponent(currentUser.email),{headers:supaHeaders()});
+      if(cpRes.ok){
+        var cpRows=await cpRes.json();
+        for(var j=0;j<cpRows.length;j++){
+          if(lp.indexOf(String(cpRows[j].id))===-1){
+            await supaDelete('valutazioni_punti', cpRows[j].id);
+          }
+        }
+      }
+    }catch(e){ console.warn('purge punti error',e); }
+    toast((fail?'⚠ '+ok+' cancellati, '+fail+' falliti':'✓ '+ok+' record orfani eliminati dal cloud'));
+    if(typeof loadAdminData==='function') loadAdminData(); // aggiorna vista admin
+  }catch(e){
+    console.error('purgeOrphansDB error',e);
+    toast('⛔ Errore pulizia cloud: '+e.message);
+  }
 }
 
 function aggiornaColonnaPiena(){
@@ -5611,6 +5652,7 @@ function renderAdminVino(){
       <div style="font-size:14px;font-weight:700">📊 Riepilogo Degustazioni</div>
     </div>
     <span style="font-size:12px;background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 10px;border-radius:3px;cursor:pointer;font-weight:600" onclick="loadAdminData()">↺</span>
+    <span style="font-size:11px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 9px;border-radius:3px;cursor:pointer;font-weight:600" onclick="if(confirm('Cancella da Supabase tutte le schede non più presenti in home?')) purgeOrphansDB()" title="Rimuove dal cloud i record cancellati in locale">🗑 Pulizia cloud</span>
   </div>
   <div style="display:flex;gap:0;padding:12px 12px 4px">
     <button id="admin-tab-deg" onclick="adminSetTab('deg')" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--m);color:#fff;border-radius:3px 0 0 3px">👤 Per Degustatore</button>
