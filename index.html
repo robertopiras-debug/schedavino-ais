@@ -112,22 +112,8 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .voto-chip:not(.ais-radio):not(.confermato).sel .vc-num{color:#3a2800 !important;font-size:14px;font-weight:900}
 .voto-chip:not(.ais-radio):not(.confermato).sel .vc-lbl{color:#5a4000 !important}
 .voto-chip:not(.ais-radio):not(.confermato):not(.sel){background:var(--r);border:1px solid var(--b);opacity:.75}
-.voto-chip:not(.ais-radio).conf-base{background:var(--m) !important;border:2px solid #8a0050 !important;opacity:1}
-.voto-chip:not(.ais-radio).conf-base .vc-num{color:#fff !important;font-size:14px;font-weight:900}
-.voto-chip:not(.ais-radio).conf-base .vc-lbl{color:rgba(255,255,255,.85) !important}
-.voto-chip:not(.ais-radio).conf-su{background:#1e9644 !important;border:2px solid #0f5225 !important;opacity:1}
-.voto-chip:not(.ais-radio).conf-su .vc-num{color:#fff !important;font-size:14px;font-weight:900}
-.voto-chip:not(.ais-radio).conf-su .vc-lbl{color:rgba(255,255,255,.85) !important}
-.voto-chip:not(.ais-radio).conf-giu{background:#c8002a !important;border:2px solid #7a0018 !important;opacity:1}
-.voto-chip:not(.ais-radio).conf-giu .vc-num{color:#fff !important;font-size:14px;font-weight:900}
-.voto-chip:not(.ais-radio).conf-giu .vc-lbl{color:rgba(255,255,255,.85) !important}
 .voto-chip:not(.ais-radio).confermato:not(.sel){background:var(--r);border-color:var(--b);opacity:1}
 /* Badge delta (a sinistra del numero voto) */
-.p-delta{font-size:11px;font-weight:800;line-height:1.2;text-align:center;border-radius:3px;padding:2px 4px;min-width:26px;transition:all .2s;flex-shrink:0}
-.p-delta:empty{display:none}
-.p-delta.d-su{background:#1e9644;color:#fff}
-.p-delta.d-giu{background:#c8002a;color:#fff}
-.p-delta.d-pari{background:transparent;color:#bbb;border:1px solid #ddd;font-size:9px;font-weight:600}
 
 
 /* ─── NOTE DI SEZIONE ────────────────────────────────────────────────────── */
@@ -891,8 +877,6 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="prev" id="pt-prev"><span class="ph">I dati appariranno qui…</span></div>
   </div>
 
-  <!-- Display legacy (usati da aggiornaTestataVino) -->
-  <div style="display:none"><span id="t-vino"></span><span id="t-annata"></span><span id="t-tipol"></span><span id="t-denom"></span></div>
 
   <!-- N.G. -->
   <div style="margin:8px 12px;padding:10px;background:#fff5f5;border:1px solid #e8b0b0;border-radius:4px">
@@ -949,7 +933,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <div class="sez-body">
     <div class="params-col">
       <div class="ais-pt-row" style="border-bottom:none">
-        <div class="ais-pname">Aspetto <small>×1</small><span id="db-aspetto" class="p-delta"></span><div style="display:none"><span id="vAspetto">7</span><span id="cAspetto">7 pt</span></div><div id="hAspetto" class="ais-hint"></div></div>
+        <div class="ais-pname">Aspetto <small>×1</small></div>
         <div id="slw-aspetto" style="display:contents"></div>
       </div>
     </div>
@@ -965,15 +949,15 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <div class="sez-body">
     <div class="params-col">
       <div class="ais-pt-row">
-        <div class="ais-pname">Intensità <small>×0.5</small><span id="db-iolf" class="p-delta"></span><div style="display:none"><span id="vIolf">7</span><span id="cIolf">3.5 pt</span></div><div id="hIolf" class="ais-hint"></div></div>
+        <div class="ais-pname">Intensità <small>×0.5</small></div>
         <div id="slw-iolf" style="display:contents"></div>
       </div>
       <div class="ais-pt-row">
-        <div class="ais-pname">Purezza, Eleganza <small>×1</small><span id="db-purez" class="p-delta"></span><div style="display:none"><span id="vPurez">7</span><span id="cPurez">7 pt</span></div><div id="hPurez" class="ais-hint"></div></div>
+        <div class="ais-pname">Purezza, Eleganza <small>×1</small></div>
         <div id="slw-purez" style="display:contents"></div>
       </div>
       <div class="ais-pt-row" style="border-bottom:none">
-        <div class="ais-pname">Complessità, Attrattiva <small>×1.5</small><span id="db-compl" class="p-delta"></span><div style="display:none"><span id="vCompl">7</span><span id="cCompl">10.5 pt</span></div><div id="hCompl" class="ais-hint"></div></div>
+        <div class="ais-pname">Complessità, Attrattiva <small>×1.5</small></div>
         <div id="slw-compl" style="display:contents"></div>
       </div>
     </div>
@@ -989,19 +973,19 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <div class="sez-body">
     <div class="params-col">
       <div class="ais-pt-row">
-        <div class="ais-pname">Intensità, struttura <small>×0.5</small><span id="db-igus" class="p-delta"></span><div style="display:none"><span id="vIgus">7</span><span id="cIgus">3.5 pt</span></div><div id="hIgus" class="ais-hint"></div></div>
+        <div class="ais-pname">Intensità, struttura <small>×0.5</small></div>
         <div id="slw-igus" style="display:contents"></div>
       </div>
       <div class="ais-pt-row">
-        <div class="ais-pname">Equilibrio <small>×1</small><span id="db-equi" class="p-delta"></span><div style="display:none"><span id="vEqui">7</span><span id="cEqui">7 pt</span></div><div id="hEqui" class="ais-hint"></div></div>
+        <div class="ais-pname">Equilibrio <small>×1</small></div>
         <div id="slw-equi" style="display:contents"></div>
       </div>
       <div class="ais-pt-row">
-        <div class="ais-pname">Espressività, Eleganza <small>×1</small><span id="db-espr" class="p-delta"></span><div style="display:none"><span id="vEspr">7</span><span id="cEspr">7 pt</span></div><div id="hEspr" class="ais-hint"></div></div>
+        <div class="ais-pname">Espressività, Eleganza <small>×1</small></div>
         <div id="slw-espr" style="display:contents"></div>
       </div>
       <div class="ais-pt-row" style="border-bottom:none">
-        <div class="ais-pname">Persistenza, Attrattiva <small>×1.5</small><span id="db-pers" class="p-delta"></span><div style="display:none"><span id="vPers">7</span><span id="cPers">10.5 pt</span></div><div id="hPers" class="ais-hint"></div></div>
+        <div class="ais-pname">Persistenza, Attrattiva <small>×1.5</small></div>
         <div id="slw-pers" style="display:contents"></div>
       </div>
     </div>
@@ -1017,11 +1001,11 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <div class="sez-body">
     <div class="params-col">
       <div class="ais-pt-row">
-        <div class="ais-pname">Armonia complessiva <small>×0.5</small><span id="db-armo" class="p-delta"></span><div style="display:none"><span id="vArmo">7</span><span id="cArmo">3.5 pt</span></div><div id="hArmo" class="ais-hint"></div></div>
+        <div class="ais-pname">Armonia complessiva <small>×0.5</small></div>
         <div id="slw-armo" style="display:contents"></div>
       </div>
       <div class="ais-pt-row" style="border-bottom:none">
-        <div class="ais-pname">Qualità, Carattere <small>×1.5</small><span id="db-qual" class="p-delta"></span><div style="display:none"><span id="vQual">7</span><span id="cQual">10.5 pt</span></div><div id="hQual" class="ais-hint"></div></div>
+        <div class="ais-pname">Qualità, Carattere <small>×1.5</small></div>
         <div id="slw-qual" style="display:contents"></div>
       </div>
     </div>
@@ -1031,7 +1015,6 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
   </div>
 </div>
-<textarea id="notaP" style="display:none"></textarea>
 
 <!-- COLONNA PIENA AIS -->
 <div id="colonnaPiena" style="border-top:2px solid var(--m)">
@@ -2063,7 +2046,7 @@ async function caricaValutazioniDB(){
         tipologia:    r.tipologia||'',
         punteggio:    r.punteggio||0,
         fascia:       r.fascia||'',
-        baseAnalitica:r.base_analitica||null,
+
         delta:        r.delta||null,
         voti:         r.voti||{},
         votiOriginali:r.voti_originali||{},
@@ -2148,7 +2131,7 @@ async function salvaValutazioneDB(val){
     tipologia:      val.tipologia||'',
     punteggio:      val.punteggio||0,
     fascia:         val.fascia||'',
-    base_analitica: val.baseAnalitica||null,
+
     delta:          val.delta||null,
     voti:           val.voti||{},
     voti_originali: val.votiOriginali||{},
@@ -3031,7 +3014,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v167';
+const APP_VERSION='v168';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3282,34 +3265,6 @@ var votiConfermati=new Set(); // parametri toccati esplicitamente dall'utente
 var votiBase={}; // valore ereditato dall'analitica per ogni parametro
 let analiticaP=null;
 let editingIdP=null;
-let basePunti=80;
-
-function aggiornaHint(par){
-  if(!par) return;
-  var Q={'Accettabile':6,'Buono':7,'Distinto':8,'Ottimo':9,'Eccellente':10};
-  var vm={'Moderatamente intenso':7,'Intenso':8,'Molto intenso':9};
-  var vc={'Moderatamente complesso':7,'Complesso':8,'Ampio':9};
-  var ve={'Poco equil.':7,'Med. equil.':8,'Equilibrato':9};
-  var vp={'Mod. pers.':7,'Persistente':8,'Molto pers.':9};
-  var va={'Poco armonico':7,'Mediamente armonico':8,'Armonico':9};
-
-  function hn(elId, label, testo, voto){
-    var el=document.getElementById(elId);
-    if(!el||!testo) return;
-    el.innerHTML=label+': <strong>'+testo+'</strong>'
-      +(voto?' <span style="color:var(--m);font-weight:900;font-style:normal">→ '+voto+'</span>':'');
-  }
-  if(par.iolf)  hn('hIolf',  'Analitica',               par.iolf,  vm[par.iolf]||(Q[par.iolf]||null));
-  if(par.qolf)  hn('hPurez', 'Qualità olfattiva',        par.qolf,  Q[par.qolf]);
-  if(par.colf)  hn('hCompl', 'Complessità',              par.colf,  vc[par.colf]||(Q[par.colf]||null));
-  if(par.igus)  hn('hIgus',  'Intensità/struttura',      par.igus,  vm[par.igus]||(Q[par.igus]||null));
-  if(par.equi)  hn('hEqui',  'Equilibrio',               par.equi,  ve[par.equi]);
-  if(par.qgus)  hn('hEspr',  'Qualità gusto-olfattiva',  par.qgus,  Q[par.qgus]);
-  if(par.pers)  hn('hPers',  'Persistenza',              par.pers,  vp[par.pers]);
-  if(par.armo)  hn('hArmo',  'Armonia',                  par.armo,  va[par.armo]);
-  if(par.qvis)  hn('hAspetto','⚠ Qualità visiva',        par.qvis,  Q[par.qvis]);
-  if(par.qtot)  hn('hQual',  'Qualità complessiva',      par.qtot,  Q[par.qtot]);
-}
 
 function sincronizzaConAnalitica(){
   var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
@@ -3336,8 +3291,7 @@ function sincronizzaConAnalitica(){
     // scheda, es. dopo essere passati da Analitica e ritornati indietro)
     analiticaP=target;
     aggiornaTestataVino();
-    aggiornBasePunti();
-    calcolaTotale();
+      calcolaTotale();
     return;
   }
 
@@ -3349,18 +3303,6 @@ function sincronizzaConAnalitica(){
     // Nuova — pre-compila dai giudizi analitici
     caricaDaAnalitica();
   }
-}
-
-function aggiornBasePunti(){
-  if(!analiticaP) return;
-  // Legge dati freschi dal localStorage
-  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
-  var fresca=schede.find(function(x){return x.id===analiticaP.id;});
-  if(fresca) analiticaP=fresca;
-  if(typeof calcolaTeoricoAIS==='function'){
-    basePunti=calcolaTeoricoAIS(analiticaP.parametri||{}).totale;
-  }
-  aggiornaHint(analiticaP.parametri||{});
 }
 
 // ─── CHIP VOTO 6·7·8·9·10 ────────────────────────────────────────────────
@@ -3568,12 +3510,10 @@ function ptSyncUp(){
       if(grad)         schedeA[idx].gradazione=grad;
       if(reg)          schedeA[idx].regione=reg;
       localStorage.setItem('ais_s',JSON.stringify(schedeA));
-      if(typeof salvaSuDB==='function') salvaSuDB(schedeA[idx]);
+      // Supabase: sync solo al salvataggio esplicito (pulsante Aggiorna)
     }
   }
 }
-
-function syncInfoPuntiAnalitica(){ ptSyncUp(); } // alias retrocompatibilità
 
 function popolaCampiPunti(){
   if(!analiticaP) return;
@@ -3670,24 +3610,6 @@ function aggiornaSlider(paramId){
       else if(delta<0)   c.classList.add('conf-giu');
     }
   });
-  // Badge delta — punti pesati reali (delta × peso), non passi di scala.
-  // Complessità peso 1.5: ▲+1 voto → +1.5 pt sul totale, non +1.
-  var dbEl=document.getElementById('db-'+paramId);
-  if(dbEl){
-    dbEl.className='p-delta';
-    dbEl.innerHTML='';
-    if(conf){
-      if(variato){
-        var pParam=PARAMS.find(function(x){return x.id===paramId;});
-        var deltaPt=pParam?parseFloat((delta*pParam.peso).toFixed(1)):delta;
-        dbEl.classList.add(delta>0?'d-su':'d-giu');
-        dbEl.innerHTML=(delta>0?'▲':'▼')+'<br>'+(deltaPt>0?'+':'')+deltaPt+' pt';
-      } else {
-        dbEl.classList.add('d-pari');
-        dbEl.innerHTML='✓';
-      }
-    }
-  }
 }
 
 function setVoto(paramId, v, fromLoad){
@@ -3712,7 +3634,6 @@ function setVoto(paramId, v, fromLoad){
 
 // ─── CALCOLO TOTALE ───────────────────────────────────────────────────────
 function calcolaTotale(){
-  aggiornBasePunti();
   var tot=0, subV=0, subO=0, subG=0, subF=0;
   PARAMS.forEach(function(p){
     var c=voti[p.id]*p.peso;
@@ -3726,8 +3647,7 @@ function calcolaTotale(){
   document.getElementById('heroNum').textContent=tot.toFixed(1);
   document.getElementById('heroFascia').textContent=fasciaP(tot);
   document.getElementById('heroBreak').innerHTML=
-    'Visivo: '+subV.toFixed(1)+' · Olfattivo: '+subO.toFixed(1)+' · Gusto: '+subG.toFixed(1)+' · Finale: '+subF.toFixed(1)
-    +(analiticaP?'<br><span style="color:var(--m);font-weight:700">(base analitica: '+fmtPt(basePunti)+')</span>':'');
+    'Visivo: '+subV.toFixed(1)+' · Olfattivo: '+subO.toFixed(1)+' · Gusto: '+subG.toFixed(1)+' · Finale: '+subF.toFixed(1);
   document.getElementById('subV').textContent=subV.toFixed(1);
   document.getElementById('subO').textContent=subO.toFixed(1);
   document.getElementById('subG').textContent=subG.toFixed(1);
@@ -3862,65 +3782,15 @@ function popolaSelectP(){
 
 function caricaDaAnalitica(){
   if(!analiticaP){toastP('Nessuna scheda analitica collegata');return;}
-  votiConfermati=new Set(); votiBase={}; // reset: i voti ereditati non sono ancora confermati
+  votiConfermati=new Set(); votiBase={};
   // Dati freschi dal localStorage
   var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
   var fresca=schede.find(function(s){return s.id===analiticaP.id;})||analiticaP;
   analiticaP=fresca;
-  
   // Popola testata
   document.getElementById('t-autore').textContent=analiticaP.autore||'—';
   document.getElementById('t-data').textContent=analiticaP.dt||new Date().toLocaleDateString('it-IT');
   aggiornaTestataVino();
-  document.getElementById('t-annata').textContent=analiticaP.annata||'—';
-  document.getElementById('t-tipol').textContent=analiticaP.tipologia||'—';
-  document.getElementById('t-denom').textContent=analiticaP.denominazione||'—';
-
-  // Suggerisci voti da analitica
-  var par=analiticaP.parametri||{};
-  // Eccellente=10, Ottimo=9, Distinto=8, Buono=7 — identico alla bozza VITAE.
-  // I descrittori analitici (iolf='Intenso', equi='Equilibrato'...) compaiono
-  // come hint testuali per il raffinamento manuale in scheda a punti, ma NON
-  // sovrascrivono il voto iniziale: il giudizio di sezione è il punto di partenza
-  // per TUTTI i parametri della sezione, senza eccezioni.
-  var SEZ_PARAMS={vis:['aspetto'],olf:['iolf','purez','compl'],gus:['igus','equi','espr','pers'],fin:['armo','qual']};
-  var SEZ_GIUD={vis:'qvis',olf:'qolf',gus:'qgus',fin:'qtot'};
-  Object.keys(SEZ_PARAMS).forEach(function(sez){
-    var g=par[SEZ_GIUD[sez]];
-    if(g && Q2V[g]!==undefined){
-      SEZ_PARAMS[sez].forEach(function(pid){
-        setVoto(pid, Q2V[g], true); // incondizionale: nessun override da descrittori
-      });
-    }
-  });
-
-  aggiornBasePunti();
-
-  // Hint analitica
-  if(par.iolf)  document.getElementById('hIolf').innerHTML='Analitica: <strong>'+par.iolf+'</strong>';
-  if(par.colf)  document.getElementById('hCompl').innerHTML='Complessità: <strong>'+par.colf+'</strong>';
-  if(par.igus)  document.getElementById('hIgus').innerHTML='Intensità/struttura: <strong>'+par.igus+'</strong>';
-  if(par.equi)  document.getElementById('hEqui').innerHTML='Equilibrio: <strong>'+par.equi+'</strong>';
-  if(par.pers)  document.getElementById('hPers').innerHTML='Persistenza: <strong>'+par.pers+'</strong>';
-  if(par.armo)  document.getElementById('hArmo').innerHTML='Armonia: <strong>'+par.armo+'</strong>';
-  if(par.qvis)  document.getElementById('hAspetto').innerHTML='Qualità visiva (extra-AIS): <strong>'+par.qvis+'</strong>';
-  if(par.qtot)  document.getElementById('hQual').innerHTML='Qualità complessiva: <strong>'+par.qtot+'</strong>';
-  // Hint parametri derivati — mostra la fonte
-  var hPurez=document.getElementById('hPurez');
-  if(hPurez){
-    var src=[];
-    if(par.iolf) src.push('Intensità: '+par.iolf);
-    if(par.qolf) src.push('Qualità olf.: '+par.qolf);
-    if(src.length) hPurez.innerHTML='Derivato da — '+src.join(' · ');
-  }
-  var hEspr=document.getElementById('hEspr');
-  if(hEspr){
-    var src2=[];
-    if(par.igus) src2.push('Intensità gus.: '+par.igus);
-    if(par.pers) src2.push('Persistenza: '+par.pers);
-    if(src2.length) hEspr.innerHTML='Derivato da — '+src2.join(' · ');
-  }
-
   mostraScheda();
   // ── Analitica → Punti: eredita note di sezione se i campi punti sono vuoti ──
   var npMap=[
@@ -4102,11 +3972,9 @@ function salvaPunti(){
     tipologia:analiticaP?analiticaP.tipologia:'',
     punteggio:parseFloat(tot.toFixed(1)),
     fascia:fasciaP(parseFloat(tot.toFixed(1))),
-    baseAnalitica:parseFloat(basePunti.toFixed(1)),
-    delta:parseFloat((tot-basePunti).toFixed(1)),
     voti:Object.assign({},voti),
     votiOriginali:Object.assign({},votiBase), // memoria del valore originale suggerito (analitica/Guida VITAE)
-    nota:document.getElementById('notaP').value,
+    nota:'',  // notaP rimosso
     nota_vis:document.getElementById('nota-vis-pt')?document.getElementById('nota-vis-pt').value:'',
     nota_olf:document.getElementById('nota-olf-pt')?document.getElementById('nota-olf-pt').value:'',
     nota_gus:document.getElementById('nota-gus-pt')?document.getElementById('nota-gus-pt').value:'',
@@ -4202,7 +4070,7 @@ function loadP(id){
   PARAMS.forEach(function(p){aggiornaSlider(p.id);});
   aggiornaStatoPunti();
   calcolaTotale();
-  document.getElementById('notaP').value=s.nota||'';
+  // notaP rimosso
   var nv=document.getElementById('nota-vis-pt'); if(nv) nv.value=s.nota_vis||'';
   var no=document.getElementById('nota-olf-pt'); if(no) no.value=s.nota_olf||'';
   var ng=document.getElementById('nota-gus-pt'); if(ng) ng.value=s.nota_gus||'';
@@ -4248,7 +4116,7 @@ function resetPunti(){
   votiBase={}; // evita di trascinare la "memoria" di una scheda precedente su una nuova
   voti={aspetto:7,iolf:7,purez:7,compl:7,igus:7,equi:7,espr:7,pers:7,armo:7,qual:7};
   PARAMS.forEach(function(p){aggiornaSlider(p.id);});
-  document.getElementById('notaP').value='';
+  // notaP rimosso
   document.getElementById('feedback').style.display='none';
   ['sezV','sezO','sezG','sezF','hero','actsP'].forEach(function(id){
     document.getElementById(id).style.display='none';
