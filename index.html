@@ -602,7 +602,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
     <div class="dt"></div>
     <div class="ph2">Note visive libere</div>
-    <div class="nw"><textarea id="nota-vis" placeholder="Osservazioni visive aggiuntive..."></textarea></div>
+    <div class="nw"><textarea id="nota-vis" placeholder="Osservazioni visive aggiuntive..." oninput="syncNotaSezRt('nota-vis','nota-vis-pt')"></textarea></div>
 
     <div class="tw">
       <div class="tc2" id="blk-consistenza"><div class="ph2 gn">Consistenza<br><span style="font-weight:400">(vini fermi)</span></div><div id="note-consistenza"></div><div class="og"><div class="o" data-g="consistenza">Scorrevole</div><div class="o" data-g="consistenza">Consistente</div><div class="o" data-g="consistenza">Viscoso</div></div></div>
@@ -651,7 +651,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="ph2 mg">Qualità olfattiva</div>
     <div class="qr"><div class="qo" data-g="qolf">Accettabile</div><div class="qo" data-g="qolf">Buono</div><div class="qo" data-g="qolf">Distinto</div><div class="qo" data-g="qolf">Ottimo</div><div class="qo" data-g="qolf">Eccellente</div></div>
     <div id="riconosc-olf" style="padding:0 7px 4px"></div>
-    <div class="nw"><textarea id="nolf" placeholder="Note libere olfattive..."></textarea></div>
+    <div class="nw"><textarea id="nolf" placeholder="Note libere olfattive..." oninput="syncNotaSezRt('nolf','nota-olf-pt')"></textarea></div>
   </div>
 </div>
 
@@ -685,7 +685,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="dv"></div>
     <div class="ph2 mg">Qualità gusto-olfattiva</div>
     <div class="qr"><div class="qo" data-g="qgus">Accettabile</div><div class="qo" data-g="qgus">Buono</div><div class="qo" data-g="qgus">Distinto</div><div class="qo" data-g="qgus">Ottimo</div><div class="qo" data-g="qgus">Eccellente</div></div>
-    <div class="nw"><textarea id="ngus" placeholder="Note libere gusto-olfattive..."></textarea></div>
+    <div class="nw"><textarea id="ngus" placeholder="Note libere gusto-olfattive..." oninput="syncNotaSezRt('ngus','nota-gus-pt')"></textarea></div>
   </div>
 </div>
 
@@ -702,7 +702,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="qr"><div class="qo" data-g="qtot">Accettabile</div><div class="qo" data-g="qtot">Buono</div><div class="qo" data-g="qtot">Distinto</div><div class="qo" data-g="qtot">Ottimo</div><div class="qo" data-g="qtot">Eccellente</div></div>
     <div id="avviso-coerenza" style="display:none;margin:5px 7px;padding:8px 10px;border-radius:4px;font-size:11px;line-height:1.5"></div>
     <div class="str" id="stars"><span class="st">&#9733;</span><span class="st">&#9733;</span><span class="st">&#9733;</span><span class="st">&#9733;</span><span class="st">&#9733;</span></div>
-    <div class="nw"><textarea id="nfin" placeholder="Considerazioni finali, abbinamenti, potenziale..."></textarea></div>
+    <div class="nw"><textarea id="nfin" placeholder="Considerazioni finali, abbinamenti, potenziale..." oninput="syncNotaSezRt('nfin','nota-fin-pt')"></textarea></div>
   </div>
 </div>
 
@@ -939,7 +939,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
     <div class="note-col">
       <div id="fsz-V" class="fsz-badge">—</div>
-      <textarea id="nota-vis-pt" class="nota-sez" rows="4" placeholder="Note visive…"></textarea>
+      <textarea id="nota-vis-pt" class="nota-sez" rows="4" placeholder="Note visive…" oninput="syncNotaSezRt('nota-vis-pt','nota-vis')"></textarea>
     </div>
   </div>
 </div>
@@ -963,7 +963,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
     <div class="note-col">
       <div id="fsz-O" class="fsz-badge">—</div>
-      <textarea id="nota-olf-pt" class="nota-sez" rows="6" placeholder="Note olfattive…"></textarea>
+      <textarea id="nota-olf-pt" class="nota-sez" rows="6" placeholder="Note olfattive…" oninput="syncNotaSezRt('nota-olf-pt','nota-olf')"></textarea>
     </div>
   </div>
 </div>
@@ -991,7 +991,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
     <div class="note-col">
       <div id="fsz-G" class="fsz-badge">—</div>
-      <textarea id="nota-gus-pt" class="nota-sez" rows="8" placeholder="Note gusto-olfattive…"></textarea>
+      <textarea id="nota-gus-pt" class="nota-sez" rows="8" placeholder="Note gusto-olfattive…" oninput="syncNotaSezRt('nota-gus-pt','ngus')"></textarea>
     </div>
   </div>
 </div>
@@ -1011,7 +1011,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
     <div class="note-col">
       <div id="fsz-F" class="fsz-badge">—</div>
-      <textarea id="nota-fin-pt" class="nota-sez" rows="5" placeholder="Note finali…"></textarea>
+      <textarea id="nota-fin-pt" class="nota-sez" rows="5" placeholder="Note finali…" oninput="syncNotaSezRt('nota-fin-pt','nfin')"></textarea>
     </div>
   </div>
 </div>
@@ -3002,7 +3002,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v172';
+const APP_VERSION='v173';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3543,6 +3543,14 @@ function popolaCampiPunti(){
   // Vitigni
   ptRenderVitigni(analiticaP.denominazione||'');
   ptPrev();
+}
+
+// ─── SYNC NOTE SEZIONE REAL-TIME ────────────────────────────────────────────
+function syncNotaSezRt(srcId, dstId){
+  var src=document.getElementById(srcId);
+  var dst=document.getElementById(dstId);
+  // .value= non triggera oninput — nessun loop infinito
+  if(src && dst && dst.value!==src.value) dst.value=src.value;
 }
 
 function aggiornaColonnaPiena(){
@@ -4987,7 +4995,22 @@ async function generaNotaPunti(){
     ngPt&&ngPt.value.trim()?'Note gusto-olfattive: '+ngPt.value.trim():'',
     nfPt&&nfPt.value.trim()?'Considerazioni finali: '+nfPt.value.trim():''
   ].filter(Boolean).join('\n');
-  var prompt='DATI VINO\n'+infoVino+'\n\nPUNTEGGI SCHEDA A PUNTI AIS\n'+punteggi+(noteSez?'\n\nNOTE DEL DEGUSTATORE\n'+noteSez:'');
+  // Riconoscimenti olfattivi e descrittori dall'analitica collegata
+  var rico='';
+  if(analiticaP){
+    var rObj=analiticaP.riconoscimenti||{};
+    var rParts=[];
+    ['floreale','fruttato','erbaceo','spezie','minerale','fermentazione','legno','terziari'].forEach(function(f){
+      var v=(rObj['olf_'+f]||'').trim();
+      if(v) rParts.push(f.charAt(0).toUpperCase()+f.slice(1)+': '+v);
+    });
+    var tann=(rObj['tannino']||'').trim();
+    if(tann) rParts.push('Tannino: '+tann);
+    var desc=(analiticaP.descrittori||[]).filter(Boolean);
+    if(desc.length) rParts.push('Descrittori visivi: '+desc.join(', '));
+    if(rParts.length) rico='\n\nRICONOSCIMENTI ANALITICI (usare se pertinenti)\n'+rParts.join('\n');
+  }
+  var prompt='DATI VINO\n'+infoVino+'\n\nPUNTEGGI SCHEDA A PUNTI AIS\n'+punteggi+(noteSez?'\n\nNOTE DEL DEGUSTATORE\n'+noteSez:'')+rico;
   // ── Chiamata API ─────────────────────────────────────────────────────────
   var status=document.getElementById('nota-pt-status');
   var btn=document.getElementById('btnGenNotaPt');
