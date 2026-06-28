@@ -3052,7 +3052,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v187';
+const APP_VERSION='v188';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3697,9 +3697,8 @@ function aggiornaSlider(paramId){
   var confBase=conf && v===votiBase[paramId];
   var delta=variato ? v - votiBase[paramId] : 0;
   wrap.querySelectorAll('.voto-chip').forEach(function(c){
-    var isSelected=parseInt(c.dataset.voto)===v;
-    c.classList.toggle('sel', isSelected);
-    c.classList.remove('confermato','sel');
+    c.classList.remove('confermato');
+    c.classList.toggle('sel', parseInt(c.dataset.voto)===v);
   });
 }
 
@@ -4026,8 +4025,32 @@ function aggiornaStatoPunti(){
 
 // ─── SALVATAGGIO ─────────────────────────────────────────────────────────
 function salvaPunti(){
+  // ── NUOVA SCHEDA: crea analitica da campi pt- e salva come bozza ────────
+  if(!analiticaP && !editingId){
+    var g=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+    var nomeVal=g('pt-nome')||g('pt-produttore');
+    if(!nomeVal){toastP('⛔ Inserisci almeno il nome o codice campione prima di salvare');return;}
+    var id=Date.now();
+    var tip=[_ptSelColore,_ptSelBase,_ptSelMenzione].filter(Boolean).join(' ');
+    var nuova={
+      id:id, tipo:'bozza', autore:nomeDisplay()||'',
+      produttore:g('pt-produttore'), nome:g('pt-nome'),
+      annata:g('pt-annata'), denominazione:g('pt-dS'),
+      tipologia:tip, regione:(document.getElementById('pt-wR')||{value:'Sardegna'}).value,
+      vitigni:g('pt-vitigni'), gradazione:g('pt-gradazione'),
+      dt:new Date().toLocaleDateString('it-IT')
+    };
+    var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+    schede.unshift(nuova);
+    localStorage.setItem('ais_s',JSON.stringify(schede));
+    editingId=id; analiticaP=nuova;
+    aggiornaTestataVino();
+    if(typeof salvaSuDB==='function') salvaSuDB(nuova);
+    // Continua con il salvataggio punti qui sotto
+  }
+
   var tot=parseFloat(document.getElementById('heroNum').textContent)||0;
-  if(!tot){toastP('Nessun punteggio da salvare');return;}
+  // tot=0 è ammesso per le bozze (nuova scheda con solo dati identificativi)
 
   var isBozzaMode=analiticaP && analiticaP.tipo==='bozza';
 
