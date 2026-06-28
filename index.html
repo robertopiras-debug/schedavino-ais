@@ -748,10 +748,11 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 
 <div style="margin:10px 7px;border:1px solid var(--b);border-radius:6px;overflow:hidden">
-    <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">📋 Tableau de bord</span>
-    <span style="font-size:9px;opacity:.7;flex:1">parametri selezionati + note libere per sezione — solo uso interno</span>
-    <span id="tableau-arrow" style="font-size:11px;opacity:.7">▼</span>
-  </div>
+    <div onclick="toggleTableau()" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:#fff">
+      <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">📋 Tableau de bord</span>
+      <span style="font-size:9px;opacity:.7;flex:1">parametri selezionati + note libere per sezione — solo uso interno</span>
+      <span id="tableau-arrow" style="font-size:11px;opacity:.7">▼</span>
+    </div>
   <div id="tableau-body" style="display:none"></div>
 </div>
 
@@ -3013,7 +3014,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v175';
+const APP_VERSION='v176';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
