@@ -139,11 +139,8 @@ input::placeholder,textarea::placeholder{color:#aaa}
 /* ereditato dall'analitica, non ancora confermato */
 .voto-chip.ais-radio.sel{background:#f5d800;color:#5a3c00;border-color:#c8a000;}
 /* confermato al valore base */
-.voto-chip.ais-radio.conf-base{background:var(--m);color:#fff;border-color:var(--m);}
 /* confermato, voto alzato rispetto al base */
-.voto-chip.ais-radio.conf-su{background:#1e9644;color:#fff;border-color:#0f5225;}
 /* confermato, voto abbassato rispetto al base */
-.voto-chip.ais-radio.conf-giu{background:#c8002a;color:#fff;border-color:#7a0018;}
 .sez-hd.stato-ok-p{background:#2e6b2e !important}
 .sez-hd.stato-warn-p{background:#b84a00 !important}
 .sez-hd.stato-inc-p{background:var(--d)}
@@ -1656,7 +1653,7 @@ function nuovaScheda(){
   document.getElementById('vitigni-extra').value='';
   renderVitigni('');
   document.querySelectorAll('.tc-chip').forEach(function(c){c.classList.remove('on-base','on-colore','on-menzione');});
-  document.querySelectorAll('.voto-chip.ais-radio').forEach(function(c){c.classList.remove('conf-base','conf-su','conf-giu','conf-variato','sel');});
+  document.querySelectorAll('.voto-chip.ais-radio').forEach(function(c){c.classList.remove('sel');});
   document.querySelectorAll('#stars .st').forEach(function(s){s.classList.remove('lit')});
   document.getElementById('btnSav').textContent='Salva';
   curDenom=null;
@@ -3055,7 +3052,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v185';
+const APP_VERSION='v186';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3697,25 +3694,15 @@ function aggiornaSlider(paramId){
   wrap.querySelectorAll('.voto-chip').forEach(function(c){
     var isSelected=parseInt(c.dataset.voto)===v;
     c.classList.toggle('sel', isSelected);
-    c.classList.toggle('confermato', conf);
-    c.classList.remove('conf-base','conf-su','conf-giu','conf-variato');
-    if(isSelected && conf){
-      if(confBase)       c.classList.add('conf-base');
-      else if(delta>0)   c.classList.add('conf-su');
-      else if(delta<0)   c.classList.add('conf-giu');
-    }
+    c.classList.remove('confermato','sel');
   });
 }
 
 function setVoto(paramId, v, fromLoad){
   voti[paramId]=v;
+  votiConfermati.add(paramId); // auto-conferma sempre
+  votiBase[paramId]=v;         // base = valore corrente (niente delta)
   if(!fromLoad) setPuntiDirty();
-  if(fromLoad){
-    // Salva il valore base ereditato dall'analitica
-    votiBase[paramId]=v;
-  } else {
-    votiConfermati.add(paramId);
-  }
   var p=PARAMS.find(function(x){return x.id===paramId;});
   if(p){
     var elV=document.getElementById(p.vId); if(elV) elV.textContent=v;
@@ -4386,7 +4373,6 @@ function homeNuovaScheda(){
 // Solo numeri, come da tabella ufficiale AIS (mai aggettivi a livello di
 // singolo parametro/sezione — le 5 parole vivono SOLO sul punteggio totale,
 // vedi fasciaP). Tolto anche il 6: il pavimento del sistema è 7.
-var SCALA_AIS=[10,9,8,7];
 
 // ─── FORM RAPIDO — stato chip colore/base ────────────────────────────────────
 var _rpColore='', _rpBase='', _rpFoto='';
@@ -4428,20 +4414,6 @@ function rpSetChip(gruppo, valore, el){
   });
   el.style.background='var(--m)'; el.style.color='#fff'; el.style.borderColor='var(--m)'; el.style.fontWeight='700';
 }
-function rpResetChips(){
-  _rpColore=''; _rpBase=''; _rpFoto='';
-  document.querySelectorAll('[data-rp="colore"] span,[data-rp="base"] span').forEach(function(s){
-    s.style.background='#fff'; s.style.color='#333'; s.style.borderColor='var(--b)'; s.style.fontWeight='400';
-  });
-  rpRimuoviFoto();
-}
-
-var SEZIONI_RAPIDE=[
-  {id:'vis',  label:'Esame Visivo',          peso:0.10, params:['aspetto']},
-  {id:'olf',  label:'Esame Olfattivo',        peso:0.30, params:['iolf','purez','compl']},
-  {id:'gus',  label:'Esame Gusto-Olfattivo',  peso:0.40, params:['igus','equi','espr','pers']},
-  {id:'fin',  label:'Considerazioni Finali',  peso:0.20, params:['armo','qual']}
-];
 
 var _rpVoti={vis:null,olf:null,gus:null,fin:null};
 
@@ -4525,159 +4497,7 @@ function rpClOutDenom(e){
 }
 document.addEventListener('click', rpClOutDenom);
 
-function homeNuovaRapida(){
-  nascondiHome();
-  _rpVoti={vis:null,olf:null,gus:null,fin:null};
-  // Popola le sezioni
-  var el=document.getElementById('rp-sezioni');
-  el.innerHTML=SEZIONI_RAPIDE.map(function(s){
-    var chips=SCALA_AIS.map(function(c){
-      return '<button onclick="rpSetVoto(\'' + s.id + '\',' + c + ',this)" '
-        + 'style="padding:6px 14px;border:1px solid #ddd;border-radius:3px;background:#fff;'
-        + 'font-size:15px;font-weight:800;cursor:pointer;transition:all .15s" data-sez="' + s.id + '" data-val="' + c + '">'
-        + c + '</button>';
-    }).join('');
-    return '<div style="margin-bottom:14px">'
-      +'<div style="font-size:11px;font-weight:700;color:var(--d);margin-bottom:6px">'+s.label
-      +' <span style="font-size:9px;font-weight:400;color:#aaa">(peso '+(s.peso*100)+'%)</span></div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:5px" id="rp-chips-'+s.id+'">'+chips+'</div>'
-      +'</div>';
-  }).join('');
-  // Pulisce campi
-  ['rp-produttore','rp-nome','rp-annata','rp-note','rp-denom-search','rp-ng-motivo'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.value='';
-  });
-  document.getElementById('rp-denom-dd').style.display='none';
-  document.getElementById('rp-ng').checked=false;
-  rpResetChips();
-  document.getElementById('rp-ng-motivo').style.display='none';
-  document.getElementById('rp-preview').textContent='—';
-  document.getElementById('rp-fascia').textContent='';
-  document.getElementById('rapida-overlay').style.display='block';
-}
-
-function nascondiRapida(){
-  document.getElementById('rapida-overlay').style.display='none';
-}
-
-function rpSetVoto(sezId, val, btn){
-  _rpVoti[sezId]=val;
-  // Aggiorna stile chip
-  document.querySelectorAll('[data-sez="'+sezId+'"]').forEach(function(b){
-    b.style.background=b.dataset.val==val?'var(--m)':'#fff';
-    b.style.color=b.dataset.val==val?'#fff':'#333';
-    b.style.borderColor=b.dataset.val==val?'var(--m)':'#ddd';
-  });
-  rpAggiornaPunteggio();
-}
-
-function rpAggiornaPunteggio(){
-  // Usa lo stesso motore della scheda a punti (scala 0-100).
-  // Con i soli giudizi di sezione, calcolaTeoricoAIS assegna quel voto a ogni
-  // parametro della sezione: 7->70, 8->80, 9->90, 10->100.
-  // La parola scelta qui DEVE corrispondere esattamente, tramite Q2V, allo
-  // stesso numero del pulsante — altrimenti il punteggio si sposta in
-  // silenzio (bug reale, scoperto e corretto in questa stessa modifica:
-  // un Q2V non più allineato a questa mappa spostava 7->8 e 8->9).
-  var descMap={7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
-  var par={};
-  if(_rpVoti.vis!==null) par.qvis=descMap[_rpVoti.vis];
-  if(_rpVoti.olf!==null) par.qolf=descMap[_rpVoti.olf];
-  if(_rpVoti.gus!==null) par.qgus=descMap[_rpVoti.gus];
-  if(_rpVoti.fin!==null) par.qtot=descMap[_rpVoti.fin];
-  var el=document.getElementById('rp-preview');
-  var ef=document.getElementById('rp-fascia');
-  if(!par.qvis&&!par.qolf&&!par.qgus&&!par.qtot){el.textContent='—';ef.textContent='';return;}
-  var tuttiSet=(_rpVoti.vis!==null&&_rpVoti.olf!==null&&_rpVoti.gus!==null&&_rpVoti.fin!==null);
-  var r=calcolaTeoricoAIS(par);
-  el.textContent=(tuttiSet?'':'~')+parseFloat(r.totale.toFixed(1));
-  ef.textContent=tuttiSet?(fasciaP(parseFloat(r.totale.toFixed(1)))+' — stima da affinare nella scheda a punti'):'(stima parziale — su 100)';
-}
-
-async function salvaRapida(){
-  var produttore=document.getElementById('rp-produttore').value.trim();
-  var nome=document.getElementById('rp-nome').value.trim();
-  if(!produttore||!nome){
-    alert('Inserisci almeno produttore e nome del vino');return;
-  }
-  var isNG=document.getElementById('rp-ng').checked;
-  var ng_motivo=document.getElementById('rp-ng-motivo').value.trim();
-  if(!isNG){
-    var sezioniMancanti=SEZIONI_RAPIDE.filter(function(s){return _rpVoti[s.id]===null;});
-    if(sezioniMancanti.length){
-      alert('Valuta tutte e 4 le sezioni prima di salvare');return;
-    }
-  }
-
-  var now=new Date();
-  var dt=now.toLocaleDateString("it-IT")+' '+now.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
-  var id=Date.now();
-  var colore=_rpColore;
-  var base=_rpBase;
-  var tipologia=[colore,base].filter(Boolean).join(' ');
-
-  // Modalità guida: si salvano SOLO i 4 giudizi di sezione (descrittori AIS).
-  // I sottoparametri descrittivi (iolf, purez, equi, pers...) NON vengono toccati:
-  // sono qualitativi, non un voto 7-10, e vanno valutati nella scheda completa.
-  // Scriverli come numero rompeva il ripristino in loadS (val.indexOf su Number).
-  // Stessa mappa di rpAggiornaPunteggio — deve restare identica, altrimenti
-  // l'anteprima e il valore salvato divergono silenziosamente.
-  // Campione N.G.: nessun giudizio di sezione ha senso, parametri resta vuoto.
-  var descMap={7:'Buono',8:'Distinto',9:'Ottimo',10:'Eccellente'};
-  var parametri=isNG?{}:{
-    qvis:descMap[_rpVoti.vis],
-    qolf:descMap[_rpVoti.olf],
-    qgus:descMap[_rpVoti.gus],
-    qtot:descMap[_rpVoti.fin]
-  };
-
-  var scheda={
-    id:id,
-    tipo:'bozza',
-    autore:(typeof nomeDisplay==='function')?nomeDisplay():'',
-    produttore:produttore,
-    nome:nome,
-    annata:document.getElementById('rp-annata').value||'',
-    tipologia:tipologia,
-    denominazione:document.getElementById('rp-denom-search').value.trim()||'',
-    nota_fin:document.getElementById('rp-note').value||'',
-    foto_calice:_rpFoto||'',
-    parametri:parametri,
-    ng:isNG,
-    ng_motivo:ng_motivo,
-    analitica_compilata:false, // nata da Guida VITAE — non è mai passata dalla scheda completa
-    descrittori:[],sfumature:[],desc_vis:[],
-    dt:dt, dt_crea:dt,
-    stelle:0
-  };
-
-  // Salva su Supabase — supaInsertOrUpdate ritorna false (e logga in console)
-  // se il DB rifiuta la riga (es. colonna 'tipo' assente, RLS, rete).
-  var dbOk=true;
-  if(currentUser){
-    try{
-      var row=Object.assign({},scheda,{user_email:currentUser.email});
-      dbOk=await supaInsertOrUpdate('schede_analitiche', row);
-    }catch(err){
-      dbOk=false;
-      console.error('Bozza VITAE — errore sync Supabase:', err);
-    }
-  }
-
-  // Aggiorna localStorage
-  var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
-  l.unshift(scheda);
-  localStorage.setItem('ais_s',JSON.stringify(l));
-  aggiornaDatalistViniProduttori();
-
-  nascondiRapida();
-  aggiornaHomeSchede();
-  mostraHome();
-  toast(dbOk?'Bozza VITAE salvata ✓':'⚠ Bozza salvata solo in locale — sync DB non riuscita');
-}
-
-
-// ─── ADMIN ────────────────────────────────────────────────────────────────
+async // ─── ADMIN ────────────────────────────────────────────────────────────────
 var ADMIN_EMAIL='robertopiras@keynes.it';
 
 // ─── TABLEAU DE BORD ─────────────────────────────────────────────────────────
@@ -5567,8 +5387,7 @@ function renderAdminVino(){
   </div></div>
 
   <div style="padding:14px 12px 6px;display:flex;gap:8px">
-    <button onclick="homeNuovaScheda()" style="flex:1;padding:12px 8px;background:var(--m);color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em">＋ Scheda Completa</button>
-    <button onclick="homeNuovaRapida()" style="flex:1;padding:12px 8px;background:#f5a800;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em">+ Scheda rapida Guida VITAE</button>
+    <button onclick="homeNuovaScheda()" style="width:100%;padding:12px 8px;background:var(--m);color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">＋ Nuova Scheda</button>
   </div>
   <div style="padding:0 12px 10px">
     <div style="position:relative">
@@ -5596,112 +5415,6 @@ function renderAdminVino(){
 
 
 <!-- ═══ SCHEDA RAPIDA VITAE ═══ -->
-<div id="rapida-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:600;background:#f0f0e8;overflow-y:auto;padding-bottom:80px">
-  <div style="background:#f5a800;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px">
-    <span style="font-size:20px">⚡</span>
-    <div style="flex:1">
-      <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.05em">Modalità Guida VITAE</div>
-      <div style="font-size:10px;opacity:.85">Valutazione rapida per degustazione di panel</div>
-    </div>
-    <span onclick="nascondiRapida()" style="cursor:pointer;font-size:20px;opacity:.8">✕</span>
-  </div>
-
-  <!-- Dati vino -->
-  <div style="background:#fff;margin:10px 12px 0;border-radius:6px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.06em;margin-bottom:10px">Dati identificativi</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div>
-        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Produttore</label>
-        <input id="rp-produttore" type="text" placeholder="es. Argiolas" list="dl-produttori" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
-      </div>
-      <div>
-        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Nome vino</label>
-        <input id="rp-nome" type="text" placeholder="es. Turriga" list="dl-vini" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
-      <div>
-        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Annata</label>
-        <input id="rp-annata" type="number" placeholder="2021" min="1900" max="2030" style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
-      </div>
-      <div>
-        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Colore</label>
-        <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap" data-rp="colore">
-          <span onclick="rpSetChip('colore','Bianco',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Bianco</span>
-          <span onclick="rpSetChip('colore','Rosato',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Rosato</span>
-          <span onclick="rpSetChip('colore','Rosso',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Rosso</span>
-        </div>
-      </div>
-      <div>
-        <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Modalità</label>
-        <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap" data-rp="base">
-          <span onclick="rpSetChip('base','Fermo',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Fermo</span>
-          <span onclick="rpSetChip('base','Frizzante',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Frizzante</span>
-          <span onclick="rpSetChip('base','Spumante',this)" style="padding:5px 11px;border:1px solid var(--b);border-radius:20px;font-size:12px;cursor:pointer;background:#fff;transition:.15s">Spumante</span>
-        </div>
-      </div>
-    </div>
-    <div class="rp-dw" style="position:relative">
-      <label style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700">Denominazione</label>
-      <input id="rp-denom-search" type="text" placeholder="Cerca denominazione..." autocomplete="off"
-        oninput="rpFiltraDenom()" onfocus="rpFiltraDenom()"
-        style="width:100%;margin-top:2px;padding:7px;border:1px solid var(--b);border-radius:3px;font-size:12px;box-sizing:border-box">
-      <div id="rp-denom-dd" style="display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid var(--b);border-top:none;border-radius:0 0 4px 4px;max-height:180px;overflow-y:auto;z-index:50;box-shadow:0 4px 10px rgba(0,0,0,.1)"></div>
-    </div>
-  </div>
-
-  <!-- 4 valutazioni rapide -->
-  <div style="background:#fff;margin:8px 12px 0;border-radius:6px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.06em;margin-bottom:12px">Valutazione per sezione</div>
-
-    <div id="rp-sezioni"></div>
-
-    <!-- Punteggio stimato -->
-    <div style="margin-top:14px;padding:12px;background:#f5f5f0;border-radius:4px;text-align:center">
-      <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.05em">Punteggio stimato</div>
-      <div id="rp-preview" style="font-size:28px;font-weight:900;color:var(--m)">—</div>
-      <div id="rp-fascia" style="font-size:11px;color:#888;margin-top:2px"></div>
-    </div>
-    <div style="margin-top:8px;padding:8px 10px;background:#fffbe6;border:1px solid #e8d480;border-radius:4px;font-size:10px;line-height:1.5;color:#7a6a00">
-      ⓘ Stima rapida: in modalità Guida VITAE assegni un giudizio per <em>sezione</em>, non per singolo parametro. Il valore definitivo si ottiene affinando i 10 parametri nella scheda a punti completa.
-    </div>
-  </div>
-
-  <!-- Note libere -->
-  <div style="margin:8px 12px 0">
-    <textarea id="rp-note" placeholder="Note rapide (facoltative)..." style="width:100%;padding:10px;border:1px solid var(--b);border-radius:4px;font-size:12px;resize:vertical;min-height:60px;box-sizing:border-box;background:#fff"></textarea>
-  </div>
-
-  <!-- Foto calice -->
-  <div style="margin:8px 12px 0">
-    <div style="font-size:9px;color:#888;text-transform:uppercase;font-weight:700;margin-bottom:5px">📷 Foto calice (facoltativa)</div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <label style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:#fff;border:1px solid var(--b);border-radius:4px;font-size:12px;cursor:pointer;font-weight:600;color:var(--d)">
-        <input type="file" accept="image/*" capture="environment" style="display:none" onchange="rpCaricaFoto(this)">
-        📷 Scatta / Scegli
-      </label>
-      <button id="rp-foto-rimuovi" onclick="rpRimuoviFoto()" style="display:none;padding:7px 10px;background:#fff;border:1px solid #ddd;border-radius:4px;font-size:11px;color:#888;cursor:pointer">✕ Rimuovi</button>
-    </div>
-    <div id="rp-foto-preview" style="margin-top:6px;display:none">
-      <img id="rp-foto-img" src="" style="max-width:100%;max-height:160px;border-radius:6px;border:1px solid var(--b);object-fit:cover">
-    </div>
-  </div>
-
-  <!-- Campione difettato (N.G.) -->
-  <div style="margin:8px 12px 0;padding:10px;background:#fff5f5;border:1px solid #e8b0b0;border-radius:4px">
-    <label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#a00;cursor:pointer">
-      <input type="checkbox" id="rp-ng" onchange="toggleNG('rp')" style="width:16px;height:16px;flex-shrink:0">
-      🚫 Campione difettato — interrompi la valutazione (N.G.)
-    </label>
-    <input type="text" id="rp-ng-motivo" placeholder="Motivo (facoltativo): tappo, ossidato..." style="display:none;width:100%;margin-top:8px;padding:7px;border:1px solid #e8b0b0;border-radius:3px;font-size:12px;box-sizing:border-box">
-  </div>
-
-  <!-- Bottoni azione -->
-  <div style="padding:10px 12px;display:flex;gap:8px">
-    <button onclick="salvaRapida()" style="flex:2;padding:13px;background:#f5a800;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">💾 Salva Bozza</button>
-    <button onclick="nascondiRapida()" style="flex:1;padding:13px;background:#fff;color:#888;border:1px solid #ddd;border-radius:4px;font-size:12px;cursor:pointer">Annulla</button>
-  </div>
-</div>
 
 
 <!-- ═══ ADMIN OVERLAY ═══ -->
