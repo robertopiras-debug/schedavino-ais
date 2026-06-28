@@ -2601,6 +2601,14 @@ function validaScheda(){
     !document.getElementById('nota-vis').value.trim();
   if(analiticaVuota) isBozzaEdit=true;
 
+  // Terza via: solo giudizi di sezione (qvis/qolf/qgus/qtot) senza parametri
+  // descrittivi — tipico quando si usa l'analitica solo per il punteggio stimato
+  // a fianco di una scheda punti già completa. Le note sinc da punti non contano.
+  var soloGiudiziSezione=(sc.qvis||sc.qolf||sc.qgus||sc.qtot) &&
+    !sc.limpidezza && !sc.colore && !sc.iolf && !sc.colf &&
+    !(mx.dolf||[]).length && !sc.igus && !sc.equi && !sc.dolc && !sc.acid;
+  if(soloGiudiziSezione) isBozzaEdit=true;
+
   var mId=validaDatiId();
   var righeErrore=[];
 
@@ -3030,7 +3038,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v180';
+const APP_VERSION='v181';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
