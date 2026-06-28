@@ -1655,7 +1655,8 @@ function nuovaScheda(){
   document.getElementById('vitigni-custom').value='';
   document.getElementById('vitigni-extra').value='';
   renderVitigni('');
-  document.querySelectorAll('.tc-chip').forEach(function(c){c.classList.remove('on-base','on-colore','on-menzione')});
+  document.querySelectorAll('.tc-chip').forEach(function(c){c.classList.remove('on-base','on-colore','on-menzione');});
+  document.querySelectorAll('.voto-chip.ais-radio').forEach(function(c){c.classList.remove('conf-base','conf-su','conf-giu','conf-variato','sel');});
   document.querySelectorAll('#stars .st').forEach(function(s){s.classList.remove('lit')});
   document.getElementById('btnSav').textContent='Salva';
   curDenom=null;
@@ -3054,7 +3055,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v183';
+const APP_VERSION='v184';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3313,6 +3314,7 @@ function sincronizzaConAnalitica(){
     analiticaP=null;
     voti={}; votiConfermati=new Set(); votiBase={};
     PARAMS.forEach(function(p){setVoto(p.id,7,true);});
+    calcolaTotale();
     mostraScheda();
     return;
   }
@@ -4371,7 +4373,13 @@ function homeApriScheda(id){
   mostraVista('punti');     // priorità VITAE — analitica è opzione secondaria
 }
 function homeApriPunti(id){nascondiHome();apriInPunti(id,{stopPropagation:function(){}});}
-function homeNuovaScheda(){nascondiHome();nuovaScheda();if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=nomeDisplay();}}
+function homeNuovaScheda(){
+  nascondiHome();
+  nuovaScheda();
+  if(currentUser){var wA=document.getElementById('wAutore');if(wA&&!wA.value)wA.value=nomeDisplay();}
+  // Naviga esplicitamente a punti con scheda vuota
+  _mostraVistaInner('punti');
+}
 
 
 // ═══ MODALITÀ GUIDA VITAE ════════════════════════════════════════════════
