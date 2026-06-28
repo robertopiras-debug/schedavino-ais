@@ -843,8 +843,13 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
     <!-- Vitigni -->
     <div class="row" style="margin-bottom:4px">
-      <div class="f"><div class="lbl">Vitigni</div>
-        <input id="pt-vitigni" type="text" placeholder="es. Vermentino, Cannonau, Bovale…" oninput="ptSyncUp()">
+      <div class="f"><div class="lbl">Base ampelografica</div>
+        <div id="pt-vitigni-chips" class="tipol-chips" style="margin-bottom:4px"><span class="tc-ph">seleziona prima la denominazione</span></div>
+        <input id="pt-vitigni" type="text" placeholder="Indica i vitigni…" oninput="ptSyncUp()" style="display:none">
+        <div id="pt-vitigni-libero-wrap" style="display:none;margin-top:3px">
+          <span style="font-size:10px;color:var(--s);cursor:pointer;font-weight:700;text-decoration:underline" onclick="ptToggleVitigniLibero()">+ Aggiungi vitigno non in lista</span>
+          <input id="pt-vitigni-extra" type="text" placeholder="es. Cagnulari, Torbato…" style="display:none;margin-top:4px;font-size:11px" oninput="ptSyncUp()">
+        </div>
       </div>
     </div>
 
@@ -3394,6 +3399,7 @@ function ptOnReg(){
   var dd=document.getElementById('pt-dD'); if(dd) dd.style.display='none';
   _ptCurDen=null; _ptSelMenzione='';
   ptRenderMenzioni([]);
+  ptRenderVitigni('');
   ptSyncUp();
 }
 
@@ -3422,6 +3428,7 @@ function ptSelDen(nome){
   var reg=r?r.value:'Sardegna';
   _ptCurDen=(DN[reg]||DN['Sardegna']||[]).find(function(d){return d.n===nome;})||null;
   ptRenderMenzioni(_ptCurDen?_ptCurDen.tip:[]);
+  ptRenderVitigni(nome);
   ptSyncUp();
 }
 
@@ -3441,7 +3448,7 @@ function ptRenderMenzioni(tips){
     return;
   }
   wrap.innerHTML=tips.map(function(t){
-    var sel=t===_ptSelMenzione?' tc-sel':'';
+    var sel=t===_ptSelMenzione?' on-menzione':'';
     return '<div class="tc-chip'+sel+'" onclick="ptChipSel(\'pt-tipolMenzione\',this)">'+t+'</div>';
   }).join('');
 }
@@ -3449,10 +3456,12 @@ function ptRenderMenzioni(tips){
 function ptChipSel(groupId, el){
   var wrap=document.getElementById(groupId);
   if(!wrap) return;
-  wrap.querySelectorAll('.tc-chip').forEach(function(c){c.classList.remove('tc-sel');});
-  el.classList.add('tc-sel');
-  if(groupId==='pt-tipolBase')   _ptSelBase=el.textContent;
-  if(groupId==='pt-tipolColore') _ptSelColore=el.textContent;
+  // Usa le stesse classi CSS dell'analitica: on-base / on-colore / on-menzione
+  var cls=groupId==='pt-tipolBase'?'on-base':groupId==='pt-tipolColore'?'on-colore':'on-menzione';
+  wrap.querySelectorAll('.tc-chip').forEach(function(c){c.classList.remove('on-base','on-colore','on-menzione');});
+  el.classList.add(cls);
+  if(groupId==='pt-tipolBase')     _ptSelBase=el.textContent;
+  if(groupId==='pt-tipolColore')   _ptSelColore=el.textContent;
   if(groupId==='pt-tipolMenzione') _ptSelMenzione=el.textContent;
   ptSyncUp();
 }
@@ -3472,6 +3481,52 @@ function ptPrev(){
     if(parts.length>0) prev.innerHTML=parts.join(' ');
     else prev.innerHTML='<span class="ph">I dati appariranno qui…</span>';
   }
+}
+
+function ptRenderVitigni(denomName){
+  var wrap=document.getElementById('pt-vitigni-chips');
+  var inp=document.getElementById('pt-vitigni');
+  var libroWrap=document.getElementById('pt-vitigni-libero-wrap');
+  if(!wrap) return;
+  if(!denomName||denomName==='__tavola__'){
+    wrap.innerHTML='';
+    if(inp){inp.style.display='block';inp.placeholder='Indica i vitigni…';}
+    if(libroWrap) libroWrap.style.display='none';
+    return;
+  }
+  var vits=(typeof VIT!=='undefined'&&VIT[denomName])||[];
+  if(!vits.length){
+    wrap.innerHTML='<span class="tc-ph">disciplinare non codificato — scrivi sotto</span>';
+    if(inp) inp.style.display='block';
+    if(libroWrap) libroWrap.style.display='none';
+    return;
+  }
+  // Mostra chip selezionabili
+  var selAttuali=(inp&&inp.value?inp.value.split(',').map(function(s){return s.trim();}):[]); 
+  wrap.innerHTML=vits.map(function(v){
+    var on=selAttuali.indexOf(v)>-1?' on-menzione':'';
+    return '<div class="tc-chip'+on+'" onclick="ptPickVitigno(this)">'+v+'</div>';
+  }).join('');
+  if(inp) inp.style.display='none';
+  if(libroWrap) libroWrap.style.display='block';
+}
+
+function ptPickVitigno(el){
+  el.classList.toggle('on-menzione');
+  // Ricostruisce il campo testo dalla selezione chip
+  var sel=Array.from(document.querySelectorAll('#pt-vitigni-chips .tc-chip.on-menzione')).map(function(c){return c.textContent;});
+  var extra=document.getElementById('pt-vitigni-extra');
+  if(extra&&extra.value.trim()) sel.push(extra.value.trim());
+  var inp=document.getElementById('pt-vitigni');
+  if(inp) inp.value=sel.join(', ');
+  ptSyncUp();
+}
+
+function ptToggleVitigniLibero(){
+  var inp=document.getElementById('pt-vitigni-extra');
+  if(!inp) return;
+  inp.style.display=inp.style.display==='none'?'block':'none';
+  if(inp.style.display==='block') inp.focus();
 }
 
 function ptSyncUp(){
@@ -3497,9 +3552,9 @@ function ptSyncUp(){
     s('wP',prod);s('wN',nome);s('wY',ann);s('dS',den);s('wR',reg);s('wV',grad);s('vitigni-custom',vitigni);
     // Aggiorna tipologia nell'analitica via selBase/selColore
     var tbA=document.getElementById('tipolBase');
-    if(tbA&&_ptSelBase) tbA.querySelectorAll('.tc-chip').forEach(function(c){c.classList.toggle('tc-sel',c.textContent===_ptSelBase);});
+    if(tbA&&_ptSelBase) tbA.querySelectorAll('.tc-chip').forEach(function(c){c.classList.toggle("on-base",c.textContent===_ptSelBase);});
     var tcA=document.getElementById('tipolColore');
-    if(tcA&&_ptSelColore) tcA.querySelectorAll('.tc-chip').forEach(function(c){c.classList.toggle('tc-sel',c.textContent===_ptSelColore);});
+    if(tcA&&_ptSelColore) tcA.querySelectorAll('.tc-chip').forEach(function(c){c.classList.toggle("on-colore",c.textContent===_ptSelColore);});
     // Persiste
     var schedeA=JSON.parse(localStorage.getItem('ais_s')||'[]');
     var idx=schedeA.findIndex(function(x){return x.id===analiticaP.id;});
@@ -3546,15 +3601,19 @@ function popolaCampiPunti(){
   // Menzione: tutto il resto
   var leftover=tip.replace(_ptSelBase,'').replace(_ptSelColore,'').trim();
   if(leftover&&_ptCurDen&&_ptCurDen.tip&&_ptCurDen.tip.indexOf(leftover)>-1) _ptSelMenzione=leftover;
-  // Aggiorna chip UI
-  var upChips=function(groupId,sel){
+  // Aggiorna chip UI con le classi corrette
+  var upChipsReal=function(groupId,sel,cls){
     var w=document.getElementById(groupId);
     if(!w) return;
-    w.querySelectorAll('.tc-chip').forEach(function(c){c.classList.toggle('tc-sel',c.textContent===sel);});
+    w.querySelectorAll('.tc-chip').forEach(function(c){
+      c.classList.remove('on-base','on-colore','on-menzione');
+      if(c.textContent===sel) c.classList.add(cls);
+    });
   };
-  upChips('pt-tipolBase',_ptSelBase);
-  upChips('pt-tipolColore',_ptSelColore);
-  upChips('pt-tipolMenzione',_ptSelMenzione);
+  upChipsReal('pt-tipolBase',_ptSelBase,'on-base');
+  upChipsReal('pt-tipolColore',_ptSelColore,'on-colore');
+  // Vitigni
+  ptRenderVitigni(analiticaP.denominazione||'');
   ptPrev();
 }
 
