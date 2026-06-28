@@ -120,12 +120,7 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .sez-body{display:grid;grid-template-columns:minmax(0,1fr) 38%;}
 .params-col{border-right:0.5px solid var(--b);}
 .note-col{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:5px 7px;}
-.fsz-badge{font-size:11px;font-weight:600;text-align:center;padding:2px 5px;border-radius:4px;background:#f0f0ee;color:#666;white-space:nowrap;}
-.fsz-badge.f-eccel{background:#ede8f7;color:#3c3489;}
-.fsz-badge.f-ottimo{background:#fef0e0;color:#854f0b;}
-.fsz-badge.f-distinto{background:#e6f0fb;color:#185fa5;}
-.fsz-badge.f-buono{background:#e8f5ee;color:#0f6e56;}
-.fsz-badge.f-accettabile{background:#f0f0ee;color:#666;}
+.fsz-badge{font-size:11px;font-weight:600;text-align:center;padding:2px 5px;border-radius:4px;background:#f0f0ee;color:#555;white-space:nowrap;}
 .nota-sez{width:100%;font-size:11px;font-family:inherit;border:1px solid var(--b);border-radius:4px;padding:3px 5px;resize:none;background:var(--r);color:var(--d);line-height:1.4;}
 /* ─── SCHEDA A PUNTI AIS — griglia tabellare ─────────────────────────────── */
 .ais-pt-row{display:grid;grid-template-columns:minmax(0,1fr) 40px 40px 40px 40px;align-items:center;padding:5px 12px;border-bottom:0.5px solid var(--b);}
@@ -3014,7 +3009,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v176';
+const APP_VERSION='v177';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3665,26 +3660,20 @@ function calcolaTotale(){
   // uniforme 7/8/9/10 in una sezione produce esattamente la stessa parola
   // che produrrebbe sull'intera scheda — coerenza piena con Q2V/fasciaP.
   function lbSez(pt,max){var v=pt/max*10; return v>=9.4?'Eccellente':v>=9?'Ottimo':v>=8.5?'Distinto':v>=8?'Buono':'Accettabile';}
-  var lbV=document.getElementById('lbV'); if(lbV&&subV>0) lbV.textContent='· '+lbSez(subV,10);
-  var lbO=document.getElementById('lbO'); if(lbO&&subO>0) lbO.textContent='· '+lbSez(subO,30);
-  var lbG=document.getElementById('lbG'); if(lbG&&subG>0) lbG.textContent='· '+lbSez(subG,40);
-  var lbF=document.getElementById('lbF'); if(lbF&&subF>0) lbF.textContent='· '+lbSez(subF,20);
-  // Badge fascia per colonna note di sezione
-  function aggiornaBadgeFascia(elId, pt, max){
-    var el=document.getElementById(elId); if(!el||!pt) return;
-    var lbl=lbSez(pt,max);
-    var cls='f-accettabile';
-    if(lbl==='Eccellente') cls='f-eccel';
-    else if(lbl==='Ottimo') cls='f-ottimo';
-    else if(lbl==='Distinto') cls='f-distinto';
-    else if(lbl==='Buono') cls='f-buono';
-    el.textContent=lbl;
-    el.className='fsz-badge '+cls;
+  var lbV=document.getElementById('lbV'); if(lbV) lbV.textContent='';
+  var lbO=document.getElementById('lbO'); if(lbO) lbO.textContent='';
+  var lbG=document.getElementById('lbG'); if(lbG) lbG.textContent='';
+  var lbF=document.getElementById('lbF'); if(lbF) lbF.textContent='';
+  // Badge colonna note: subtotale numerico reale, non fascia arbitraria
+  function aggiornaBadgeSubtot(elId, pt, max){
+    var el=document.getElementById(elId); if(!el) return;
+    el.textContent=pt>0?(pt.toFixed(1)+' / '+max+' pt'):'—';
+    el.className='fsz-badge';
   }
-  aggiornaBadgeFascia('fsz-V',subV,10);
-  aggiornaBadgeFascia('fsz-O',subO,30);
-  aggiornaBadgeFascia('fsz-G',subG,40);
-  aggiornaBadgeFascia('fsz-F',subF,20);
+  aggiornaBadgeSubtot('fsz-V',subV,10);
+  aggiornaBadgeSubtot('fsz-O',subO,30);
+  aggiornaBadgeSubtot('fsz-G',subG,40);
+  aggiornaBadgeSubtot('fsz-F',subF,20);
 
   // Feedback coerenza: confronta totale con media ponderata dei voti effettivi
   if(analiticaP){
