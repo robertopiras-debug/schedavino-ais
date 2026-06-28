@@ -4208,6 +4208,17 @@ function loadP(id){
   var ng=document.getElementById('nota-gus-pt'); if(ng) ng.value=s.nota_gus||'';
   var nf=document.getElementById('nota-fin-pt'); if(nf) nf.value=s.nota_fin||'';
   var nd=document.getElementById('nota-degustazione-pt'); if(nd) nd.value=s.nota_degustazione||'';
+  // Fallback: se una nota punti è vuota, eredita dall'analitica collegata
+  if(analiticaP){
+    var noteMap=[
+      {el:nv, key:'nota_vis'},{el:no, key:'nota_olf'},
+      {el:ng, key:'nota_gus'},{el:nf, key:'nota_fin'},
+      {el:nd, key:'nota_degustazione'}
+    ];
+    noteMap.forEach(function(m){
+      if(m.el && !m.el.value && analiticaP[m.key]) m.el.value=analiticaP[m.key];
+    });
+  }
   popolaCampiPunti();
   editingIdP=typeof id==="string"?parseInt(id):id;
   mostraScheda();
