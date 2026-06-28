@@ -1013,6 +1013,19 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 
 <!-- COLONNA PIENA AIS -->
+<!-- Modal modifiche non salvate -->
+<div id="dirty-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:10px;padding:22px 20px;max-width:320px;width:90%;margin:auto;box-shadow:0 8px 30px rgba(0,0,0,.25)">
+    <div style="font-size:15px;font-weight:700;color:var(--d);margin-bottom:6px">Modifiche non salvate</div>
+    <div style="font-size:12px;color:#666;margin-bottom:18px">Hai modificato la scheda senza premere Aggiorna. Vuoi salvare prima di uscire?</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="dirtyModalSalva()" style="padding:11px;background:var(--m);color:#fff;border:none;border-radius:5px;font-size:13px;font-weight:700;cursor:pointer">💾 Salva e continua</button>
+      <button onclick="dirtyModalIgnora()" style="padding:11px;background:#f0f0ee;color:#555;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer">Esci senza salvare</button>
+      <button onclick="dirtyModalAnnulla()" style="padding:8px;background:none;color:#aaa;border:none;font-size:12px;cursor:pointer">Annulla</button>
+    </div>
+  </div>
+</div>
+
 <div id="colonnaPiena" style="border-top:2px solid var(--m)">
   <div class="ais-pt-row" style="padding:3px 12px 0;background:#f9f7f4;border-bottom:0.5px solid var(--b)">
     <div style="font-size:9px;color:#aaa;font-style:italic;align-self:center">Valore a colonna piena (solo calcolo rapido AIS)</div>
@@ -1059,6 +1072,14 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 <script>
 function mostraVista(v){
+  // Se si esce dalla vista punti verso analitica, controlla modifiche
+  if(v==='analitica'){
+    checkUnsavedPunti(function(){ _mostraVistaInner(v); });
+    return;
+  }
+  _mostraVistaInner(v);
+}
+function _mostraVistaInner(v){
   document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva')});
   document.getElementById('vista-'+v).classList.add('attiva');
   document.getElementById('btn-home').classList.remove('attivo');
@@ -3009,7 +3030,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v179';
+const APP_VERSION='v180';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3467,6 +3488,7 @@ function ptToggleVitigniLibero(){
 }
 
 function ptSyncUp(){
+  setPuntiDirty();
   ptPrev();
   // Compone la tipologia combinata come fa l'analitica
   var tipCombinata=[_ptSelColore,_ptSelBase,_ptSelMenzione].filter(Boolean).join(' ');
@@ -3556,8 +3578,49 @@ function popolaCampiPunti(){
 function syncNotaSezRt(srcId, dstId){
   var src=document.getElementById(srcId);
   var dst=document.getElementById(dstId);
-  // .value= non triggera oninput — nessun loop infinito
-  if(src && dst && dst.value!==src.value) dst.value=src.value;
+  if(src && dst && dst.value!==src.value){
+    dst.value=src.value;
+    // Se la modifica parte dalla vista punti, segna dirty
+    if(srcId.indexOf('-pt')>-1) setPuntiDirty();
+  }
+}
+
+// ─── UNSAVED CHANGES GUARD ──────────────────────────────────────────────────
+var _puntiDirty=false;
+var _dirtyCallback=null; // funzione da eseguire dopo scelta utente
+
+function setPuntiDirty(){ _puntiDirty=true; }
+
+function checkUnsavedPunti(callback){
+  // Controlla se siamo nella vista punti e ci sono modifiche non salvate
+  var vistaPunti=document.getElementById('vista-punti');
+  if(!vistaPunti||vistaPunti.style.display==='none'||!_puntiDirty){
+    callback(); return;
+  }
+  _dirtyCallback=callback;
+  var m=document.getElementById('dirty-modal');
+  if(m){ m.style.display='flex'; }
+}
+
+function dirtyModalSalva(){
+  var m=document.getElementById('dirty-modal');
+  if(m) m.style.display='none';
+  salvaPunti();
+  _puntiDirty=false;
+  if(_dirtyCallback){ _dirtyCallback(); _dirtyCallback=null; }
+}
+
+function dirtyModalIgnora(){
+  var m=document.getElementById('dirty-modal');
+  if(m) m.style.display='none';
+  _puntiDirty=false;
+  if(_dirtyCallback){ _dirtyCallback(); _dirtyCallback=null; }
+}
+
+function dirtyModalAnnulla(){
+  var m=document.getElementById('dirty-modal');
+  if(m) m.style.display='none';
+  _dirtyCallback=null;
 }
 
 function aggiornaColonnaPiena(){
@@ -3617,6 +3680,7 @@ function aggiornaSlider(paramId){
 
 function setVoto(paramId, v, fromLoad){
   voti[paramId]=v;
+  if(!fromLoad) setPuntiDirty();
   if(fromLoad){
     // Salva il valore base ereditato dall'analitica
     votiBase[paramId]=v;
@@ -3987,6 +4051,7 @@ function salvaPunti(){
   } else {
     l.unshift(d);
   }
+  _puntiDirty=false;
   toastP('Valutazione salvata ✓ (sync in corso...)');
   // ── Punti → Analitica: scrivi note di sezione sulla scheda analitica collegata ──
   if(aId){
@@ -4165,11 +4230,13 @@ initPunti();
 // ═══ HOME ════════════════════════════════════════════════════════════════
 var _homeSchede=[];
 function mostraHome(){
-  document.getElementById('home-overlay').style.display='block';
-  document.getElementById('btn-home').classList.add('attivo');
-  document.getElementById('btn-an').classList.remove('attivo');
-  document.getElementById('btn-pt').classList.remove('attivo');
-  aggiornaHomeSchede();
+  checkUnsavedPunti(function(){
+    document.getElementById('home-overlay').style.display='block';
+    document.getElementById('btn-home').classList.add('attivo');
+    document.getElementById('btn-an').classList.remove('attivo');
+    document.getElementById('btn-pt').classList.remove('attivo');
+    aggiornaHomeSchede();
+  });
 }
 function nascondiHome(){document.getElementById('home-overlay').style.display='none';}
 function aggiornaHomeSchede(){_homeSchede=JSON.parse(localStorage.getItem('ais_s')||'[]');filtraHomeSchede();}
