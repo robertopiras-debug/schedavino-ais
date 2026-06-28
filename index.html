@@ -3052,7 +3052,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v186';
+const APP_VERSION='v187';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3310,9 +3310,14 @@ function sincronizzaConAnalitica(){
   if(!editingId){
     analiticaP=null;
     voti={}; votiConfermati=new Set(); votiBase={};
-    PARAMS.forEach(function(p){setVoto(p.id,7,true);});
+    // Voti a zero: nessun chip selezionato, hero mostra —
+    PARAMS.forEach(function(p){
+      var w=document.getElementById('slw-'+p.id);
+      if(w) w.querySelectorAll('.voto-chip.ais-radio').forEach(function(c){c.classList.remove('sel');});
+    });
     calcolaTotale();
     mostraScheda();
+    popolaCampiPunti(); // mostra testata editabile con campi vuoti
     return;
   }
   if(!schede.length){
@@ -3726,9 +3731,10 @@ function calcolaTotale(){
     if(p.sez==='F') subF+=c;
   });
   tot=parseFloat(tot.toFixed(1));
-  document.getElementById('heroNum').textContent=tot.toFixed(1);
-  document.getElementById('heroFascia').textContent=fasciaP(tot);
-  var cf=document.getElementById('colFascia'); if(cf) cf.textContent=fasciaP(tot);
+  var haVoti=Object.keys(voti).some(function(k){return voti[k]>0;});
+  document.getElementById('heroNum').textContent=haVoti?tot.toFixed(1):'—';
+  document.getElementById('heroFascia').textContent=haVoti?fasciaP(tot):'';
+  var cf=document.getElementById('colFascia'); if(cf) cf.textContent=haVoti?fasciaP(tot):'';
   document.getElementById('heroBreak').innerHTML=
     'Visivo: '+subV.toFixed(1)+' · Olfattivo: '+subO.toFixed(1)+' · Gusto: '+subG.toFixed(1)+' · Finale: '+subF.toFixed(1);
   document.getElementById('subV').textContent=subV.toFixed(1);
@@ -3959,7 +3965,7 @@ async function rimuoviPunteggioCollegato(analiticaId){
 }
 
 function mostraScheda(){
-  document.getElementById('testata').style.display=analiticaP?'block':'none';
+  document.getElementById('testata').style.display='block'; // sempre visibile — dati identificativi editabili anche su nuova scheda
   document.getElementById('hero').style.display='block';
   var isNG=!!(analiticaP && analiticaP.ng);
   // Campione N.G.: non basta "deselezionare" i chip — restavano gialli
