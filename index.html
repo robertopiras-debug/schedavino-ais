@@ -713,7 +713,10 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <!-- Totale -->
     <div style="display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--d);margin-top:8px;padding-top:8px">
       <span style="font-size:12px;font-weight:700;color:var(--d)">Punteggio totale stimato</span>
-      <span style="font-size:24px;font-weight:900;color:var(--m)" id="ap-totale">—</span>
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-size:24px;font-weight:900;color:var(--m)" id="ap-totale">—</span>
+        <span style="font-size:18px;font-weight:900;color:var(--m);text-transform:uppercase;letter-spacing:.06em" id="ap-fascia"></span>
+      </div>
     </div>
     <div style="font-size:10px;color:#888;margin-top:3px;font-style:italic">
       Basato sui giudizi qualitativi inseriti. Nella scheda a punti potrai affinare ogni parametro.
@@ -1441,6 +1444,7 @@ function aggiornaAnteprima(){
 
   document.getElementById('ap-sezioni').innerHTML=html;
   document.getElementById('ap-totale').textContent=totale>0?Math.round(totale):'—';
+  var apf=document.getElementById('ap-fascia'); if(apf) apf.textContent=totale>0?fasciaP(parseFloat(totale.toFixed(1))):'';
   aggiornaPunteggioTestataAnalitica();
 }
 
@@ -3038,7 +3042,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v181';
+const APP_VERSION='v182';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
