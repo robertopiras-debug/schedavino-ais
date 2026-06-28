@@ -1591,22 +1591,10 @@ function vaiAPuntiDaAnalitica(e){
 
 function apriInPunti(id, e){
   e.stopPropagation();
-  mostraVista('punti');
-  setTimeout(function(){
-    var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
-    var s=schede.find(function(x){return x.id===id;});
-    if(!s) return;
-    analiticaP=s;
-    // Se esiste già una scheda a punti collegata a questa analitica, caricala
-    // (con i voti confermati intatti) invece di rigenerare suggerimenti da zero.
-    var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
-    var esistente=lp.find(function(x){return x.analiticaId===id;});
-    if(esistente){
-      loadP(esistente.id);
-    } else {
-      caricaDaAnalitica();
-    }
-  }, 100);
+  var idNum=typeof id==='string'?parseInt(id,10):id;
+  editingId=idNum;          // DEVE precedere mostraVista — sincronizzaConAnalitica() usa editingId
+  loadS(idNum);             // popola form analitica in background
+  mostraVista('punti');     // ora sincronizzaConAnalitica() trova la scheda giusta
 }
 
 function nuovaScheda(){
@@ -3014,7 +3002,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v170';
+const APP_VERSION='v171';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
