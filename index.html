@@ -3014,7 +3014,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v168';
+const APP_VERSION='v169';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3622,9 +3622,8 @@ function setVoto(paramId, v, fromLoad){
   }
   var p=PARAMS.find(function(x){return x.id===paramId;});
   if(p){
-    document.getElementById(p.vId).textContent=v;
-    var contributo=(v*p.peso).toFixed(1);
-    document.getElementById(p.cId).textContent=contributo+' pt';
+    var elV=document.getElementById(p.vId); if(elV) elV.textContent=v;
+    var elC=document.getElementById(p.cId); if(elC) elC.textContent=(v*p.peso).toFixed(1)+' pt';
   }
   aggiornaSlider(paramId);
   // Il toggle confermato è già gestito in aggiornaSlider — nessun wrapper vw-* necessario
