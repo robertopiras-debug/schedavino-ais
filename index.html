@@ -1633,6 +1633,18 @@ function nuovaScheda(){
   document.getElementById('nfin').value='';
   document.getElementById('nota-degustazione').value='';
   var ndpt=document.getElementById('nota-degustazione-pt');if(ndpt)ndpt.value='';
+  // Reset campi punti — testata e note di sezione
+  analiticaP=null; editingIdP=null;
+  voti={}; votiConfermati=new Set(); votiBase={};
+  _ptSelBase='Fermo'; _ptSelColore=''; _ptSelMenzione=''; _ptCurDen=null;
+  _puntiDirty=false;
+  ['pt-produttore','pt-nome','pt-annata','pt-dS','pt-vitigni','pt-gradazione',
+   'nota-vis-pt','nota-olf-pt','nota-gus-pt','nota-fin-pt','nota-degustazione-pt'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+  ptRenderMenzioni([]); ptRenderVitigni('');
+  var ptW=document.getElementById('pt-wR'); if(ptW) ptW.value='Sardegna';
+  var ptDd=document.getElementById('pt-dD'); if(ptDd) ptDd.style.display='none';
   if(document.getElementById('an-foto-calice')) document.getElementById('an-foto-calice').value='';
   aggiornaFotoAnalitica();
   document.getElementById('dS').value='';
@@ -3042,7 +3054,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v182';
+const APP_VERSION='v183';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3296,16 +3308,19 @@ let editingIdP=null;
 
 function sincronizzaConAnalitica(){
   var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  // Nuova scheda (editingId=null): non caricare l'ultima scheda come fallback
+  if(!editingId){
+    analiticaP=null;
+    voti={}; votiConfermati=new Set(); votiBase={};
+    PARAMS.forEach(function(p){setVoto(p.id,7,true);});
+    mostraScheda();
+    return;
+  }
   if(!schede.length){
     toast('Nessuna scheda analitica salvata — compila prima la scheda analitica');
     return;
   }
-  var target=null;
-  if(editingId){
-    target=schede.find(function(x){return x.id===editingId;})||schede[0];
-  } else {
-    target=schede[0];
-  }
+  var target=schede.find(function(x){return x.id===editingId;})||null;
   if(!target) return;
 
   // Carica valutazione a punti esistente per questa scheda analitica
