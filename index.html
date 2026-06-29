@@ -3061,7 +3061,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v200';
+const APP_VERSION='v201';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4177,9 +4177,11 @@ function salvaPunti(){
     var schedeA=JSON.parse(localStorage.getItem('ais_s')||'[]');
     var idxA=schedeA.findIndex(function(x){return x.id==aId;});
     if(idxA>-1){
-      ['nota_vis','nota_olf','nota_gus','nota_fin','nota_degustazione'].forEach(function(k){
-        if(d[k]) schedeA[idxA][k]=d[k];  // scrive solo se il campo punti non è vuoto
+      ['nota_vis','nota_olf','nota_gus','nota_fin'].forEach(function(k){
+        if(d[k]) schedeA[idxA][k]=d[k]; // note sezione: scrive solo se non vuote
       });
+      // nota_degustazione: sempre sincronizzata (inclusa la cancellazione)
+      schedeA[idxA]['nota_degustazione']=d['nota_degustazione']||'';
       // Aggiorna anche i campi DOM analitica se la vista è aperta
       var domMap={nota_vis:'nota-vis',nota_olf:'nolf',nota_gus:'ngus',nota_fin:'nfin'};
       Object.keys(domMap).forEach(function(k){
