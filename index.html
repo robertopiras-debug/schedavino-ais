@@ -3061,7 +3061,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v199';
+const APP_VERSION='v200';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -5379,7 +5379,7 @@ function renderAdminVino(){
       h+='</div>';
       h+='<button onclick="apriSchedaLettura(\''+s.id+'\')" title="Leggi scheda in sola lettura" '+
         'style="background:#f0f0f0;border:1px solid #ddd;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;color:#555;white-space:nowrap">👁 Leggi</button>';
-      if(pt){
+      if(pt && !_isNg){
         var pv=parseFloat(pt.punteggio||0);
         ptArr.push(pv);
         autArr.push({nome:s.autore&&s.autore.trim()?s.autore:nomeDisplay(), pv:pv});
@@ -5395,6 +5395,8 @@ function renderAdminVino(){
         h+='<div style="font-size:18px;font-weight:900;color:var(--m)">'+pv.toFixed(1)+'</div>';
         h+='<div style="font-size:9px;color:#aaa">'+fasciaP(parseFloat(pt.punteggio)||0)+'</div>';
         h+='</div>';
+      } else if(_isNg){
+        h+='<div style="text-align:right;flex-shrink:0;font-size:13px;font-weight:700;color:#888">N.G.</div>';
       } else {
         h+='<div style="font-size:10px;color:#ccc">no punti</div>';
       }
