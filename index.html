@@ -3061,7 +3061,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v195';
+const APP_VERSION='v196';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4368,18 +4368,12 @@ function aggiornaHomeSchede(){_homeSchede=JSON.parse(localStorage.getItem('ais_s
 // solo in Guida VITAE.
 function analiticaSembraCompilata(s){
   if(s.analitica_compilata) return true;
-  // Giudizi di sezione (Q2V) — il minimo per considerare l'analitica "aperta"
+  // Solo campi che possono venire ESCLUSIVAMENTE dalla compilazione manuale dell'analitica.
+  // nota_olf/gus/vis ESCLUSE: vengono sincronizzate automaticamente dalla scheda punti.
   if(s.qvis||s.qolf||s.qgus||s.qtot) return true;
-  // Descrittori analitici (limpidezza, colore, intensità olfattiva ecc.)
   if(s.limpidezza||s.colore||s.iolf||s.colf||s.dolc||s.acid||s.equi||s.pers||s.armo) return true;
-  // Note scritte nell'analitica (distinte da quelle sincronizzate dai punti)
-  if(s.nota_olf||s.nota_gus||s.nota_vis) return true;
-  // Stelle o flag esplicito
   if(s.stelle) return true;
   return false;
-  // NOTA: regione, vitigni, gradazione, denominazione NON contano —
-  // vengono popolati automaticamente dalla testata punti e non indicano
-  // che il degustatore abbia aperto e compilato la scheda analitica.
 }
 
 function filtraHomeSchede(){
