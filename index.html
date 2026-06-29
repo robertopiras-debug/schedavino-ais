@@ -1073,7 +1073,6 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <button class="nav-btn" id="btn-home" onclick="mostraHome()" style="font-size:11px">🏠 Home</button>
   <button class="nav-btn pt attivo" id="btn-pt" onclick="nascondiHome();mostraVista('punti')">🎯 Punti</button>
   <button class="nav-btn an" id="btn-an" onclick="nascondiHome();mostraVista('analitica')">📋 Analitica</button>
-  <button class="nav-btn" id="admin-btn" onclick="mostraAdmin()" style="display:none;font-size:16px;padding:13px 12px">📊</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -3062,7 +3061,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v197';
+const APP_VERSION='v198';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -5487,6 +5486,7 @@ function renderAdminVino(){
         <span style="font-size:10px;opacity:.7">✏️</span>
       </div>
     </div>
+    <span id="admin-btn" style="display:none;font-size:22px;color:rgba(255,255,255,.9);cursor:pointer;padding:4px 8px" onclick="mostraAdmin()" title="Riepilogo degustazioni">📊</span>
     <span id="apikey-btn" style="display:none;font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;font-weight:600;margin-right:8px" onclick="gestisciApiKey()" title="Gestisci chiave API Anthropic">⚙️</span>
     <span style="font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;font-weight:600" onclick="doLogout()">Esci</span>
   </div></div>
