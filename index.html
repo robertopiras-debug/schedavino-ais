@@ -167,6 +167,10 @@ select{width:100%;padding:7px;font-size:12px;border:1px solid var(--b);border-ra
 .btn-w{background:#fff;border:1px solid var(--b);color:var(--d)}
 
 /* Testata */
+.prod-drop{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid var(--b);border-top:none;border-radius:0 0 5px 5px;max-height:180px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.1);display:none}
+.prod-drop div{padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:0.5px solid #f0f0ee}
+.prod-drop div:hover{background:#f9f7f4}
+.prod-drop div:last-child{border-bottom:none}
 .t-inp{width:100%;border:none;border-bottom:1px solid var(--b);background:transparent;font-size:12px;font-weight:500;color:var(--d);padding:2px 0;outline:none;font-family:inherit;min-width:0;}
 .t-inp:focus{border-bottom-color:var(--m);}
 select.t-inp{appearance:auto;padding-right:4px;}
@@ -345,7 +349,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 <div class="bar">Dati identificativi</div>
 <div class="wf">
-  <div class="row"><div class="f"><div class="lbl">Produttore / Azienda</div><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." list="dl-produttori" oninput="up()"></div></div>
+  <div class="row"><div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200)"><div class="prod-drop" id="wP-drop"></div></div></div></div>
   <div class="row"><div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="up()"></div></div>
   <div class="row">
     <div class="f" style="max-width:145px;flex:none"><div class="lbl">Regione</div>
@@ -2129,6 +2133,7 @@ async function salvaSuDB(scheda){
     ng_motivo: scheda.ng_motivo||'',
     analitica_compilata: scheda.analitica_compilata||false
   };
+  if(typeof registraProduttore==='function' && d.produttore) registraProduttore(d.produttore);
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
   if(!ok){
     console.error('[DB] salvaSuDB: scrittura su Supabase fallita per scheda', scheda.id);
@@ -3055,7 +3060,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v191';
+const APP_VERSION='v192';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3606,6 +3611,68 @@ function popolaCampiPunti(){
   // Vitigni
   ptRenderVitigni(analiticaP.denominazione||'');
   ptPrev();
+}
+
+// ─── PRODUTTORI — RICERCA CONTESTUALE + AUTO-ALIMENTAZIONE ─────────────────
+var _prodCache=null; // cache locale per evitare troppe query
+
+async function cercaProduttori(input, dropId){
+  var q=(input.value||'').trim();
+  var drop=document.getElementById(dropId);
+  if(!drop) return;
+  if(q.length<1){drop.style.display='none';return;}
+  try{
+    var url=SUPA_URL+'/rest/v1/produttori?nome=ilike.*'+encodeURIComponent(q)+'*&order=conteggio.desc&limit=10';
+    var res=await fetch(url,{headers:supaHeaders()});
+    if(!res.ok){drop.style.display='none';return;}
+    var rows=await res.json();
+    if(!rows.length){drop.style.display='none';return;}
+    drop.innerHTML=rows.map(function(r){
+      var enc=r.nome.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+      return '<div onmousedown="selezionaProduttore(this)" data-nome="'+enc+'" data-inp="'+input.id+'" data-drop="'+dropId+'">'+r.nome+'</div>';
+    }).join('');
+    drop.style.display='block';
+  }catch(e){ drop.style.display='none'; }
+}
+
+function selezionaProduttore(el){
+  var nome=el.dataset.nome, inputId=el.dataset.inp, dropId=el.dataset.drop;
+  var inp=document.getElementById(inputId);
+  if(inp){ inp.value=nome; inp.dispatchEvent(new Event('input')); }
+  var drop=document.getElementById(dropId);
+  if(drop) drop.style.display='none';
+  aggiornaConteggioProduttore(nome);
+}
+
+async function aggiornaConteggioProduttore(nome){
+  if(!nome||!SUPA_URL||!accessToken) return;
+  try{
+    // Upsert: inserisce o incrementa
+    await fetch(SUPA_URL+'/rest/v1/produttori',{
+      method:'POST',
+      headers:Object.assign(supaHeaders(),{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'}),
+      body:JSON.stringify({nome:nome, conteggio:1})
+    });
+    // Se già esiste, incrementa
+    await fetch(SUPA_URL+'/rest/v1/rpc/incrementa_produttore',{
+      method:'POST',
+      headers:Object.assign(supaHeaders(),{'Content-Type':'application/json'}),
+      body:JSON.stringify({p_nome:nome})
+    });
+  }catch(e){ /* silenzioso */ }
+}
+
+async function registraProduttore(nome){
+  // Chiamata al salvataggio scheda per auto-alimentare la tabella
+  if(!nome||!nome.trim()||!accessToken) return;
+  nome=nome.trim();
+  try{
+    await fetch(SUPA_URL+'/rest/v1/produttori',{
+      method:'POST',
+      headers:Object.assign(supaHeaders(),{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({nome:nome, conteggio:1})
+    });
+  }catch(e){ /* silenzioso */ }
 }
 
 // ─── SYNC NOTE SEZIONE REAL-TIME ────────────────────────────────────────────
