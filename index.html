@@ -3061,7 +3061,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v193';
+const APP_VERSION='v194';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3664,10 +3664,10 @@ async function aggiornaConteggioProduttore(nome){
 }
 
 async function registraProduttore(nome){
-  // Chiamata al salvataggio scheda per auto-alimentare la tabella
   if(!nome||!nome.trim()||!accessToken) return;
   nome=nome.trim();
   try{
+    // Il trigger fn_normalizza_produttore gestisce dedup case-insensitive
     await fetch(SUPA_URL+'/rest/v1/produttori',{
       method:'POST',
       headers:Object.assign(supaHeaders(),{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),
