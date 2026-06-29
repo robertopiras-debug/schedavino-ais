@@ -3058,7 +3058,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v189';
+const APP_VERSION='v190';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4894,17 +4894,14 @@ async function setAnthropicKeyAsync(k){
 
 // ─── GENERA NOTA DI DEGUSTAZIONE ─────────────────────────────────────────────
 async function generaNotaPunti(){
-  // ── Guardia note: olfattiva e gusto-olfattiva obbligatorie ───────────────
+  // ── Note olfattiva e gusto-olfattiva: sempre obbligatorie ────────────────
+  // Senza descrizione delle sensazioni l'AI non ha contenuto su cui lavorare
+  // e produce rifiuti o tautologie. I punteggi da soli non bastano.
   var nOlf=(document.getElementById('nota-olf-pt')||{value:''}).value.trim();
   var nGus=(document.getElementById('nota-gus-pt')||{value:''}).value.trim();
   if(!nOlf || !nGus){
-    // Note assenti: allora servono almeno tutti i parametri confermati
-    var nonConf=PARAMS.filter(function(p){return !votiConfermati.has(p.id);});
-    if(nonConf.length){
-      var nomiP={aspetto:'Aspetto',iolf:'Intensità olf.',purez:'Purezza/Eleganza',compl:'Complessità olf.',igus:'Intensità gusto',equi:'Equilibrio',espr:'Espressività',pers:'Persistenza',armo:'Armonia',qual:'Qualità/Carattere'};
-      alert('⛔ Scheda incompleta — conferma tutti i parametri prima di generare la nota.\n\nParametri mancanti:\n'+nonConf.map(function(p){return '• '+(nomiP[p.id]||p.id);}).join('\n')+'\n\nIn alternativa scrivi le note di sezione olfattiva e gusto-olfattiva.');
-      return;
-    }
+    alert('⛔ Note insufficienti — scrivi almeno la nota olfattiva e quella gusto-olfattiva prima di generare.\n\nSenza le tue osservazioni descrittive la nota AI non ha contenuto su cui lavorare.');
+    return;
   }
   // ── Guardia 2: API key ───────────────────────────────────────────────────
   var key=getAnthropicKey();
