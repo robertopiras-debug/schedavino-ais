@@ -3087,7 +3087,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v215';
+const APP_VERSION='v216';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4577,6 +4577,12 @@ function homeApriScheda(id){
   nascondiHome();
   editingId=idNum;
   loadS(idNum);             // popola silenziosamente il form analitica in background
+  // Carica anche la scheda a punti collegata, se esiste — senza questo passaggio
+  // la vista punti si apriva con voti/votiConfermati vuoti (NaN in hero, modale
+  // "conferma tutti i parametri" anche su schede già valutate in precedenza).
+  var puntiList=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var puntiRec=puntiList.find(function(p){return p.analiticaId==idNum;});
+  if(puntiRec) loadP(puntiRec.id);
   mostraVista('punti');     // priorità VITAE — analitica è opzione secondaria
 }
 function homeApriPunti(id){nascondiHome();apriInPunti(id,{stopPropagation:function(){}});}
