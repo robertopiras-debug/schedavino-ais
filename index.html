@@ -3090,7 +3090,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v217';
+const APP_VERSION='v218';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4434,11 +4434,40 @@ function analiticaSembraCompilata(s){
   return false;
 }
 
+function aggiornaLottoLista(id,val){
+  var idNum=typeof id==='string'?parseInt(id,10):id;
+  var val2=(val||'').trim();
+  var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var idx=l.findIndex(function(x){return x.id==idNum;});
+  if(idx===-1) return;
+  l[idx].lotto=val2;
+  localStorage.setItem('ais_s',JSON.stringify(l));
+  if(typeof salvaSuDB==='function') salvaSuDB(l[idx]);
+  // Sincronizza anche l'eventuale scheda a punti collegata, per coerenza
+  var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var idxp=lp.findIndex(function(p){return p.analiticaId==idNum;});
+  if(idxp>-1){
+    lp[idxp].lotto=val2;
+    localStorage.setItem('ais_punti',JSON.stringify(lp));
+    if(typeof salvaValutazioneDB==='function') salvaValutazioneDB(lp[idxp]);
+  }
+  aggiornaHomeSchede(); // ri-applica un eventuale filtro lotto attivo
+  toast(val2?'Lotto "'+val2+'" salvato':'Lotto rimosso');
+}
+
 function filtraHomeSchede(){
   var q=(document.getElementById('home-search').value||'').toLowerCase().trim();
+  var lottoEl=document.getElementById('home-lotto-filter');
+  var qLotto=lottoEl?(lottoEl.value||'').trim().toLowerCase():'';
+  var clearBtn=document.getElementById('home-lotto-clear');
+  if(clearBtn) clearBtn.style.display=qLotto?'inline':'none';
   var lista=_homeSchede.filter(function(s){
+    // Lotto: corrispondenza ESATTA (non substring) — è un valore corto riusato
+    // ogni giorno (es. "1", "2"), un match parziale mescolato ad altri campi
+    // darebbe falsi positivi (es. "1" trovato dentro l'annata "2021").
+    if(qLotto && (s.lotto||'').trim().toLowerCase()!==qLotto) return false;
     if(!q) return true;
-    return (s.produttore||'').toLowerCase().includes(q)||(s.nome||'').toLowerCase().includes(q)||(s.annata||'').toLowerCase().includes(q)||(s.regione||'').toLowerCase().includes(q)||(s.lotto||'').toLowerCase().includes(q);
+    return (s.produttore||'').toLowerCase().includes(q)||(s.nome||'').toLowerCase().includes(q)||(s.annata||'').toLowerCase().includes(q)||(s.regione||'').toLowerCase().includes(q);
   });
   var el=document.getElementById('home-lista');
   // Messaggio benvenuto dinamico
@@ -4460,8 +4489,8 @@ function filtraHomeSchede(){
     }
   }
   if(!el) return;
-  if(!lista.length && q){el.innerHTML='<div style="text-align:center;padding:20px 0;color:#aaa;font-size:12px">Nessun risultato — prova con un termine diverso.</div>';var zs=document.getElementById('home-zero');if(zs)zs.style.display='none';return;}
-  if(!lista.length && !document.getElementById('home-search').value){return;}
+  if(!lista.length && (q||qLotto)){el.innerHTML='<div style="text-align:center;padding:20px 0;color:#aaa;font-size:12px">Nessun risultato — prova con un termine diverso.</div>';var zs=document.getElementById('home-zero');if(zs)zs.style.display='none';return;}
+  if(!lista.length && !document.getElementById('home-search').value && !qLotto){return;}
   var puntiMap={};
   JSON.parse(localStorage.getItem('ais_punti')||'[]').forEach(function(p){
     // Indicizza per analiticaId in entrambi i formati (numero e stringa)
@@ -4510,7 +4539,7 @@ function filtraHomeSchede(){
     var badgeDaCompletare=daCompletare?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Da completare</span>':'';
     var badgeNota=(s.nota_degustazione&&s.nota_degustazione.trim())?'<span style="font-size:9px;font-weight:700;background:#e8eaf6;color:#3949ab;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">✍ nota</span>':'';
     var badgeFoto=(s.foto_calice&&s.foto_calice.trim())?'<span style="font-size:9px;font-weight:700;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📷</span>':'';
-    var sub=[s.annata,s.tipologia,s.denominazione,s.lotto?('Lotto '+s.lotto):''].filter(Boolean).join(' · ');
+    var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
     var nonSync=pendingSyncS.indexOf(String(s.id))>-1||(val&&pendingSyncP.indexOf(String(val.id))>-1);
     var badgeSync=nonSync?'<span style="font-size:9px;font-weight:800;background:#fff3cd;color:#7a5400;border:1px solid #f5a800;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle">☁️⚠</span>':'';
@@ -4528,12 +4557,13 @@ function filtraHomeSchede(){
       var td=new Date(s.id);
       ora='<span style="font-size:9px;color:#bbb;font-variant-numeric:tabular-nums">'+('0'+td.getHours()).slice(-2)+':'+('0'+td.getMinutes()).slice(-2)+':'+('0'+td.getSeconds()).slice(-2)+'</span>';
     }
+    var lottoInput='<input type="text" value="'+(s.lotto||'').replace(/"/g,'&quot;')+'" placeholder="lotto" onclick="event.stopPropagation()" onchange="aggiornaLottoLista('+s.id+',this.value)" style="width:52px;font-size:10px;padding:3px 5px;border:1px solid var(--b);border-radius:3px;background:#fff;text-align:center">';
     return '<div style="background:'+bgCol+';border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'
       +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'
       +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')
       +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'
-      +ora+autoreLabel
+      +ora+autoreLabel+lottoInput
       +(isBozza
         ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'
         :'<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')
@@ -5631,9 +5661,14 @@ function renderAdminVino(){
   </div>
   <div style="padding:0 12px 10px;background:#f0f0e8">
     <div style="position:relative">
-      <input id="home-search" type="text" placeholder="Cerca produttore, vino, annata, lotto..." oninput="filtraHomeSchede()" style="width:100%;padding:9px 36px 9px 12px;border:1px solid var(--b);border-radius:4px;font-size:12px;background:#fff;box-sizing:border-box">
+      <input id="home-search" type="text" placeholder="Cerca produttore, vino, annata..." oninput="filtraHomeSchede()" style="width:100%;padding:9px 36px 9px 12px;border:1px solid var(--b);border-radius:4px;font-size:12px;background:#fff;box-sizing:border-box">
       <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#aaa">🔍</span>
     </div>
+  </div>
+  <div style="padding:0 12px 10px;background:#f0f0e8;display:flex;align-items:center;gap:8px">
+    <span style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Filtra lotto</span>
+    <input id="home-lotto-filter" type="text" placeholder="es. 1" oninput="filtraHomeSchede()" style="flex:1;max-width:120px;padding:6px 10px;border:1px solid var(--b);border-radius:4px;font-size:12px;background:#fff;box-sizing:border-box">
+    <span id="home-lotto-clear" onclick="document.getElementById('home-lotto-filter').value='';filtraHomeSchede()" style="display:none;font-size:11px;color:var(--m);cursor:pointer;font-weight:700">✕ azzera</span>
   </div>
   </div>
   <div style="padding:0 12px">
