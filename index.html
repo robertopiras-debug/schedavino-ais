@@ -256,6 +256,31 @@ select.t-inp{appearance:auto;padding-right:4px;}
 .nav-btn.attivo{background:var(--m);color:#fff}
 body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
+/* ═══ BREAKPOINT LAPTOP/DESKTOP — sfrutta la larghezza reale invece di restare tarati su mobile ═══ */
+@media (min-width:1024px){
+  .page{max-width:1360px}
+  .lbl{font-size:11px}
+  input,select,textarea{font-size:14px;padding:8px 9px}
+  .t-inp{font-size:13px}
+  .tv{font-size:13px}
+  .ais-hd-t{font-size:14px}
+  .ais-hd-l,.ais-hd-r{font-size:9px}
+  .ais-pt-row,.ais-pt-hdr-row{grid-template-columns:minmax(0,1fr) 52px 52px 52px 52px;padding-left:20px;padding-right:20px}
+  .ais-pname{font-size:14px;white-space:normal}
+  .ais-hint{font-size:11px;white-space:normal}
+  .ais-pt-hdr-row span{font-size:13px}
+  .ais-sez-hdr{font-size:11px;padding:6px 20px}
+  .ais-sez-sub{font-size:13px}
+  .voto-chip.ais-radio{width:38px;height:38px;font-size:19px}
+  .p-name{font-size:14px}
+  .voto-chip .vc-num{font-size:14px}
+  .voto-chip .vc-lbl{font-size:9px}
+  .nota-sez{font-size:13px}
+  .fsz-badge{font-size:12px}
+  .hero-num{font-size:88px}
+  .hero-fascia{font-size:24px}
+}
+
 </style>
 </head>
 <body>
@@ -3061,7 +3086,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v212';
+const APP_VERSION='v213';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
