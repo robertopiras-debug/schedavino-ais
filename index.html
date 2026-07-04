@@ -3061,7 +3061,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v204';
+const APP_VERSION='v205';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4403,9 +4403,7 @@ function filtraHomeSchede(){
   }
   if(!el) return;
   if(!lista.length && q){el.innerHTML='<div style="text-align:center;padding:20px 0;color:#aaa;font-size:12px">Nessun risultato — prova con un termine diverso.</div>';var zs=document.getElementById('home-zero');if(zs)zs.style.display='none';return;}
-  var zs=document.getElementById('home-zero');
-  if(!lista.length){el.innerHTML='';if(zs)zs.style.display='block';return;}
-  if(zs)zs.style.display='none';
+  if(!lista.length && !document.getElementById('home-search').value){return;}
   var puntiMap={};
   JSON.parse(localStorage.getItem('ais_punti')||'[]').forEach(function(p){
     // Indicizza per analiticaId in entrambi i formati (numero e stringa)
@@ -5521,14 +5519,14 @@ function renderAdminVino(){
       <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#fce4ec;color:#880e4f;white-space:nowrap">94.0–100 Eccellente</span>
     </div>
     <!-- Zero-state landing — utente senza schede -->
-<div id="home-zero" style="display:none;padding:16px 12px">
+<div id="home-zero" style="display:block;padding:16px 12px">
 
   <!-- Intro -->
   <div style="text-align:center;padding:16px 0 20px">
-    <div style="font-size:20px;font-weight:900;color:var(--d);margin-bottom:8px">Bentornato, collega.</div>
+    <div style="font-size:20px;font-weight:900;color:var(--d);margin-bottom:8px">BENVENUTO COLLEGA</div>
     <div style="font-size:13px;color:#555;line-height:1.6;max-width:420px;margin:0 auto">
-      Le conosci bene — le hai compilate a penna centinaia di volte.<br>
-      Qui le trovi digitali, con calcolo automatico e qualche comodità in più.
+      Le riconosci subito — le hai compilate a mano centinaia di volte.<br>
+      Qui le trovi in digitale: questa app è pensata per semplificarti il lavoro.
     </div>
   </div>
 
@@ -5547,10 +5545,11 @@ function renderAdminVino(){
 
   <!-- Messaggio centrale -->
   <div style="background:#fff;border-radius:8px;padding:14px 16px;margin-bottom:20px;border-left:4px solid var(--m);box-shadow:0 1px 4px rgba(0,0,0,.07)">
-    <div style="font-size:13px;font-weight:700;color:var(--m);margin-bottom:6px">Il tuo compito da fare — senza patemi</div>
+    <div style="font-size:13px;font-weight:700;color:var(--m);margin-bottom:6px">Come funziona — in tre passi</div>
     <div style="font-size:12px;color:#555;line-height:1.65">
-      Tocchi qualche punto sullo schermo, scrivi due righe di appunti come fai già a voce,<br>
-      e tutto il resto — calcoli, punteggi, note di degustazione — lo gestiamo noi.
+      Apri una nuova scheda, inserisci i dati del campione.<br>
+      Valuta ogni parametro con un tocco — 10, 9, 8 o 7.<br>
+      Aggiungi qualche nota e il resto lo fa l'app: calcoli, punteggi, nota di degustazione.
     </div>
   </div>
 
@@ -5579,7 +5578,7 @@ function renderAdminVino(){
   </div>
 
   <!-- CTA -->
-  <button onclick="homeNuovaScheda()" style="width:100%;padding:14px;background:var(--m);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.06em">＋ Inizia la prima degustazione</button>
+  <button onclick="homeNuovaScheda()" style="width:100%;padding:14px;background:var(--m);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.06em">＋ Nuova Scheda</button>
 
 </div>
 <!-- Fine zero-state -->
