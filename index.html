@@ -893,7 +893,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 
 <!-- Totale hero -->
-<div class="hero" id="hero" style="padding:8px 12px;text-align:center">
+<div class="hero" id="hero" style="padding:8px 12px;text-align:center;position:-webkit-sticky;position:sticky;top:0;z-index:100;background:#fff">
   <button onclick="vediAnaliticaCollegata()" title="Apri scheda analitica collegata" style="position:absolute;top:6px;left:6px;width:30px;height:30px;border-radius:50%;border:1px solid var(--b);background:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1">📋</button>
   <button id="heroAggiorna" onclick="salvaPunti()" title="Aggiorna" style="position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;border:none;background:var(--m);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1">💾</button>
   <div class="hero-vino" id="heroVino">—</div>
@@ -3063,7 +3063,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v209';
+const APP_VERSION='v210';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
