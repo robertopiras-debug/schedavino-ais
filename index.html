@@ -3063,7 +3063,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v207';
+const APP_VERSION='v208';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4431,35 +4431,102 @@ function filtraHomeSchede(){
   var pendingSyncS=getPendingSync('ais_s_pending_sync').map(String);
   var pendingSyncP=getPendingSync('ais_punti_pending_sync').map(String);
   aggiornaBadgeSync();
-  el.innerHTML=lista.map(function(s){
+  // ── Ordinamento: giorno discendente, dentro il giorno id ascendente (cronologico)
+  lista.sort(function(a,b){
+    function toISO(d){var p=(d||'').split('/');return p.length===3?p[2]+'-'+('0'+p[1]).slice(-2)+'-'+('0'+p[0]).slice(-2):d;}
+    var da=toISO(a.dt||''), db=toISO(b.dt||'');
+    if(da!==db) return db.localeCompare(da);
+    return (a.id||0)-(b.id||0);
+  });
+
+  // ── Raggruppa per giornata
+  var groups=[], groupMap={};
+  lista.forEach(function(s){
+    var key=s.dt||'—';
+    if(!groupMap[key]){groupMap[key]=[];groups.push(key);}
+    groupMap[key].push(s);
+  });
+
+  // ── Formatta header giornata in italiano
+  function fmtDayHdr(dtStr, count){
+    var p=dtStr.split('/');
+    var mesi=['','gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    var gg=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+    if(p.length===3){
+      var d=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+      return gg[d.getDay()]+' '+parseInt(p[0])+' '+mesi[parseInt(p[1])]+' '+p[2]
+        +' <span style="font-weight:400;opacity:.65">· '+count+' campion'+(count===1?'e':'i')+'</span>';
+    }
+    return dtStr;
+  }
+
+  // ── Render card singola
+  function renderCard(s){
     var isBozza=s.tipo==='bozza';
     var badgeBozza=isBozza?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#e65100;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 DA COMPLETARE</span>':'';
-    var badgeNG=s.ng?'<span title="'+(s.ng_motivo?('Motivo: '+s.ng_motivo):'Campione difettato')+'" style="font-size:9px;font-weight:800;text-transform:uppercase;background:#a00;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">N.G.</span>':'';
-    // Punteggiata (tipo='completa') ma mai passata dalla scheda analitica
-    // completa: nata e rimasta solo in Guida VITAE, anche se confermata o
-    // perfezionata nei punteggi ereditati. Stato distinto da BOZZA (mai
-    // nemmeno punteggiata) e da N.G. (priorità sopra, qui irrilevante).
-    var daCompletare=!isBozza && !s.ng && !analiticaSembraCompilata(s);
-    var badgeDaCompletare=daCompletare?'<span title="Punteggio confermato ma la scheda analitica non è mai stata compilata" style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Da completare</span>':'';
-    var badgeNota=(s.nota_degustazione&&s.nota_degustazione.trim())?'<span title="Nota di degustazione presente" style="font-size:9px;font-weight:700;background:#e8eaf6;color:#3949ab;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">✍ nota</span>':'';
-    var badgeFoto=(s.foto_calice&&s.foto_calice.trim())?'<span title="Foto calice presente" style="font-size:9px;font-weight:700;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📷</span>':'';
+    var badgeNG=s.ng?'<span title="'+(s.ng_motivo?'Motivo: '+s.ng_motivo:'Campione difettato')+'" style="font-size:9px;font-weight:800;text-transform:uppercase;background:#a00;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">N.G.</span>':'';
+    var daCompletare=!isBozza&&!s.ng&&!analiticaSembraCompilata(s);
+    var badgeDaCompletare=daCompletare?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Da completare</span>':'';
+    var badgeNota=(s.nota_degustazione&&s.nota_degustazione.trim())?'<span style="font-size:9px;font-weight:700;background:#e8eaf6;color:#3949ab;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">✍ nota</span>':'';
+    var badgeFoto=(s.foto_calice&&s.foto_calice.trim())?'<span style="font-size:9px;font-weight:700;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📷</span>':'';
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
     var val=puntiMap[s.id]||puntiMap[String(s.id)];
-    // Badge "non sincronizzata": vale sia per la scheda analitica sia per
-    // il punteggio collegato — basta che uno dei due non sia confermato sul cloud.
-    var nonSync=pendingSyncS.indexOf(String(s.id))>-1 || (val && pendingSyncP.indexOf(String(val.id))>-1);
-    var badgeSync=nonSync?'<span title="In attesa di sincronizzazione cloud" style="font-size:9px;font-weight:800;background:#fff3cd;color:#7a5400;border:1px solid #f5a800;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle">☁️⚠</span>':'';
-    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+( s.nome||'—')+badgeBozza+badgeNG+badgeDaCompletare+badgeNota+badgeFoto+badgeSync;
+    var nonSync=pendingSyncS.indexOf(String(s.id))>-1||(val&&pendingSyncP.indexOf(String(val.id))>-1);
+    var badgeSync=nonSync?'<span style="font-size:9px;font-weight:800;background:#fff3cd;color:#7a5400;border:1px solid #f5a800;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle">☁️⚠</span>':'';
+    var titolo=(s.produttore?'<strong>'+s.produttore+'</strong> — ':'')+(s.nome||'—')+badgeBozza+badgeNG+badgeDaCompletare+badgeNota+badgeFoto+badgeSync;
     var ptNum=s.ng
-      ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:18px;font-weight:900;color:#a00;line-height:1.1">N.G.</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">difettato</div>'        +'</div>'      :(val
-      ?'<div style="text-align:right;min-width:54px;flex-shrink:0">'        +'<div style="font-size:22px;font-weight:900;color:var(--m);line-height:1.1">'+fmtPt(val.punteggio)+'</div>'        +'<div style="font-size:9px;color:#888;margin-top:1px">'+fasciaP(parseFloat(val.punteggio)||0)+'</div>'        +'</div>'      :'<div style="min-width:54px;flex-shrink:0;text-align:right">'        +'<div style="font-size:10px;color:#ccc">—</div>'        +'</div>');
-    var dt=s.dt?s.dt.split(' ')[0]:'';
+      ?'<div style="text-align:right;min-width:54px;flex-shrink:0"><div style="font-size:18px;font-weight:900;color:#a00;line-height:1.1">N.G.</div><div style="font-size:9px;color:#888;margin-top:1px">difettato</div></div>'
+      :(val
+      ?'<div style="text-align:right;min-width:54px;flex-shrink:0"><div style="font-size:22px;font-weight:900;color:var(--m);line-height:1.1">'+fmtPt(val.punteggio)+'</div><div style="font-size:9px;color:#888;margin-top:1px">'+fasciaP(parseFloat(val.punteggio)||0)+'</div></div>'
+      :'<div style="min-width:54px;flex-shrink:0;text-align:right"><div style="font-size:10px;color:#ccc">—</div></div>');
     var autoreLabel=s.autore&&s.autore.trim()?'<span style="font-size:10px;color:#aaa">👤 '+s.autore.trim()+'</span>':'';
     var borderCol=s.ng?'#a00':(isBozza?'#f5a800':(daCompletare?'var(--s)':'var(--m)'));
     var bgCol=s.ng?'#bdbdbd':(isBozza?'#fce4ec':(daCompletare?'#fffde7':'#e8f5e9'));
-    return '<div style="background:'+bgCol+';border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'      +'<div style="flex:1;min-width:0">'      +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')      +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'      +'<span style="font-size:10px;color:#aaa">'+dt+'</span>'      +autoreLabel      +(isBozza      ? '<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'      : '<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:10px;padding:3px 7px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'      +(isBozza      ?'<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>'      :'')      +'</div>'      +'</div>'      +ptNum      +'</div>';
-  }).join('');
+    var ora='';
+    if(s.id&&String(s.id).length===13){
+      var td=new Date(s.id);
+      ora='<span style="font-size:9px;color:#bbb;font-variant-numeric:tabular-nums">'+('0'+td.getHours()).slice(-2)+':'+('0'+td.getMinutes()).slice(-2)+':'+('0'+td.getSeconds()).slice(-2)+'</span>';
+    }
+    return '<div style="background:'+bgCol+';border-radius:4px;margin-bottom:8px;padding:12px 14px;border-left:4px solid '+borderCol+';box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px">'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:13px;color:var(--d);margin-bottom:2px">'+titolo+'</div>'
+      +(sub?'<div style="font-size:11px;color:#888;margin-bottom:4px">'+sub+'</div>':'')
+      +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">'
+      +ora+autoreLabel
+      +(isBozza
+        ?'<button onclick="homeApriPunti('+s.id+')" style="font-size:10px;padding:3px 8px;background:#f5a800;border:none;color:#fff;border-radius:3px;cursor:pointer;font-weight:700">⚡ Completa</button>'
+        :'<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>')
+      +'<button onclick="homeElimina('+s.id+',event)" style="font-size:10px;padding:3px 7px;background:#fff;border:1px solid #ddd;color:#aaa;border-radius:3px;cursor:pointer">🗑</button>'
+      +(isBozza?'<button onclick="homeApriScheda('+s.id+')" style="font-size:10px;padding:3px 8px;background:#fff;border:1px solid var(--m);color:var(--m);border-radius:3px;cursor:pointer;font-weight:600">✏️ Modifica</button>':'')
+      +'</div></div>'+ptNum+'</div>';
+  }
+
+  // ── Render raggruppato collassabile
+  var html='';
+  groups.forEach(function(key,idx){
+    var sc=groupMap[key];
+    var isOpen=idx===0;
+    var gid='hg-'+key.replace(/\//g,'-');
+    html+='<div style="margin-bottom:6px">'
+      +'<div onclick="toggleHomeDay(this.dataset.gid)" data-gid="'+gid+'" id="'+gid+'-hdr" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#e8e0d8;border-radius:4px;cursor:pointer;font-size:12px;font-weight:700;color:var(--d);user-select:none">'
+      +'<span>'+fmtDayHdr(key,sc.length)+'</span>'
+      +'<span id="'+gid+'-arr" style="font-size:10px;display:inline-block;transform:'+(isOpen?'rotate(0deg)':'rotate(-90deg)')+';transition:transform .2s">▼</span>'
+      +'</div>'
+      +'<div id="'+gid+'" style="display:'+(isOpen?'block':'none')+';padding-top:6px">'
+      +sc.map(renderCard).join('')
+      +'</div></div>';
+  });
+  el.innerHTML=html;
 }
+function toggleHomeDay(gid){
+  var el=document.getElementById(gid);
+  var arr=document.getElementById(gid+'-arr');
+  if(!el) return;
+  var open=el.style.display!=='none';
+  el.style.display=open?'none':'block';
+  if(arr) arr.style.transform=open?'rotate(-90deg)':'rotate(0deg)';
+}
+
 async function homeElimina(id, e){
   e.stopPropagation();
   if(!confirm('Eliminare questa scheda?')) return;
