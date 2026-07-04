@@ -2110,7 +2110,9 @@ async function caricaValutazioniDB(){
         nota_gus:     r.nota_gus||'',
         nota_fin:     r.nota_fin||'',
         nota_degustazione: r.nota_degustazione||'',
-        dt:           r.dt||''
+        dt:           r.dt||'',
+        dt_crea:      r.dt_crea||r.dt||'',
+        lotto:        r.lotto||''
       };
       dbMap[r.id]=mapped;
     });
@@ -2161,7 +2163,9 @@ async function salvaSuDB(scheda){
     tipo: scheda.tipo||'completa',
     ng: scheda.ng||false,
     ng_motivo: scheda.ng_motivo||'',
-    analitica_compilata: scheda.analitica_compilata||false
+    analitica_compilata: scheda.analitica_compilata||false,
+    lotto: scheda.lotto||'',
+    dt_crea: scheda.dt_crea||scheda.dt||''
   };
   if(typeof registraProduttore==='function' && d.produttore) registraProduttore(d.produttore);
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
@@ -2198,7 +2202,9 @@ async function salvaValutazioneDB(val){
     nota_gus:       val.nota_gus||'',
     nota_fin:       val.nota_fin||'',
     nota_degustazione: val.nota_degustazione||'',
-    dt:             val.dt||''
+    dt:             val.dt||'',
+    dt_crea:        val.dt_crea||val.dt||'',
+    lotto:          val.lotto||''
   };
   var ok=await supaInsertOrUpdate('valutazioni_punti', row);
   if(!ok){
@@ -3090,7 +3096,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v218';
+const APP_VERSION='v219';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
