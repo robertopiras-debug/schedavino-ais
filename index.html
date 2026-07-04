@@ -259,6 +259,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 /* ═══ BREAKPOINT LAPTOP/DESKTOP — sfrutta la larghezza reale invece di restare tarati su mobile ═══ */
 @media (min-width:1024px){
   .page{max-width:1360px}
+  .nav-bar{max-width:1360px}
   .lbl{font-size:11px}
   input,select,textarea{font-size:14px;padding:8px 9px}
   .t-inp{font-size:13px}
@@ -3086,7 +3087,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v213';
+const APP_VERSION='v214';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
