@@ -3063,7 +3063,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v208';
+const APP_VERSION='v209';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4442,7 +4442,7 @@ function filtraHomeSchede(){
   // ── Raggruppa per giornata
   var groups=[], groupMap={};
   lista.forEach(function(s){
-    var key=s.dt||'—';
+    var key=(s.dt||'—').split(' ')[0]; // solo data, ignora eventuale orario
     if(!groupMap[key]){groupMap[key]=[];groups.push(key);}
     groupMap[key].push(s);
   });
