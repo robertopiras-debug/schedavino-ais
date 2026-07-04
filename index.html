@@ -2099,6 +2099,8 @@ async function caricaValutazioniDB(){
   // che il salvataggio sia mai realmente riuscito.
   await flushPendingSyncPunti();
   if(typeof rSavP==='function') rSavP();
+  // Aggiorna la home con i punteggi appena caricati da Supabase
+  if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
 }
 
 async function salvaSuDB(scheda){
@@ -3061,7 +3063,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v206';
+const APP_VERSION='v207';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
