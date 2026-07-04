@@ -242,7 +242,7 @@ select.t-inp{appearance:auto;padding-right:4px;}
 .note-wrap textarea{width:100%;min-height:60px;resize:vertical;font-size:11px;border:1px solid var(--b);border-radius:3px;padding:7px;background:#fff}
 
 /* Azioni */
-.acts-p{display:none;gap:5px;padding:5px 7px 0;margin:0}
+
 
 /* Salvate — sezione rimossa (era un doppione della home con un bug di
    cancellazione: locale-only, mai applicata su Supabase) */
@@ -251,7 +251,7 @@ select.t-inp{appearance:auto;padding-right:4px;}
 /* ═══ NAVIGAZIONE ═══ */
 .vista{display:none}
 .vista.attiva{display:block}
-.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:900px;display:flex;z-index:200;box-shadow:0 -2px 10px rgba(0,0,0,.25);background:var(--d);-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateZ(0);width:100%;max-width:900px;display:flex;z-index:200;box-shadow:0 -2px 10px rgba(0,0,0,.25);background:var(--d);-webkit-backface-visibility:hidden;backface-visibility:hidden;padding-bottom:env(safe-area-inset-bottom,0)}
 .nav-btn{flex:1;padding:13px 8px calc(13px + env(safe-area-inset-bottom)) 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;background:transparent;color:rgba(255,255,255,.55);transition:background .15s,color .15s}
 .nav-btn.attivo{background:var(--m);color:#fff}
 body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
@@ -895,7 +895,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 <!-- Totale hero -->
 <div class="hero" id="hero" style="padding:8px 12px;text-align:center;position:-webkit-sticky;position:sticky;top:0;z-index:100;background:#fff">
   <button onclick="vediAnaliticaCollegata()" title="Apri scheda analitica collegata" style="position:absolute;top:6px;left:6px;width:30px;height:30px;border-radius:50%;border:1px solid var(--b);background:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1">📋</button>
-  <button id="heroAggiorna" onclick="salvaPunti()" title="Aggiorna" style="position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;border:none;background:var(--m);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1">💾</button>
+  <button id="heroAggiorna" onclick="salvaPunti()" title="Salva" style="position:absolute;top:8px;right:8px;border:none;background:var(--m);color:#fff;font-size:12px;font-weight:800;cursor:pointer;padding:6px 12px;border-radius:20px;z-index:1;letter-spacing:.04em">💾 SALVA</button>
   <div class="hero-vino" id="heroVino">—</div>
   <div class="hero-label">Punteggio totale</div>
   <div class="hero-num" id="heroNum">—</div>
@@ -1062,9 +1062,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <textarea id="nota-degustazione-pt" rows="6" placeholder="La nota di degustazione generata dall'AI apparirà qui. Puoi anche scriverla manualmente." style="width:100%;font-size:11px;font-family:Georgia,serif;border:1px solid var(--b);border-radius:4px;padding:8px;background:var(--r);color:var(--d);line-height:1.65;resize:vertical;"></textarea>
 </div>
 
-<div class="acts-p" id="actsP" style="display:none">
-  <button class="btn btn-d" style="flex:1" onclick="salvaPunti()">Aggiorna</button>
-</div>
+
 
 </div>
 </div>
@@ -3063,7 +3061,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v210';
+const APP_VERSION='v211';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4067,7 +4065,7 @@ function mostraScheda(){
   });
   var lc=document.getElementById('legendaChip'); if(lc) lc.style.display=isNG?'none':'flex';
   document.getElementById('ngNotice').style.display=isNG?'block':'none';
-  document.getElementById('actsP').style.display=isNG?'none':'flex';
+  
   document.getElementById('heroAggiorna').style.display=isNG?'none':'flex';
   calcolaTotale();
   if(isNG){
