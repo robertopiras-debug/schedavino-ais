@@ -3061,7 +3061,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v205';
+const APP_VERSION='v206';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3110,7 +3110,22 @@ async function supaRefreshToken(){
       method:'POST',headers:supaHeaders(),
       body:JSON.stringify({refresh_token:refreshToken})
     });
-    if(!r.ok) return false;
+    if(!r.ok){
+      // 400 = token scaduto/corrotto — pulisci sessione e mostra login
+      if(r.status===400){
+        console.warn('Refresh token non valido (400) — sessione rimossa');
+        localStorage.removeItem('supa_session');
+        accessToken=null; refreshToken=null; currentUser=null;
+        document.getElementById('login-screen').style.display='flex';
+        document.getElementById('app-screen').style.display='none';
+        var vp=document.getElementById('vista-punti');if(vp)vp.style.display='none';
+        var ho=document.getElementById('home-overlay');if(ho)ho.style.display='none';
+        var nb=document.querySelector('.nav-bar');if(nb)nb.style.display='none';
+        var msg=document.getElementById('login-msg');
+        if(msg){msg.textContent='Sessione scaduta — effettua di nuovo il login.';msg.style.color='#c00';}
+      }
+      return false;
+    }
     var res=await r.json();
     if(res.access_token){
       accessToken=res.access_token;
