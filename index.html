@@ -257,6 +257,8 @@ select.t-inp{appearance:auto;padding-right:4px;}
 body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
 /* ═══ BREAKPOINT LAPTOP/DESKTOP — sfrutta la larghezza reale invece di restare tarati su mobile ═══ */
+.row2col{display:block}
+.row2col>.f{margin-bottom:4px}
 @media (min-width:1024px){
   .page{max-width:1360px}
   .nav-bar{max-width:1360px}
@@ -289,8 +291,6 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
      lontano — non un campo di testo qualunque */
   #wN,#pt-nome,#wP,#pt-produttore{font-size:22px;font-weight:800;color:var(--d)}
 }
-.row2col{display:block}
-.row2col>.f{margin-bottom:4px}
 
 </style>
 </head>
@@ -3135,7 +3135,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v233';
+const APP_VERSION='v234';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
