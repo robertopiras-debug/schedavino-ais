@@ -3096,7 +3096,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v220';
+const APP_VERSION='v221';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4440,7 +4440,7 @@ function analiticaSembraCompilata(s){
   return false;
 }
 
-function aggiornaLottoLista(id,val){
+async function aggiornaLottoLista(id,val){
   var idNum=typeof id==='string'?parseInt(id,10):id;
   var val2=(val||'').trim();
   var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
@@ -4448,17 +4448,25 @@ function aggiornaLottoLista(id,val){
   if(idx===-1) return;
   l[idx].lotto=val2;
   localStorage.setItem('ais_s',JSON.stringify(l));
-  if(typeof salvaSuDB==='function') salvaSuDB(l[idx]);
+  var okA=true;
+  if(typeof salvaSuDB==='function') okA=await salvaSuDB(l[idx]);
+  if(!okA) addPendingSync('ais_s_pending_sync', l[idx].id);
   // Sincronizza anche l'eventuale scheda a punti collegata, per coerenza
   var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
   var idxp=lp.findIndex(function(p){return p.analiticaId==idNum;});
+  var okP=true;
   if(idxp>-1){
     lp[idxp].lotto=val2;
     localStorage.setItem('ais_punti',JSON.stringify(lp));
-    if(typeof salvaValutazioneDB==='function') salvaValutazioneDB(lp[idxp]);
+    if(typeof salvaValutazioneDB==='function') okP=await salvaValutazioneDB(lp[idxp]);
+    if(!okP) addPendingSync('ais_punti_pending_sync', lp[idxp].id);
   }
   aggiornaHomeSchede(); // ri-applica un eventuale filtro lotto attivo
-  toast(val2?'Lotto "'+val2+'" salvato':'Lotto rimosso');
+  if(okA && okP){
+    toast(val2?'Lotto "'+val2+'" salvato':'Lotto rimosso');
+  } else {
+    toast('⚠ Lotto salvato in locale — sync cloud non riuscita, verrà ritentato');
+  }
 }
 
 function filtraHomeSchede(){
