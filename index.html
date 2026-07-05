@@ -2310,16 +2310,32 @@ async function riprovaSyncManuale(){
   }
 }
 
-// Retry pending deletes quando il device torna online o l'app torna in foreground
+// Retry pending deletes/salvataggi quando il device torna online o l'app torna in foreground
 function retryPendingDeletes(){
   if(!currentUser||!accessToken) return;
   flushPendingDeletes('ais_s_pending_del','schede_analitiche');
   flushPendingDeletes('ais_punti_pending_del','valutazioni_punti');
+  // I salvataggi in sospeso sono più critici delle cancellazioni (rischio di
+  // perdita dati, non solo di pulizia) — stesso trigger, stessa disciplina.
+  flushPendingSyncSchede();
+  flushPendingSyncPunti();
 }
-window.addEventListener('online', retryPendingDeletes);
+window.addEventListener('online', function(){
+  toast('🔄 Connessione ripristinata — sincronizzo...');
+  retryPendingDeletes();
+});
 document.addEventListener('visibilitychange', function(){
   if(document.visibilityState==='visible') retryPendingDeletes();
 });
+// Rete controllo di sicurezza indipendente dagli eventi browser (a volte
+// 'online' non scatta in modo affidabile su connessioni instabili/mobili):
+// ogni minuto, se c'è qualcosa in sospeso, ritenta in silenzio.
+setInterval(function(){
+  if(!currentUser||!accessToken) return;
+  var nSchede=getPendingSync('ais_s_pending_sync').length;
+  var nPunti=getPendingSync('ais_punti_pending_sync').length;
+  if(nSchede+nPunti>0) retryPendingDeletes();
+}, 60000);
 
 function getPendingDeletes(key){
   try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
@@ -3098,7 +3114,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v229';
+const APP_VERSION='v230';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
