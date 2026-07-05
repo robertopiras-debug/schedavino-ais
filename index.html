@@ -1651,61 +1651,61 @@ function apriInPunti(id, e){
 }
 
 function nuovaScheda(){
+  // ── Reset critico dello stato in memoria: SUBITO, prima di qualsiasi
+  // manipolazione del DOM. Se una singola riga più sotto lancia un'eccezione
+  // (elemento mancante), questo blocco è già stato eseguito e lo stato
+  // condiviso (analiticaP/voti) non resta agganciato alla scheda precedente.
   _schedaToccata=false;
   editingId=null;
-  selBase='';selColore='';selMenzione='';selVitigni=[];sv=0;sc={};mx={};riconoscimenti={};
-  document.getElementById('wAutore').value=(typeof nomeDisplay==='function')?nomeDisplay():'';
-  document.getElementById('wP').value='';
-  document.getElementById('wN').value='';
-  document.getElementById('wY').value='';
-  document.getElementById('wV').value='';
-  document.getElementById('nolf').value='';
-  document.getElementById('nota-vis').value='';
-  document.getElementById('ngus').value='';
-  document.getElementById('nfin').value='';
-  document.getElementById('nota-degustazione').value='';
-  var ndpt=document.getElementById('nota-degustazione-pt');if(ndpt)ndpt.value='';
-  // Reset campi punti — testata e note di sezione
   analiticaP=null; editingIdP=null;
   voti={}; votiConfermati=new Set(); votiBase={};
+  selBase='';selColore='';selMenzione='';selVitigni=[];sv=0;sc={};mx={};riconoscimenti={};
   _ptSelBase='Fermo'; _ptSelColore=''; _ptSelMenzione=''; _ptCurDen=null;
   _puntiDirty=false;
+
+  // ── Da qui in poi: solo aggiornamento del DOM. Ogni chiamata blindata
+  // con controllo di nullità — un elemento mancante non deve più poter
+  // interrompere il reset a metà.
+  var v=function(id,val){var el=document.getElementById(id);if(el)el.value=val;};
+  v('wAutore',(typeof nomeDisplay==='function')?nomeDisplay():'');
+  v('wP',''); v('wN',''); v('wY',''); v('wV','');
+  v('nolf',''); v('nota-vis',''); v('ngus',''); v('nfin',''); v('nota-degustazione','');
+  v('nota-degustazione-pt','');
   ['pt-produttore','pt-nome','pt-annata','pt-dS','pt-vitigni','pt-gradazione','pt-lotto',
    'nota-vis-pt','nota-olf-pt','nota-gus-pt','nota-fin-pt','nota-degustazione-pt'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.value='';
   });
-  ptRenderMenzioni([]); ptRenderVitigni('');
-  var ptW=document.getElementById('pt-wR'); if(ptW) ptW.value='Sardegna';
+  if(typeof ptRenderMenzioni==='function') ptRenderMenzioni([]);
+  if(typeof ptRenderVitigni==='function') ptRenderVitigni('');
+  v('pt-wR','Sardegna');
   var ptDd=document.getElementById('pt-dD'); if(ptDd) ptDd.style.display='none';
-  if(document.getElementById('an-foto-calice')) document.getElementById('an-foto-calice').value='';
-  aggiornaFotoAnalitica();
-  document.getElementById('dS').value='';
-  document.getElementById('w-ng').checked=false;
-  document.getElementById('w-ng-motivo').value='';
-  document.getElementById('w-ng-motivo').style.display='none';
+  var afc=document.getElementById('an-foto-calice'); if(afc) afc.value='';
+  if(typeof aggiornaFotoAnalitica==='function') aggiornaFotoAnalitica();
+  v('dS','');
+  var wNg=document.getElementById('w-ng'); if(wNg) wNg.checked=false;
+  v('w-ng-motivo','');
+  var wNgM=document.getElementById('w-ng-motivo'); if(wNgM) wNgM.style.display='none';
   document.querySelectorAll('.o.sel,.qo.sel').forEach(function(e){e.classList.remove('sel')});
-  document.getElementById('vitigni-custom').value='';
-  document.getElementById('vitigni-extra').value='';
-  renderVitigni('');
+  v('vitigni-custom',''); v('vitigni-extra','');
+  if(typeof renderVitigni==='function') renderVitigni('');
   document.querySelectorAll('.tc-chip').forEach(function(c){c.classList.remove('on-base','on-colore','on-menzione');});
   document.querySelectorAll('.voto-chip.ais-radio').forEach(function(c){c.classList.remove('sel');});
   document.querySelectorAll('#stars .st').forEach(function(s){s.classList.remove('lit')});
-  document.getElementById('btnSav').textContent='Salva';
+  var bSav=document.getElementById('btnSav'); if(bSav) bSav.textContent='Salva';
   curDenom=null;
-  renderMenzioni([]);
-  aggiornaSezioniVisive('');
-  var bs=document.getElementById('blk-spumante');
-  if(bs)bs.style.display='none';
-  aggiornaColoreVisivo('');
-  aggiornaTannicita('');
-  up();
+  if(typeof renderMenzioni==='function') renderMenzioni([]);
+  if(typeof aggiornaSezioniVisive==='function') aggiornaSezioniVisive('');
+  var bs=document.getElementById('blk-spumante'); if(bs) bs.style.display='none';
+  if(typeof aggiornaColoreVisivo==='function') aggiornaColoreVisivo('');
+  if(typeof aggiornaTannicita==='function') aggiornaTannicita('');
+  if(typeof up==='function') up();
   window.scrollTo({top:0,behavior:'smooth'});
-  document.getElementById('notaTipol').value='';
-  document.getElementById('notaTipolWrap').style.display='none';
-  document.getElementById('btnAddNota').textContent='+ Aggiungi nota libera';
-  document.getElementById('anteprima-punti').style.display='none';
+  v('notaTipol','');
+  var ntw=document.getElementById('notaTipolWrap'); if(ntw) ntw.style.display='none';
+  var ban=document.getElementById('btnAddNota'); if(ban) ban.textContent='+ Aggiungi nota libera';
+  var ap=document.getElementById('anteprima-punti'); if(ap) ap.style.display='none';
   toast('Nuova scheda pronta');
-  aggiornaBarre();
+  if(typeof aggiornaBarre==='function') aggiornaBarre();
 }
 
 
@@ -3098,7 +3098,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v222';
+const APP_VERSION='v223';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
