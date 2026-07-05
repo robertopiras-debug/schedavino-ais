@@ -3098,7 +3098,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v223';
+const APP_VERSION='v224';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4303,6 +4303,7 @@ function loadP(id){
     var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
     analiticaP=schede.find(function(x){return x.id===s.analiticaId;})||null;
   }
+  voti={};
   votiConfermati=new Set();
   votiBase={};
   // Ripristina i voti confermati e, separatamente, i valori ORIGINALI
