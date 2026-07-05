@@ -2714,7 +2714,7 @@ function validaScheda(){
 let editingId = null;
 let isSaving = false; // blocca doppi click
 
-function savLocal(){
+async function savLocal(){
   if(isSaving) return;
   isSaving = true;
   setTimeout(function(){isSaving=false;}, 1500);
@@ -2765,7 +2765,9 @@ function savLocal(){
     toast('Scheda salvata ✓ (sync in corso...)');
   }
   localStorage.setItem('ais_s',JSON.stringify(l));
-  if(typeof salvaSuDB==='function') salvaSuDB(d);
+  var _okSav=true;
+  if(typeof salvaSuDB==='function') _okSav=await salvaSuDB(d);
+  if(!_okSav){ addPendingSync('ais_s_pending_sync', d.id); toast('⚠ Salvata in locale — sync cloud non riuscita, verrà ritentata'); }
   if(d.ng && typeof rimuoviPunteggioCollegato==='function') rimuoviPunteggioCollegato(d.id); // un campione N.G. non deve avere un punteggio in archivio
   aggiornaPunteggioTestataAnalitica(); // riflette subito un eventuale N.G. appena salvato, senza richiedere un cambio vista
   if(typeof aggiornaDatalistViniProduttori==='function') aggiornaDatalistViniProduttori();
@@ -3096,7 +3098,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v221';
+const APP_VERSION='v222';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4048,7 +4050,7 @@ function aggiornaTestataVino(){
 // Sulla scheda a punti il toggle scrive SUBITO sulla scheda analitica
 // collegata: non è un campo di un form da salvare dopo, è uno stato che
 // deve riflettersi ovunque (home, altri degustatori) appena cambia.
-function toggleNG(prefix){
+async function toggleNG(prefix){
   var chk=document.getElementById(prefix+'-ng');
   var motivo=document.getElementById(prefix+'-ng-motivo');
   if(!chk) return;
@@ -4062,7 +4064,9 @@ function toggleNG(prefix){
       schede[idx].ng_motivo=motivo?motivo.value.trim():'';
       localStorage.setItem('ais_s', JSON.stringify(schede));
       analiticaP=schede[idx];
-      if(typeof salvaSuDB==='function') salvaSuDB(schede[idx]);
+      var _okNG=true;
+      if(typeof salvaSuDB==='function') _okNG=await salvaSuDB(schede[idx]);
+      if(!_okNG) addPendingSync('ais_s_pending_sync', schede[idx].id);
       if(chk.checked) rimuoviPunteggioCollegato(schede[idx].id); // un campione N.G. non deve avere un punteggio in archivio
       if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
       if(typeof mostraScheda==='function') mostraScheda(); // riflette subito il nuovo stato sui chip e sul totale
@@ -4151,7 +4155,7 @@ function aggiornaStatoPunti(){
 }
 
 // ─── SALVATAGGIO ─────────────────────────────────────────────────────────
-function salvaPunti(){
+async function salvaPunti(){
   // ── NUOVA SCHEDA: crea analitica da campi pt- e salva come bozza ────────
   if(!analiticaP && !editingId){
     var g=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
@@ -4173,7 +4177,9 @@ function salvaPunti(){
     localStorage.setItem('ais_s',JSON.stringify(schede));
     editingId=id; analiticaP=nuova;
     aggiornaTestataVino();
-    if(typeof salvaSuDB==='function') salvaSuDB(nuova);
+    var _okBozza=true;
+    if(typeof salvaSuDB==='function') _okBozza=await salvaSuDB(nuova);
+    if(!_okBozza){ addPendingSync('ais_s_pending_sync', nuova.id); console.warn('[Sync] bozza '+nuova.id+' non salvata su schede_analitiche — in coda di recupero'); }
     var sw=document.getElementById('pt-salva-wrap'); if(sw) sw.style.display='none';
     // Continua con il salvataggio punti qui sotto
   }
@@ -4251,7 +4257,9 @@ function salvaPunti(){
         if(el && d[k]) el.value=d[k];
       });
       localStorage.setItem('ais_s',JSON.stringify(schedeA));
-      if(typeof salvaSuDB==='function') salvaSuDB(schedeA[idxA]);
+      var _okNota=true;
+      if(typeof salvaSuDB==='function') _okNota=await salvaSuDB(schedeA[idxA]);
+      if(!_okNota) addPendingSync('ais_s_pending_sync', schedeA[idxA].id);
     }
   }
   if(isBozzaMode && aId){
@@ -4263,14 +4271,18 @@ function salvaPunti(){
       schedeA[idxA].tipo='completa';
       localStorage.setItem('ais_s', JSON.stringify(schedeA));
       analiticaP=schedeA[idxA]; // mantiene coerente la sessione corrente
-      if(typeof salvaSuDB==='function') salvaSuDB(schedeA[idxA]);
+      var _okFin=true;
+      if(typeof salvaSuDB==='function') _okFin=await salvaSuDB(schedeA[idxA]);
+      if(!_okFin) addPendingSync('ais_s_pending_sync', schedeA[idxA].id);
       if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
     }
     setTimeout(function(){toastP('✓ Bozza completata (sync in corso...)');},1800);
   }
   editingIdP=d.id;
   localStorage.setItem('ais_punti',JSON.stringify(l));
-  if(typeof salvaValutazioneDB==='function') salvaValutazioneDB(d);
+  var _okPt=true;
+  if(typeof salvaValutazioneDB==='function') _okPt=await salvaValutazioneDB(d);
+  if(!_okPt){ addPendingSync('ais_punti_pending_sync', d.id); toast('⚠ Punteggio salvato in locale — sync cloud non riuscita, verrà ritentato'); }
   rSavP();
 }
 
