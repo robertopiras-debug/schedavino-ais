@@ -400,6 +400,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <div class="row2col">
     <div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200)"><div class="prod-drop" id="wP-drop"></div></div></div>
     <div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="up()"></div>
+    <div class="f f-lotto"><div class="lbl">Lotto</div><input id="wLotto" type="text" placeholder="es. Batteria 1" oninput="up()"></div>
   </div>
   <div class="row">
     <div class="f" style="max-width:145px;flex:none"><div class="lbl">Regione</div>
@@ -1700,7 +1701,7 @@ function nuovaScheda(){
   // interrompere il reset a metà.
   var v=function(id,val){var el=document.getElementById(id);if(el)el.value=val;};
   v('wAutore',(typeof nomeDisplay==='function')?nomeDisplay():'');
-  v('wP',''); v('wN',''); v('wY',''); v('wV','');
+  v('wP',''); v('wN',''); v('wY',''); v('wV',''); v('wLotto','');
   v('nolf',''); v('nota-vis',''); v('ngus',''); v('nfin',''); v('nota-degustazione','');
   v('nota-degustazione-pt','');
   ['pt-produttore','pt-nome','pt-annata','pt-dS','pt-vitigni','pt-gradazione','pt-lotto',
@@ -2553,7 +2554,8 @@ function gd(){
   var vitigniStr=getVitigni();
   var tipCombinata=[selColore,selMenzione,selBase,notaLib].filter(Boolean).join(' ');
   var _autoreVal=document.getElementById('wAutore').value; salvaNomeUtente(_autoreVal);
-  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],riconoscimenti:Object.assign({},riconoscimenti),nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:(document.getElementById('nota-degustazione-pt')||{value:''}).value||(document.getElementById('nota-degustazione')||{value:''}).value,foto_calice:document.getElementById('an-foto-calice')?document.getElementById('an-foto-calice').value:'',stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
+  var _wLotto=document.getElementById('wLotto');
+  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,lotto:_wLotto?_wLotto.value:'',parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],riconoscimenti:Object.assign({},riconoscimenti),nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:(document.getElementById('nota-degustazione-pt')||{value:''}).value||(document.getElementById('nota-degustazione')||{value:''}).value,foto_calice:document.getElementById('an-foto-calice')?document.getElementById('an-foto-calice').value:'',stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
 }
 
 /* toast(m) già definita sopra — duplicato rimosso (stesso comportamento, debito tecnico) */
@@ -2855,6 +2857,7 @@ function loadS(id){
   document.getElementById('wN').value=s.nome||'';
   document.getElementById('wY').value=s.annata||'';
   document.getElementById('wV').value=s.gradazione||'';
+  var _wLotto2=document.getElementById('wLotto'); if(_wLotto2) _wLotto2.value=s.lotto||'';
   document.getElementById('nolf').value=s.nota_olf||'';
   document.getElementById('ngus').value=s.nota_gus||'';
   document.getElementById('nfin').value=s.nota_fin||'';
@@ -3146,7 +3149,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v237';
+const APP_VERSION='v238';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
