@@ -3098,7 +3098,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v227';
+const APP_VERSION='v228';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3394,8 +3394,12 @@ function sincronizzaConAnalitica(){
     toast('Nessuna scheda analitica salvata — compila prima la scheda analitica');
     return;
   }
-  var target=schede.find(function(x){return x.id===editingId;})||null;
-  if(!target) return;
+  var target=schede.find(function(x){return x.id==editingId;})||null;
+  if(!target){
+    toast('⚠ Scheda non trovata (id '+editingId+') — impossibile aprirla');
+    console.error('[sincronizzaConAnalitica] target non trovato per editingId='+editingId+' — schede disponibili: '+schede.length);
+    return;
+  }
 
   // Carica valutazione a punti esistente per questa scheda analitica
   var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
@@ -4185,11 +4189,6 @@ async function salvaPunti(){
     schede.unshift(nuova);
     localStorage.setItem('ais_s',JSON.stringify(schede));
     editingId=id; analiticaP=nuova;
-    // Una bozza appena creata deve partire SEMPRE con punteggio vuoto reale.
-    // Senza questo reset, il codice sotto costruisce il record punti con
-    // Object.assign({},voti) usando ancora i valori dell'ULTIMA scheda
-    // realmente votata in precedenza — la bozza nasce già contaminata.
-    voti={}; votiConfermati=new Set(); votiBase={};
     aggiornaTestataVino();
     var _okBozza=true;
     if(typeof salvaSuDB==='function') _okBozza=await salvaSuDB(nuova);
