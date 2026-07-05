@@ -3098,7 +3098,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v225';
+const APP_VERSION='v226';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3598,7 +3598,7 @@ function ptSyncUp(){
     if(vitigni)    analiticaP.vitigni=vitigni;
     if(grad)       analiticaP.gradazione=grad;
     if(reg)        analiticaP.regione=reg;
-    analiticaP.lotto=lotto; // sempre sincronizzato, anche se svuotato
+    if(lotto) analiticaP.lotto=lotto; // solo se valorizzato — la cancellazione esplicita si fa dall'editor rapido in elenco
     aggiornaTestataVino();
     // Aggiorna DOM analitica (form nascosto)
     var s=function(id,v){var el=document.getElementById(id);if(el&&v)el.value=v;};
@@ -3620,7 +3620,7 @@ function ptSyncUp(){
       if(vitigni)      schedeA[idx].vitigni=vitigni;
       if(grad)         schedeA[idx].gradazione=grad;
       if(reg)          schedeA[idx].regione=reg;
-      schedeA[idx].lotto=lotto;
+      if(lotto) schedeA[idx].lotto=lotto;
       localStorage.setItem('ais_s',JSON.stringify(schedeA));
       // Supabase: sync solo al salvataggio esplicito (pulsante Aggiorna)
     }
@@ -4176,6 +4176,11 @@ async function salvaPunti(){
     schede.unshift(nuova);
     localStorage.setItem('ais_s',JSON.stringify(schede));
     editingId=id; analiticaP=nuova;
+    // Una bozza appena creata deve partire SEMPRE con punteggio vuoto reale.
+    // Senza questo reset, il codice sotto costruisce il record punti con
+    // Object.assign({},voti) usando ancora i valori dell'ULTIMA scheda
+    // realmente votata in precedenza — la bozza nasce già contaminata.
+    voti={}; votiConfermati=new Set(); votiBase={};
     aggiornaTestataVino();
     var _okBozza=true;
     if(typeof salvaSuDB==='function') _okBozza=await salvaSuDB(nuova);
