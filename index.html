@@ -852,6 +852,9 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
       <div class="f"><div class="lbl">Nome del vino</div>
         <input id="pt-nome" type="text" placeholder="es. Turriga, Terre Brune…" list="dl-vini" oninput="ptSyncUp()">
       </div>
+      <div class="f f-lotto"><div class="lbl">Lotto</div>
+        <input id="pt-lotto" type="text" placeholder="es. Batteria 1" oninput="ptSyncUp()">
+      </div>
     </div>
 
     <!-- Regione + Denominazione -->
@@ -926,9 +929,6 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
           <input id="pt-gradazione" type="number" placeholder="13.5" min="5" max="25" step="0.5" oninput="ptSyncUp()">
           <span class="abu">% vol</span>
         </div>
-      </div>
-      <div class="f f-inline f-lotto"><div class="lbl">Lotto</div>
-        <input id="pt-lotto" type="text" placeholder="es. Batteria 1" oninput="ptSyncUp()">
       </div>
     </div>
 
@@ -3146,7 +3146,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v235';
+const APP_VERSION='v236';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
