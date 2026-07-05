@@ -3146,7 +3146,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v236';
+const APP_VERSION='v237';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4624,7 +4624,7 @@ function filtraHomeSchede(){
     var badgeBozza=isBozza?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#e65100;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Scheda analitica da completare</span>':'';
     var badgeNG=s.ng?'<span title="'+(s.ng_motivo?'Motivo: '+s.ng_motivo:'Campione difettato')+'" style="font-size:9px;font-weight:800;text-transform:uppercase;background:#a00;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">N.G.</span>':'';
     var daCompletare=!isBozza&&!s.ng&&!analiticaSembraCompilata(s);
-    var badgeDaCompletare=daCompletare?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Da completare</span>':'';
+    var badgeDaCompletare=daCompletare?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Scheda analitica da completare</span>':'';
     var badgeNota=(s.nota_degustazione&&s.nota_degustazione.trim())?'<span style="font-size:9px;font-weight:700;background:#e8eaf6;color:#3949ab;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">✍ nota</span>':'';
     var badgeFoto=(s.foto_calice&&s.foto_calice.trim())?'<span style="font-size:9px;font-weight:700;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📷</span>':'';
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
