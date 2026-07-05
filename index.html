@@ -3096,7 +3096,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v219';
+const APP_VERSION='v220';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -5662,6 +5662,12 @@ function renderAdminVino(){
     <span style="font-size:11px;color:rgba(255,255,255,.8);cursor:pointer;font-weight:600" onclick="doLogout()">Esci</span>
   </div>
 
+  <div id="sync-pending-banner" style="display:none;background:#fff3cd;border-bottom:2px solid #f5a800;padding:9px 12px;font-size:12px;color:#7a5400;align-items:center;gap:8px">
+    <span style="font-size:16px">☁️⚠</span>
+    <span id="sync-pending-text" style="flex:1"></span>
+    <button onclick="riprovaSyncManuale()" style="font-size:11px;padding:5px 10px;background:#f5a800;color:#fff;border:none;border-radius:3px;cursor:pointer;font-weight:700;flex-shrink:0">🔄 Riprova</button>
+  </div>
+
   <div style="padding:10px 12px 6px;display:flex;gap:8px;background:#f0f0e8">
     <button onclick="homeNuovaScheda()" style="width:100%;padding:12px 8px;background:var(--m);color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">＋ Nuova Scheda</button>
   </div>
@@ -5678,11 +5684,6 @@ function renderAdminVino(){
   </div>
   </div>
   <div style="padding:0 12px">
-    <div id="sync-pending-banner" style="display:none;background:#fff3cd;border:1px solid #f5a800;border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#7a5400;align-items:center;gap:8px">
-      <span style="font-size:16px">☁️⚠</span>
-      <span id="sync-pending-text" style="flex:1"></span>
-      <button onclick="riprovaSyncManuale()" style="font-size:11px;padding:5px 10px;background:#f5a800;color:#fff;border:none;border-radius:3px;cursor:pointer;font-weight:700;flex-shrink:0">🔄 Riprova</button>
-    </div>
     <div id="home-benvenuto" style="background:#fff;border-radius:6px;padding:18px 16px;margin-bottom:14px;font-size:13px;color:var(--d);line-height:1.8;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08)"></div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;padding:6px 4px 10px">
       <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#f5f5ee;color:#888;white-space:nowrap">70.0–79.5 Accettabile</span>
