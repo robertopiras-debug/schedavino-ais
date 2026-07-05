@@ -2167,7 +2167,7 @@ async function salvaSuDB(scheda){
     lotto: scheda.lotto||'',
     dt_crea: scheda.dt_crea||scheda.dt||''
   };
-  if(typeof registraProduttore==='function' && d.produttore) registraProduttore(d.produttore);
+  if(typeof registraProduttore==='function' && scheda.produttore) registraProduttore(scheda.produttore);
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
   if(!ok){
     console.error('[DB] salvaSuDB: scrittura su Supabase fallita per scheda', scheda.id);
@@ -3098,7 +3098,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v228';
+const APP_VERSION='v229';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
