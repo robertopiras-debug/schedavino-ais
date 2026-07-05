@@ -41,7 +41,8 @@ input::placeholder,textarea::placeholder{color:#aaa}
 .tipol-row:last-child{margin-bottom:0}
 .tipol-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#999;margin-bottom:2px}
 .tc-chip{padding:5px 10px;font-size:11px;font-weight:700;border:1px solid var(--b);border-radius:3px;background:var(--r);color:var(--t);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s}
-.tc-ph{font-size:11px;color:#aaa;font-style:italic;padding:5px 0}
+.tc-ph{font-size:11px;color:#aaa;font-style:italic;padding:2px 0;display:inline-block}
+.tipol-chips:has(.tc-ph){min-height:0}
 .tipol-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;min-height:28px}
 .sw{margin-bottom:2px}
 .sl{background:var(--d);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:6px 10px;display:flex;align-items:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
@@ -290,7 +291,18 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   /* Nome del vino: è il dato identificativo primario, deve leggersi da
      lontano — non un campo di testo qualunque */
   #wN,#pt-nome,#wP,#pt-produttore{font-size:22px;font-weight:800;color:var(--d)}
+  /* Etichetta e campo affiancati orizzontalmente invece di impilati —
+     usata per Annata/Gradazione/Lotto, dove la label è corta e impilarla
+     sopra il campo spreca altezza senza necessità su schermi larghi */
+  .f-inline{flex-direction:row;align-items:center;gap:8px}
+  .f-inline>.lbl{margin-bottom:0;white-space:nowrap;flex-shrink:0}
+  .f-annata{max-width:170px}
+  .f-gradazione{max-width:200px}
+  .f-lotto{max-width:190px}
 }
+.f-annata{max-width:88px;flex:none}
+.f-gradazione{max-width:130px;flex:none}
+.f-lotto{max-width:110px;flex:none}
 
 </style>
 </head>
@@ -413,7 +425,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   </div>
   <div class="row"><div class="f">
     <div class="lbl">Base ampelografica</div>
-    <div id="vitigni-wrap" style="margin-top:3px">
+    <div id="vitigni-wrap">
       <div id="vitigni-chips" class="tipol-chips"><span class="tc-ph">seleziona prima la denominazione</span></div>
       <input id="vitigni-custom" type="text" placeholder="Indica i vitigni..." style="display:none;margin-top:4px;font-size:11px">
       <div id="vitigni-libero-wrap" style="display:none;margin-top:3px">
@@ -458,8 +470,8 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
   </div></div>
   <div class="row">
-    <div class="f" style="max-width:88px;flex:none"><div class="lbl">Annata</div><input id="wY" type="number" placeholder="2021" min="1900" max="2026" oninput="up()"></div>
-    <div class="f" style="max-width:130px;flex:none"><div class="lbl">Gradazione</div>
+    <div class="f f-inline f-annata"><div class="lbl">Annata</div><input id="wY" type="number" placeholder="2021" min="1900" max="2026" oninput="up()"></div>
+    <div class="f f-inline f-gradazione"><div class="lbl">Gradazione</div>
       <div class="abw"><input id="wV" type="number" placeholder="13.5" min="5" max="25" step="0.5" oninput="up()"><span class="abu">% vol</span></div>
     </div>
   </div>
@@ -905,18 +917,17 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
       </div>
     </div>
 
-    <!-- Annata + Gradazione + Lotto -->
     <div class="row" style="margin-bottom:4px">
-      <div class="f" style="max-width:88px;flex:none"><div class="lbl">Annata</div>
+      <div class="f f-inline f-annata"><div class="lbl">Annata</div>
         <input id="pt-annata" type="number" placeholder="2021" min="1900" max="2030" oninput="ptSyncUp()">
       </div>
-      <div class="f" style="max-width:130px;flex:none"><div class="lbl">Gradazione</div>
+      <div class="f f-inline f-gradazione"><div class="lbl">Gradazione</div>
         <div class="abw">
           <input id="pt-gradazione" type="number" placeholder="13.5" min="5" max="25" step="0.5" oninput="ptSyncUp()">
           <span class="abu">% vol</span>
         </div>
       </div>
-      <div class="f" style="max-width:110px;flex:none"><div class="lbl">Lotto</div>
+      <div class="f f-inline f-lotto"><div class="lbl">Lotto</div>
         <input id="pt-lotto" type="text" placeholder="es. Batteria 1" oninput="ptSyncUp()">
       </div>
     </div>
@@ -3135,7 +3146,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v234';
+const APP_VERSION='v235';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
