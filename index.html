@@ -3098,7 +3098,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v224';
+const APP_VERSION='v225';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4575,7 +4575,7 @@ function filtraHomeSchede(){
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0"><div style="font-size:18px;font-weight:900;color:#a00;line-height:1.1">N.G.</div><div style="font-size:9px;color:#888;margin-top:1px">difettato</div></div>'
       :(val
       ?'<div style="text-align:right;min-width:54px;flex-shrink:0"><div style="font-size:22px;font-weight:900;color:var(--m);line-height:1.1">'+fmtPt(val.punteggio)+'</div><div style="font-size:9px;color:#888;margin-top:1px">'+fasciaP(parseFloat(val.punteggio)||0)+'</div></div>'
-      :'<div style="min-width:54px;flex-shrink:0;text-align:right"><div style="font-size:10px;color:#ccc">—</div></div>');
+      :'<div style="min-width:54px;flex-shrink:0;text-align:right"><div style="font-size:16px;font-weight:900;color:#b0839a">—</div><div style="font-size:9px;color:#b0839a;margin-top:1px">da votare</div></div>');
     var autoreLabel=s.autore&&s.autore.trim()?'<span style="font-size:10px;color:#aaa">👤 '+s.autore.trim()+'</span>':'';
     var borderCol=s.ng?'#a00':(isBozza?'#f5a800':(daCompletare?'var(--s)':'var(--m)'));
     var bgCol=s.ng?'#bdbdbd':(isBozza?'#fce4ec':(daCompletare?'#fffde7':'#e8f5e9'));
