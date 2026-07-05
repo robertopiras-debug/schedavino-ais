@@ -280,7 +280,17 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   .fsz-badge{font-size:12px}
   .hero-num{font-size:88px}
   .hero-fascia{font-size:24px}
+
+  /* Produttore/Azienda + Nome del vino affiancati — su mobile restano
+     impilati (row2col è display:block di default, vedi regola base sotto) */
+  .row2col{display:flex;gap:16px}
+  .row2col>.f{flex:1}
+  /* Nome del vino: è il dato identificativo primario, deve leggersi da
+     lontano — non un campo di testo qualunque */
+  #wN{font-size:22px;font-weight:800;color:var(--d)}
 }
+.row2col{display:block}
+.row2col>.f{margin-bottom:4px}
 
 </style>
 </head>
@@ -375,8 +385,10 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 <div class="bar">Dati identificativi</div>
 <div class="wf">
-  <div class="row"><div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200)"><div class="prod-drop" id="wP-drop"></div></div></div></div>
-  <div class="row"><div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="up()"></div></div>
+  <div class="row2col">
+    <div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200)"><div class="prod-drop" id="wP-drop"></div></div></div>
+    <div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="up()"></div>
+  </div>
   <div class="row">
     <div class="f" style="max-width:145px;flex:none"><div class="lbl">Regione</div>
       <select id="wR" onchange="onReg()">
@@ -415,18 +427,23 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="lbl">Tipologia</div>
     <div style="margin-top:3px">
 
-      <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Modalità</div>
-      <div class="tipol-chips" id="tipolBase">
-        <div class="tc-chip">Fermo</div>
-        <div class="tc-chip">Frizzante</div>
-        <div class="tc-chip">Spumante</div>
-      </div>
-
-      <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:7px;margin-bottom:3px">Colore</div>
-      <div class="tipol-chips" id="tipolColore">
-        <div class="tc-chip">Bianco</div>
-        <div class="tc-chip">Rosato</div>
-        <div class="tc-chip">Rosso</div>
+      <div class="row2col">
+        <div class="f">
+          <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Modalità</div>
+          <div class="tipol-chips" id="tipolBase">
+            <div class="tc-chip">Fermo</div>
+            <div class="tc-chip">Frizzante</div>
+            <div class="tc-chip">Spumante</div>
+          </div>
+        </div>
+        <div class="f">
+          <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Colore</div>
+          <div class="tipol-chips" id="tipolColore">
+            <div class="tc-chip">Bianco</div>
+            <div class="tc-chip">Rosato</div>
+            <div class="tc-chip">Rosso</div>
+          </div>
+        </div>
       </div>
 
       <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:7px;margin-bottom:3px">Menzione da disciplinare</div>
@@ -3114,7 +3131,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v230';
+const APP_VERSION='v231';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
