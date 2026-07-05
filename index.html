@@ -287,7 +287,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   .row2col>.f{flex:1}
   /* Nome del vino: è il dato identificativo primario, deve leggersi da
      lontano — non un campo di testo qualunque */
-  #wN{font-size:22px;font-weight:800;color:var(--d)}
+  #wN,#pt-nome{font-size:22px;font-weight:800;color:var(--d)}
 }
 .row2col{display:block}
 .row2col>.f{margin-bottom:4px}
@@ -832,13 +832,11 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
   <!-- Produttore + Nome -->
   <div style="padding:6px 12px 4px">
-    <div class="row" style="margin-bottom:4px">
+    <div class="row2col" style="margin-bottom:4px">
       <div class="f" style="position:relative"><div class="lbl">Produttore / Azienda</div>
         <input id="pt-produttore" type="text" placeholder="es. Argiolas, Santadi…" autocomplete="off" oninput="cercaProduttori(this,'pt-drop');ptSyncUp()" onblur="setTimeout(function(){var d=document.getElementById('pt-drop');if(d)d.style.display='none'},200)">
         <div class="prod-drop" id="pt-drop"></div>
       </div>
-    </div>
-    <div class="row" style="margin-bottom:4px">
       <div class="f"><div class="lbl">Nome del vino</div>
         <input id="pt-nome" type="text" placeholder="es. Turriga, Terre Brune…" list="dl-vini" oninput="ptSyncUp()">
       </div>
@@ -884,17 +882,23 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="row" style="margin-bottom:4px">
       <div class="f">
         <div class="lbl">Tipologia</div>
-        <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:4px 0 3px">Modalità</div>
-        <div class="tipol-chips" id="pt-tipolBase">
-          <div class="tc-chip" onclick="ptChipSel('pt-tipolBase',this)">Fermo</div>
-          <div class="tc-chip" onclick="ptChipSel('pt-tipolBase',this)">Frizzante</div>
-          <div class="tc-chip" onclick="ptChipSel('pt-tipolBase',this)">Spumante</div>
-        </div>
-        <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:6px 0 3px">Colore</div>
-        <div class="tipol-chips" id="pt-tipolColore">
-          <div class="tc-chip" onclick="ptChipSel('pt-tipolColore',this)">Bianco</div>
-          <div class="tc-chip" onclick="ptChipSel('pt-tipolColore',this)">Rosato</div>
-          <div class="tc-chip" onclick="ptChipSel('pt-tipolColore',this)">Rosso</div>
+        <div class="row2col" style="margin-top:4px">
+          <div class="f">
+            <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Modalità</div>
+            <div class="tipol-chips" id="pt-tipolBase">
+              <div class="tc-chip" onclick="ptChipSel('pt-tipolBase',this)">Fermo</div>
+              <div class="tc-chip" onclick="ptChipSel('pt-tipolBase',this)">Frizzante</div>
+              <div class="tc-chip" onclick="ptChipSel('pt-tipolBase',this)">Spumante</div>
+            </div>
+          </div>
+          <div class="f">
+            <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Colore</div>
+            <div class="tipol-chips" id="pt-tipolColore">
+              <div class="tc-chip" onclick="ptChipSel('pt-tipolColore',this)">Bianco</div>
+              <div class="tc-chip" onclick="ptChipSel('pt-tipolColore',this)">Rosato</div>
+              <div class="tc-chip" onclick="ptChipSel('pt-tipolColore',this)">Rosso</div>
+            </div>
+          </div>
         </div>
         <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:6px 0 3px">Menzione da disciplinare</div>
         <div class="tipol-chips" id="pt-tipolMenzione"><span class="tc-ph">seleziona prima la denominazione</span></div>
@@ -3131,7 +3135,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v231';
+const APP_VERSION='v232';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4606,7 +4610,7 @@ function filtraHomeSchede(){
   // ── Render card singola
   function renderCard(s){
     var isBozza=s.tipo==='bozza';
-    var badgeBozza=isBozza?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#e65100;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 DA COMPLETARE</span>':'';
+    var badgeBozza=isBozza?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#e65100;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Scheda analitica da completare</span>':'';
     var badgeNG=s.ng?'<span title="'+(s.ng_motivo?'Motivo: '+s.ng_motivo:'Campione difettato')+'" style="font-size:9px;font-weight:800;text-transform:uppercase;background:#a00;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">N.G.</span>':'';
     var daCompletare=!isBozza&&!s.ng&&!analiticaSembraCompilata(s);
     var badgeDaCompletare=daCompletare?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Da completare</span>':'';
