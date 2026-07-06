@@ -3144,6 +3144,12 @@ async function supaRefreshToken(){
         console.warn('Refresh token non valido (400) — sessione rimossa');
         localStorage.removeItem('supa_session');
         accessToken=null; refreshToken=null; currentUser=null;
+        // vista-analitica avvolge login-screen: senza riattivarla, login-screen
+        // resta invisibile dietro un antenato con display:none se si era nella
+        // vista Punti — stesso bug che doLogout() già corregge altrove.
+        document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva');});
+        var vaLogin=document.getElementById('vista-analitica');
+        if(vaLogin) vaLogin.classList.add('attiva');
         document.getElementById('login-screen').style.display='flex';
         document.getElementById('app-screen').style.display='none';
         var vp=document.getElementById('vista-punti');if(vp)vp.style.display='none';
