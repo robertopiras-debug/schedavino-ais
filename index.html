@@ -302,6 +302,23 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   #lbl-nota-degustazione{font-size:15px!important}
   #nota-colonna-piena,#nota-punteggio-calcolato{font-size:12px!important}
   #nota-ng-spiegazione{font-size:14px!important}
+
+  /* ═══ SCALA TIPOGRAFICA DESKTOP — SCHEDA A PUNTI ═══════════════════════
+     Prima di questa scala: 21 dimensioni di font diverse nell'intero
+     documento (da 7px a 88px), accumulate versione dopo versione senza
+     gerarchia deliberata — da qui l'effetto "sgraziato" segnalato.
+     Cinque livelli, ciascuno con uno scopo preciso, non arbitrario:
+       MICRO  10px — badge, conteggi, stati compattissimi
+       CAPTION 11px — etichette di campo maiuscole (.lbl, Modalità/Colore/Menzione)
+       BODY   13px — testo di supporto, anteprima etichetta, note esplicative
+       TEXT   16px — prosa scritta/letta per esteso (note sensoriali)
+       VALUE  18px — dati brevi ma da leggere bene (Lotto, valori numerici)
+       TITLE  22px — identificativi primari (Produttore, Nome del vino)
+     Qualunque nuovo elemento vada aggiunto in futuro, va assegnato a UNO
+     di questi livelli — non inventato ex novo. */
+  #lbl-modalita,#lbl-colore,#lbl-menzione{font-size:11px!important}
+  .prev{font-size:13px!important}
+  #wLotto{font-size:18px!important;font-weight:700!important;text-align:center}
   /* Etichetta e campo affiancati orizzontalmente invece di impilati —
      usata per Annata/Gradazione/Lotto, dove la label è corta e impilarla
      sopra il campo spreca altezza senza necessità su schermi larghi */
@@ -455,7 +472,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 
       <div class="row2col">
         <div class="f">
-          <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Modalità</div>
+          <div id="lbl-modalita" style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Modalità</div>
           <div class="tipol-chips" id="tipolBase">
             <div class="tc-chip">Fermo</div>
             <div class="tc-chip">Frizzante</div>
@@ -463,7 +480,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
           </div>
         </div>
         <div class="f">
-          <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Colore</div>
+          <div id="lbl-colore" style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Colore</div>
           <div class="tipol-chips" id="tipolColore">
             <div class="tc-chip">Bianco</div>
             <div class="tc-chip">Rosato</div>
@@ -472,7 +489,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
         </div>
       </div>
 
-      <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:7px;margin-bottom:3px">Menzione da disciplinare</div>
+      <div id="lbl-menzione" style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:7px;margin-bottom:3px">Menzione da disciplinare</div>
       <div class="tipol-chips" id="tipolMenzione"><span class="tc-ph">seleziona prima la denominazione</span></div>
       <div style="margin-top:5px">
         <span id="btnAddNota" style="font-size:10px;color:var(--s);cursor:pointer;font-weight:700;text-decoration:underline" onclick="toggleNotaTipol()">+ Aggiungi nota libera</span>
