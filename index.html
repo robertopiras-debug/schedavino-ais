@@ -3148,7 +3148,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v250-refactor';
+const APP_VERSION='v251-refactor';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3427,7 +3427,7 @@ const HINT_MAP={
 let voti={aspetto:7,iolf:7,purez:7,compl:7,igus:7,equi:7,espr:7,pers:7,armo:7,qual:7};
 var votiConfermati=new Set(); // parametri toccati esplicitamente dall'utente
 var votiBase={}; // valore ereditato dall'analitica per ogni parametro
-let analiticaP=null;
+var analiticaP=null;
 let editingIdP=null;
 
 function sincronizzaConAnalitica(){
