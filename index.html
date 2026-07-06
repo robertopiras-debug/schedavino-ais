@@ -1087,6 +1087,12 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     box.textContent+=(box.textContent?'\n\n':'')+msg;
   }
   window.addEventListener('error',function(e){
+    // Rumore noto e documentato del browser (non del nostro codice): Chrome
+    // 132+ propaga questo come evento 'error' anche se è solo un meccanismo
+    // di sicurezza interno di ResizeObserver, innocuo. Fonte: MDN, e i bug
+    // tracker di Chromium (issue 391393420) confermano che non indica un
+    // problema applicativo. Filtrato per non generare falsi allarmi.
+    if(e.message && e.message.indexOf('ResizeObserver loop')>-1) return;
     mostra('ERRORE JS:\n'+e.message+'\nFile: '+(e.filename||'?')+':'+e.lineno+':'+e.colno+'\nStack: '+(e.error&&e.error.stack||'n/d'));
   });
   window.addEventListener('unhandledrejection',function(e){
@@ -2478,6 +2484,22 @@ function up(){
   if(tfaS) tfaS.textContent=[y,d].filter(Boolean).join(' · ');
   aggiornaBarre();
   aggiornaPunteggioTestataAnalitica();
+  // Sincronizza SUBITO analiticaP con quanto digitato — prima lo faceva
+  // ptSyncUp(), eliminata nel refactor identificativi. Senza questo, l'hero
+  // (che legge SOLO da analiticaP, mai dal DOM direttamente) resta fermo
+  // al valore dell'ultimo salvataggio anche se si cambia produttore/nome:
+  // l'anteprima sotto si aggiorna (legge il DOM), l'hero sopra no.
+  if(analiticaP){
+    var _lot=document.getElementById('wLotto');
+    if(p) analiticaP.produttore=p;
+    if(n) analiticaP.nome=n;
+    if(y) analiticaP.annata=y;
+    if(v) analiticaP.gradazione=v;
+    if(d) analiticaP.denominazione=d;
+    if(tipCombinata) analiticaP.tipologia=tipCombinata;
+    if(_lot && _lot.value) analiticaP.lotto=_lot.value;
+    aggiornaTestataVino();
+  }
 }
 
 // Punteggio nella testata fissa analitica, accanto al nome vino.
