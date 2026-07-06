@@ -305,8 +305,8 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   /* Etichetta e campo affiancati orizzontalmente invece di impilati —
      usata per Annata/Gradazione/Lotto, dove la label è corta e impilarla
      sopra il campo spreca altezza senza necessità su schermi larghi */
-  .f-inline{flex-direction:row;align-items:center;gap:8px}
-  .f-inline>.lbl{margin-bottom:0;white-space:nowrap;flex-shrink:0}
+  /* f-inline rimossa: causava sovrapposizioni/overflow con label lunghe
+     (Gradazione) — tornati al layout verticale standard, più robusto */
   .f-annata{max-width:220px}
   .f-gradazione{max-width:280px}
   .f-annata input,.f-gradazione input{min-width:70px}
@@ -484,8 +484,8 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
   </div></div>
   <div class="row">
-    <div class="f f-inline f-annata"><div class="lbl">Annata</div><input id="wY" type="number" placeholder="2021" min="1900" max="2026" oninput="up()"></div>
-    <div class="f f-inline f-gradazione"><div class="lbl">Gradazione</div>
+    <div class="f f-annata"><div class="lbl">Annata</div><input id="wY" type="number" placeholder="2021" min="1900" max="2026" oninput="up()"></div>
+    <div class="f f-gradazione"><div class="lbl">Gradazione</div>
       <div class="abw"><input id="wV" type="number" placeholder="13.5" min="5" max="25" step="0.5" oninput="up()"><span class="abu">% vol</span></div>
     </div>
   </div>
