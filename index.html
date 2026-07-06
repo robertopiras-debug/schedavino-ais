@@ -4126,13 +4126,13 @@ function loadP(id){
   editingIdP=typeof id==="string"?parseInt(id):id;
   mostraScheda();
   if(analiticaP){
-    document.getElementById('t-autore').textContent=analiticaP.autore||'—';
+    var _ta=document.getElementById('t-autore'); if(_ta) _ta.textContent=analiticaP.autore||'—';
     aggiornaTestataVino();
-    document.getElementById('t-annata').textContent=analiticaP.annata||'—';
-    document.getElementById('t-tipol').textContent=analiticaP.tipologia||'—';
-    document.getElementById('t-denom').textContent=analiticaP.denominazione||'—';
-    document.getElementById('t-data').textContent=s.dt_crea||s.dt||'—';
-    document.getElementById('testata').style.display='block';
+    var _tan=document.getElementById('t-annata'); if(_tan) _tan.textContent=analiticaP.annata||'—';
+    var _ttip=document.getElementById('t-tipol'); if(_ttip) _ttip.textContent=analiticaP.tipologia||'—';
+    var _tden=document.getElementById('t-denom'); if(_tden) _tden.textContent=analiticaP.denominazione||'—';
+    var _tdt=document.getElementById('t-data'); if(_tdt) _tdt.textContent=s.dt_crea||s.dt||'—';
+    var _test=document.getElementById('testata'); if(_test) _test.style.display='block';
   }
   toastP('Caricata');
 }
