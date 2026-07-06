@@ -290,7 +290,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   .row2col>.f{flex:1}
   /* Nome del vino: è il dato identificativo primario, deve leggersi da
      lontano — non un campo di testo qualunque */
-  #wN,#pt-nome,#wP,#pt-produttore{font-size:22px;font-weight:800;color:var(--d)}
+  #wN,#wP{font-size:22px;font-weight:800;color:var(--d)}
   /* Etichetta e campo affiancati orizzontalmente invece di impilati —
      usata per Annata/Gradazione/Lotto, dove la label è corta e impilarla
      sopra il campo spreca altezza senza necessità su schermi larghi */
@@ -388,9 +388,10 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <label>Sommelier</label>
   <input id="wAutore" type="text" placeholder="Il tuo nome...">
 </div>
+<div id="identificativi-slot-analitica"><div id="identificativi-condiviso">
 <div style="margin:8px 12px 0;padding:10px;background:#fff5f5;border:1px solid #e8b0b0;border-radius:4px">
   <label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#a00;cursor:pointer">
-    <input type="checkbox" id="w-ng" onchange="toggleNG('w')" style="width:16px;height:16px;flex-shrink:0">
+    <input type="checkbox" id="w-ng" onchange="toggleNG()" style="width:16px;height:16px;flex-shrink:0">
     🚫 Campione difettato — interrompi la valutazione (N.G.)
   </label>
   <input type="text" id="w-ng-motivo" placeholder="Motivo (facoltativo): tappo, ossidato..." style="display:none;width:100%;margin-top:8px;padding:7px;border:1px solid #e8b0b0;border-radius:3px;font-size:12px;box-sizing:border-box">
@@ -477,6 +478,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
   </div>
   <div class="prev" id="prev"><span class="ph">L'etichetta apparirà qui...</span></div>
+</div>
 </div>
 
 <!-- SEZIONE SPUMANTE — appare solo con Spumante/Frizzante -->
@@ -841,117 +843,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div class="tf"><div class="tl">Data</div><div class="tv" id="t-data">—</div></div>
   </div>
 
-  <div style="background:#222;color:#fff;padding:5px 12px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:0 -0px">Dati identificativi</div>
-
-  <!-- Produttore + Nome -->
-  <div style="padding:6px 12px 4px">
-    <div class="row2col" style="margin-bottom:4px">
-      <div class="f" style="position:relative"><div class="lbl">Produttore / Azienda</div>
-        <input id="pt-produttore" type="text" placeholder="es. Argiolas, Santadi…" autocomplete="off" oninput="cercaProduttori(this,'pt-drop');ptSyncUp()" onblur="setTimeout(function(){var d=document.getElementById('pt-drop');if(d)d.style.display='none'},200)">
-        <div class="prod-drop" id="pt-drop"></div>
-      </div>
-      <div class="f"><div class="lbl">Nome del vino</div>
-        <input id="pt-nome" type="text" placeholder="es. Turriga, Terre Brune…" list="dl-vini" oninput="ptSyncUp()">
-      </div>
-      <div class="f f-lotto"><div class="lbl">Lotto</div>
-        <input id="pt-lotto" type="text" placeholder="es. Batteria 1" oninput="ptSyncUp()">
-      </div>
-    </div>
-
-    <!-- Regione + Denominazione -->
-    <div class="row" style="margin-bottom:4px">
-      <div class="f" style="max-width:145px;flex:none"><div class="lbl">Regione</div>
-        <select id="pt-wR" onchange="ptOnReg()">
-          <option value="">scegli...</option>
-          <option value="__tavola__">Vino da tavola</option>
-          <option disabled>──────</option>
-          <option>Abruzzo</option><option>Basilicata</option><option>Calabria</option><option>Campania</option>
-          <option>Emilia Romagna</option><option>Friuli Venezia Giulia</option><option>Lazio</option>
-          <option>Liguria</option><option>Lombardia</option><option>Marche</option><option>Molise</option>
-          <option>Piemonte</option><option>Puglia</option><option selected>Sardegna</option>
-          <option>Sicilia</option><option>Toscana</option><option>Trentino Alto Adige</option>
-          <option>Umbria</option><option>Valle d'Aosta</option><option>Veneto</option>
-        </select>
-      </div>
-      <div class="f" style="position:relative"><div class="lbl">Denominazione (DOC/DOCG/IGT)</div>
-        <div class="dw">
-          <input id="pt-dS" type="text" placeholder="Cerca…" oninput="ptFiltDen()" onfocus="ptFiltDen()" autocomplete="off" style="padding-right:22px">
-          <button class="dc" onclick="ptClDen()">&#215;</button>
-          <div class="dd" id="pt-dD"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Vitigni -->
-    <div class="row" style="margin-bottom:4px">
-      <div class="f"><div class="lbl">Base ampelografica</div>
-        <div id="pt-vitigni-chips" class="tipol-chips" style="margin-bottom:4px"><span class="tc-ph">seleziona prima la denominazione</span></div>
-        <input id="pt-vitigni" type="text" placeholder="Indica i vitigni…" oninput="ptSyncUp()" style="display:none">
-        <div id="pt-vitigni-libero-wrap" style="display:none;margin-top:3px">
-          <span style="font-size:10px;color:var(--s);cursor:pointer;font-weight:700;text-decoration:underline" onclick="ptToggleVitigniLibero()">+ Aggiungi vitigno non in lista</span>
-          <input id="pt-vitigni-extra" type="text" placeholder="es. Cagnulari, Torbato…" style="display:none;margin-top:4px;font-size:11px" oninput="ptSyncUp()">
-        </div>
-      </div>
-    </div>
-
-    <!-- Tipologia -->
-    <div class="row" style="margin-bottom:4px">
-      <div class="f">
-        <div class="lbl">Tipologia</div>
-        <div class="row2col" style="margin-top:4px">
-          <div class="f">
-            <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Modalità</div>
-            <div class="tipol-chips" id="pt-tipolBase">
-              <div class="tc-chip" onclick="ptChipSel('pt-tipolBase',this)">Fermo</div>
-              <div class="tc-chip" onclick="ptChipSel('pt-tipolBase',this)">Frizzante</div>
-              <div class="tc-chip" onclick="ptChipSel('pt-tipolBase',this)">Spumante</div>
-            </div>
-          </div>
-          <div class="f">
-            <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Colore</div>
-            <div class="tipol-chips" id="pt-tipolColore">
-              <div class="tc-chip" onclick="ptChipSel('pt-tipolColore',this)">Bianco</div>
-              <div class="tc-chip" onclick="ptChipSel('pt-tipolColore',this)">Rosato</div>
-              <div class="tc-chip" onclick="ptChipSel('pt-tipolColore',this)">Rosso</div>
-            </div>
-          </div>
-        </div>
-        <div style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:6px 0 3px">Menzione da disciplinare</div>
-        <div class="tipol-chips" id="pt-tipolMenzione"><span class="tc-ph">seleziona prima la denominazione</span></div>
-      </div>
-    </div>
-
-    <div class="row" style="margin-bottom:4px">
-      <div class="f f-inline f-annata"><div class="lbl">Annata</div>
-        <input id="pt-annata" type="number" placeholder="2021" min="1900" max="2030" oninput="ptSyncUp()">
-      </div>
-      <div class="f f-inline f-gradazione"><div class="lbl">Gradazione</div>
-        <div class="abw">
-          <input id="pt-gradazione" type="number" placeholder="13.5" min="5" max="25" step="0.5" oninput="ptSyncUp()">
-          <span class="abu">% vol</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Preview etichetta -->
-    <div class="prev" id="pt-prev"><span class="ph">I dati appariranno qui…</span></div>
-  </div>
-
-
-  <!-- Pulsante Salva — visibile solo su nuova scheda non ancora salvata -->
-  <div id="pt-salva-wrap" style="display:none;padding:10px 12px 4px">
-    <button onclick="salvaPunti()" style="width:100%;padding:13px;background:var(--m);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.06em">💾 Salva scheda</button>
-    <div style="font-size:10px;color:#aaa;text-align:center;margin-top:4px">Potrai aggiungere i punteggi in seguito</div>
-  </div>
-
-  <!-- N.G. -->
-  <div style="margin:8px 12px;padding:10px;background:#fff5f5;border:1px solid #e8b0b0;border-radius:4px">
-    <label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#a00;cursor:pointer">
-      <input type="checkbox" id="p-ng" onchange="toggleNG('p')" style="width:16px;height:16px;flex-shrink:0">
-      🚫 Campione difettato — interrompi la valutazione (N.G.)
-    </label>
-    <input type="text" id="p-ng-motivo" placeholder="Motivo (facoltativo): tappo, ossidato..." oninput="toggleNG('p')" style="display:none;width:100%;margin-top:8px;padding:7px;border:1px solid #e8b0b0;border-radius:3px;font-size:12px;box-sizing:border-box">
-  </div>
+<div id="identificativi-slot-punti"></div>
 </div>
 
 <!-- Totale hero -->
@@ -1148,6 +1040,19 @@ function mostraVista(v){
   _mostraVistaInner(v);
 }
 function _mostraVistaInner(v){
+  // Il blocco "Dati identificativi" (Produttore, Nome, Regione, Vitigni,
+  // Tipologia, Annata, Gradazione, Lotto, N.G.) è UN SOLO nodo DOM condiviso
+  // tra le due schede — non due copie sincronizzate a mano. Lo spostiamo
+  // fisicamente nello slot della vista che si sta per mostrare, PRIMA di
+  // popolare/leggere i campi, così non esiste mai un istante in cui i dati
+  // vivono in due posti diversi.
+  var blocco=document.getElementById('identificativi-condiviso');
+  var slotA=document.getElementById('identificativi-slot-analitica');
+  var slotP=document.getElementById('identificativi-slot-punti');
+  if(blocco && slotA && slotP){
+    var target=(v==='punti')?slotP:slotA;
+    if(blocco.parentNode!==target) target.appendChild(blocco);
+  }
   document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva')});
   document.getElementById('vista-'+v).classList.add('attiva');
   document.getElementById('btn-home').classList.remove('attivo');
@@ -1157,10 +1062,14 @@ function _mostraVistaInner(v){
     // Sync automatica: usa la scheda analitica in modifica o l'ultima salvata
     sincronizzaConAnalitica();
   }
-  if(v==='analitica' && analiticaP){
-    // Ricarica sempre il form analitica quando si torna alla vista:
-    // con il nuovo flusso (homeApriScheda → punti) editingId===analiticaP.id
-    // ma il form analitica potrebbe non essere ancora popolato.
+  if(v==='analitica' && analiticaP && analiticaP.id!==_bloccoIdentPopolatoPer){
+    // Ricarica il form analitica SOLO se stiamo passando a una scheda
+    // diversa da quella per cui il blocco condiviso è già popolato — non
+    // ricaricare la STESSA scheda: il nodo DOM è persistente, ricaricarlo
+    // sempre cancellerebbe modifiche digitate ma non ancora salvate
+    // (prima, ptSyncUp() faceva da autosave continuo su ogni tasto; con
+    // il campo unico condiviso questo autosave non serve più, ma va
+    // evitato di sovrascrivere quanto l'utente sta ancora scrivendo).
     loadS(analiticaP.id);
   }
   if(v==='analitica'){
@@ -1691,9 +1600,9 @@ function nuovaScheda(){
   _schedaToccata=false;
   editingId=null;
   analiticaP=null; editingIdP=null;
+  _bloccoIdentPopolatoPer=null;
   voti={}; votiConfermati=new Set(); votiBase={};
   selBase='';selColore='';selMenzione='';selVitigni=[];sv=0;sc={};mx={};riconoscimenti={};
-  _ptSelBase='Fermo'; _ptSelColore=''; _ptSelMenzione=''; _ptCurDen=null;
   _puntiDirty=false;
 
   // ── Da qui in poi: solo aggiornamento del DOM. Ogni chiamata blindata
@@ -1704,14 +1613,13 @@ function nuovaScheda(){
   v('wP',''); v('wN',''); v('wY',''); v('wV',''); v('wLotto','');
   v('nolf',''); v('nota-vis',''); v('ngus',''); v('nfin',''); v('nota-degustazione','');
   v('nota-degustazione-pt','');
-  ['pt-produttore','pt-nome','pt-annata','pt-dS','pt-vitigni','pt-gradazione','pt-lotto',
-   'nota-vis-pt','nota-olf-pt','nota-gus-pt','nota-fin-pt','nota-degustazione-pt'].forEach(function(id){
+  ['nota-vis-pt','nota-olf-pt','nota-gus-pt','nota-fin-pt','nota-degustazione-pt'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.value='';
   });
-  if(typeof ptRenderMenzioni==='function') ptRenderMenzioni([]);
-  if(typeof ptRenderVitigni==='function') ptRenderVitigni('');
-  v('pt-wR','Sardegna');
-  var ptDd=document.getElementById('pt-dD'); if(ptDd) ptDd.style.display='none';
+  // wR è un <select>: il blocco identificativi condiviso non viene mai
+  // ricreato da zero (solo spostato tra le viste), quindi il valore
+  // selezionato in precedenza sopravvive finché non lo si azzera qui.
+  v('wR','Sardegna');
   var afc=document.getElementById('an-foto-calice'); if(afc) afc.value='';
   if(typeof aggiornaFotoAnalitica==='function') aggiornaFotoAnalitica();
   v('dS','');
@@ -2479,6 +2387,11 @@ function aggiornaSezioniVisive(tipol){
 
 function up(){
   _schedaToccata=true;
+  // Il blocco identificativi condiviso può trovarsi nella vista Punti:
+  // in tal caso, digitare qui deve marcare la scheda punti come "sporca",
+  // esattamente come faceva ptSyncUp() prima di essere consolidata qui.
+  var vp=document.getElementById('vista-punti');
+  if(vp && vp.classList.contains('attiva') && typeof setPuntiDirty==='function') setPuntiDirty();
   var p=document.getElementById('wP').value.trim(),n=document.getElementById('wN').value.trim();
   var y=document.getElementById('wY').value.trim(),v=document.getElementById('wV').value.trim();
   var d=document.getElementById('dS').value.trim();
@@ -2762,6 +2675,10 @@ function validaScheda(){
 }
 
 let editingId = null;
+// Traccia per quale scheda il blocco identificativi condiviso è
+// attualmente popolato — evita ricariche non necessarie che
+// cancellerebbero modifiche digitate ma non ancora salvate.
+var _bloccoIdentPopolatoPer=null;
 let isSaving = false; // blocca doppi click
 
 async function savLocal(){
@@ -3064,6 +2981,7 @@ function loadS(id){
     aggiornaBarre(); // sc è ora completo — barre colorate correttamente
   }, 250);
   toast('Scheda caricata — premi Aggiorna per salvare le modifiche');
+  _bloccoIdentPopolatoPer=s.id; // il blocco condiviso ora riflette questa scheda
 }
 
 
@@ -3149,7 +3067,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v238';
+const APP_VERSION='v239-refactor';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3438,7 +3356,9 @@ function sincronizzaConAnalitica(){
     });
     calcolaTotale();
     mostraScheda();
-    popolaCampiPunti(); // mostra testata editabile con campi vuoti
+    // I campi identificativi (Produttore, Nome, Regione...) sono un unico
+    // nodo DOM condiviso: nuovaScheda() li ha già svuotati prima di questo
+    // punto — non serve più "popolarli vuoti" separatamente.
     return;
   }
   if(!schede.length){
@@ -3452,28 +3372,28 @@ function sincronizzaConAnalitica(){
     return;
   }
 
+  if(analiticaP && analiticaP.id===target.id){
+    // Stessa scheda già in lavorazione: i campi identificativi sono lo
+    // stesso nodo DOM spostato tra le viste, il contenuto digitato dall'utente
+    // resta intatto attraversando il cambio vista. Non ricarichiamo da
+    // localStorage per non perdere modifiche non ancora salvate.
+    analiticaP=target;
+    aggiornaTestataVino();
+    calcolaTotale();
+    return;
+  }
+
   // Carica valutazione a punti esistente per questa scheda analitica
   var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
   var esistente=lp.find(function(x){return x.analiticaId===target.id;});
 
-  if(analiticaP && analiticaP.id===target.id){
-    // Stessa scheda — aggiorna solo base (ma la testata/intestazione fissa
-    // va comunque rinfrescata: questo ramo veniva saltato, lasciando il nome
-    // vino nella barra sticky vuoto se si tornava su "Punti" senza cambiare
-    // scheda, es. dopo essere passati da Analitica e ritornati indietro)
-    analiticaP=target;
-    aggiornaTestataVino();
-      calcolaTotale();
-    return;
-  }
-
   analiticaP=target;
+  loadS(target.id); // popola il blocco identificativi condiviso — stesso nodo DOM, qualunque vista sia attiva
+
   if(esistente){
-    // Carica valutazione esistente
-    loadP(esistente.id);
+    loadP(esistente.id); // solo voti/note del punteggio — gli identificativi sono già a posto
   } else {
-    // Nuova — pre-compila dai giudizi analitici
-    caricaDaAnalitica();
+    caricaDaAnalitica(); // pre-compila i voti suggeriti dai giudizi analitici, se presenti
   }
 }
 
@@ -3503,236 +3423,7 @@ function impostaTuttiVoti(v){
   toastP('Tutti impostati a '+v);
 }
 
-// ─── DATI IDENTIFICATIVI — SCHEDA PUNTI ──────────────────────────────────────
-var _ptSelBase='Fermo', _ptSelColore='', _ptSelMenzione='', _ptCurDen=null;
-
-function ptOnReg(){
-  var r=document.getElementById('pt-wR').value;
-  // Resetta denom e menzioni se si cambia regione
-  var dS=document.getElementById('pt-dS'); if(dS) dS.value='';
-  var dd=document.getElementById('pt-dD'); if(dd) dd.style.display='none';
-  _ptCurDen=null; _ptSelMenzione='';
-  ptRenderMenzioni([]);
-  ptRenderVitigni('');
-  ptSyncUp();
-}
-
-function ptFiltDen(){
-  var dSel=document.getElementById('pt-dS');
-  var q=(dSel?dSel.value:'').toLowerCase();
-  var r=document.getElementById('pt-wR');
-  var reg=r?r.value:'Sardegna';
-  if(reg==='__tavola__'||!reg){document.getElementById('pt-dD').style.display='none';return;}
-  var list=DN[reg]||DN['Sardegna']||[];
-  var fil=q?list.filter(function(d){return d.n.toLowerCase().indexOf(q)>-1;}):list;
-  var dd=document.getElementById('pt-dD');
-  if(!fil.length){dd.style.display='none';return;}
-  dd.innerHTML=fil.slice(0,14).map(function(d){
-    return '<div onclick="ptSelDen(\''+d.n.replace(/'/g,"\\'")+'\')" style="padding:6px 10px;cursor:pointer;font-size:12px;border-bottom:0.5px solid #f0f0ee">'
-      +'<span style="font-size:9px;font-weight:700;padding:1px 4px;border-radius:2px;background:#e8eaf6;color:#3949ab;margin-right:5px">'+d.t+'</span>'+d.n+'</div>';
-  }).join('');
-  dd.style.display='block';
-  setTimeout(function(){document.addEventListener('click',function ptClOut(){dd.style.display='none';document.removeEventListener('click',ptClOut);},{once:true});},10);
-}
-
-function ptSelDen(nome){
-  var dSel=document.getElementById('pt-dS'); if(dSel) dSel.value=nome;
-  var dd=document.getElementById('pt-dD'); if(dd) dd.style.display='none';
-  var r=document.getElementById('pt-wR');
-  var reg=r?r.value:'Sardegna';
-  _ptCurDen=(DN[reg]||DN['Sardegna']||[]).find(function(d){return d.n===nome;})||null;
-  ptRenderMenzioni(_ptCurDen?_ptCurDen.tip:[]);
-  ptRenderVitigni(nome);
-  ptSyncUp();
-}
-
-function ptClDen(){
-  var dSel=document.getElementById('pt-dS'); if(dSel) dSel.value='';
-  var dd=document.getElementById('pt-dD'); if(dd) dd.style.display='none';
-  _ptCurDen=null; _ptSelMenzione='';
-  ptRenderMenzioni([]);
-  ptSyncUp();
-}
-
-function ptRenderMenzioni(tips){
-  var wrap=document.getElementById('pt-tipolMenzione');
-  if(!wrap) return;
-  if(!tips||!tips.length){
-    wrap.innerHTML='<span class="tc-ph">nessuna menzione per questa denominazione</span>';
-    return;
-  }
-  wrap.innerHTML=tips.map(function(t){
-    var sel=t===_ptSelMenzione?' on-menzione':'';
-    return '<div class="tc-chip'+sel+'" onclick="ptChipSel(\'pt-tipolMenzione\',this)">'+t+'</div>';
-  }).join('');
-}
-
-function ptChipSel(groupId, el){
-  var wrap=document.getElementById(groupId);
-  if(!wrap) return;
-  // Usa le stesse classi CSS dell'analitica: on-base / on-colore / on-menzione
-  var cls=groupId==='pt-tipolBase'?'on-base':groupId==='pt-tipolColore'?'on-colore':'on-menzione';
-  wrap.querySelectorAll('.tc-chip').forEach(function(c){c.classList.remove('on-base','on-colore','on-menzione');});
-  el.classList.add(cls);
-  if(groupId==='pt-tipolBase')     _ptSelBase=el.textContent;
-  if(groupId==='pt-tipolColore')   _ptSelColore=el.textContent;
-  if(groupId==='pt-tipolMenzione') _ptSelMenzione=el.textContent;
-  ptSyncUp();
-}
-
-function ptPrev(){
-  var prod=(document.getElementById('pt-produttore')||{value:''}).value.trim();
-  var nome=(document.getElementById('pt-nome')||{value:''}).value.trim();
-  var ann=(document.getElementById('pt-annata')||{value:''}).value.trim();
-  var den=(document.getElementById('pt-dS')||{value:''}).value.trim();
-  var r=document.getElementById('pt-wR');
-  var reg=r?r.value:'';
-  var tip=[_ptSelColore,_ptSelBase,_ptSelMenzione].filter(Boolean).join(' ');
-  var denLabel=_ptCurDen?den+' ('+_ptCurDen.t+')':den;
-  var parts=[prod,nome?'<em>'+nome+'</em>':'',tip,ann?'· '+ann:'',denLabel?'· '+denLabel:''].filter(Boolean);
-  var prev=document.getElementById('pt-prev');
-  if(prev){
-    if(parts.length>0) prev.innerHTML=parts.join(' ');
-    else prev.innerHTML='<span class="ph">I dati appariranno qui…</span>';
-  }
-}
-
-function ptRenderVitigni(denomName){
-  var wrap=document.getElementById('pt-vitigni-chips');
-  var inp=document.getElementById('pt-vitigni');
-  var libroWrap=document.getElementById('pt-vitigni-libero-wrap');
-  if(!wrap) return;
-  if(!denomName||denomName==='__tavola__'){
-    wrap.innerHTML='';
-    if(inp){inp.style.display='block';inp.placeholder='Indica i vitigni…';}
-    if(libroWrap) libroWrap.style.display='none';
-    return;
-  }
-  var vits=(typeof VIT!=='undefined'&&VIT[denomName])||[];
-  if(!vits.length){
-    wrap.innerHTML='<span class="tc-ph">disciplinare non codificato — scrivi sotto</span>';
-    if(inp) inp.style.display='block';
-    if(libroWrap) libroWrap.style.display='none';
-    return;
-  }
-  // Mostra chip selezionabili
-  var selAttuali=(inp&&inp.value?inp.value.split(',').map(function(s){return s.trim();}):[]); 
-  wrap.innerHTML=vits.map(function(v){
-    var on=selAttuali.indexOf(v)>-1?' on-menzione':'';
-    return '<div class="tc-chip'+on+'" onclick="ptPickVitigno(this)">'+v+'</div>';
-  }).join('');
-  if(inp) inp.style.display='none';
-  if(libroWrap) libroWrap.style.display='block';
-}
-
-function ptPickVitigno(el){
-  el.classList.toggle('on-menzione');
-  // Ricostruisce il campo testo dalla selezione chip
-  var sel=Array.from(document.querySelectorAll('#pt-vitigni-chips .tc-chip.on-menzione')).map(function(c){return c.textContent;});
-  var extra=document.getElementById('pt-vitigni-extra');
-  if(extra&&extra.value.trim()) sel.push(extra.value.trim());
-  var inp=document.getElementById('pt-vitigni');
-  if(inp) inp.value=sel.join(', ');
-  ptSyncUp();
-}
-
-function ptToggleVitigniLibero(){
-  var inp=document.getElementById('pt-vitigni-extra');
-  if(!inp) return;
-  inp.style.display=inp.style.display==='none'?'block':'none';
-  if(inp.style.display==='block') inp.focus();
-}
-
-function ptSyncUp(){
-  setPuntiDirty();
-  ptPrev();
-  // Compone la tipologia combinata come fa l'analitica
-  var tipCombinata=[_ptSelColore,_ptSelBase,_ptSelMenzione].filter(Boolean).join(' ');
-  var g=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
-  var prod=g('pt-produttore'),nome=g('pt-nome'),ann=g('pt-annata'),
-      den=g('pt-dS'),vitigni=g('pt-vitigni'),grad=g('pt-gradazione'),
-      lotto=g('pt-lotto'),
-      reg=(document.getElementById('pt-wR')||{value:'Sardegna'}).value;
-  if(analiticaP){
-    if(prod)       analiticaP.produttore=prod;
-    if(nome)       analiticaP.nome=nome;
-    if(ann)        analiticaP.annata=ann;
-    if(den)        analiticaP.denominazione=den;
-    if(tipCombinata) analiticaP.tipologia=tipCombinata;
-    if(vitigni)    analiticaP.vitigni=vitigni;
-    if(grad)       analiticaP.gradazione=grad;
-    if(reg)        analiticaP.regione=reg;
-    if(lotto) analiticaP.lotto=lotto; // solo se valorizzato — la cancellazione esplicita si fa dall'editor rapido in elenco
-    aggiornaTestataVino();
-    // Aggiorna DOM analitica (form nascosto)
-    var s=function(id,v){var el=document.getElementById(id);if(el&&v)el.value=v;};
-    s('wP',prod);s('wN',nome);s('wY',ann);s('dS',den);s('wR',reg);s('wV',grad);s('vitigni-custom',vitigni);
-    // Aggiorna tipologia nell'analitica via selBase/selColore
-    var tbA=document.getElementById('tipolBase');
-    if(tbA&&_ptSelBase) tbA.querySelectorAll('.tc-chip').forEach(function(c){c.classList.toggle("on-base",c.textContent===_ptSelBase);});
-    var tcA=document.getElementById('tipolColore');
-    if(tcA&&_ptSelColore) tcA.querySelectorAll('.tc-chip').forEach(function(c){c.classList.toggle("on-colore",c.textContent===_ptSelColore);});
-    // Persiste
-    var schedeA=JSON.parse(localStorage.getItem('ais_s')||'[]');
-    var idx=schedeA.findIndex(function(x){return x.id===analiticaP.id;});
-    if(idx>-1){
-      if(prod)         schedeA[idx].produttore=prod;
-      if(nome)         schedeA[idx].nome=nome;
-      if(ann)          schedeA[idx].annata=ann;
-      if(den)          schedeA[idx].denominazione=den;
-      if(tipCombinata) schedeA[idx].tipologia=tipCombinata;
-      if(vitigni)      schedeA[idx].vitigni=vitigni;
-      if(grad)         schedeA[idx].gradazione=grad;
-      if(reg)          schedeA[idx].regione=reg;
-      if(lotto) schedeA[idx].lotto=lotto;
-      localStorage.setItem('ais_s',JSON.stringify(schedeA));
-      // Supabase: sync solo al salvataggio esplicito (pulsante Aggiorna)
-    }
-  }
-}
-
-function popolaCampiPunti(){
-  if(!analiticaP) return;
-  var f=function(id,val){var el=document.getElementById(id);if(el)el.value=val||'';};
-  f('pt-produttore',analiticaP.produttore);
-  f('pt-nome',analiticaP.nome);
-  f('pt-annata',analiticaP.annata);
-  f('pt-lotto',analiticaP.lotto);
-  f('pt-dS',analiticaP.denominazione);
-  f('pt-vitigni',analiticaP.vitigni);
-  f('pt-gradazione',analiticaP.gradazione);
-  // Regione
-  var rEl=document.getElementById('pt-wR');
-  if(rEl&&analiticaP.regione){rEl.value=analiticaP.regione;}
-  // Denominazione → menzioni
-  var reg=analiticaP.regione||'Sardegna';
-  _ptCurDen=(DN[reg]||DN['Sardegna']||[]).find(function(d){return d.n===analiticaP.denominazione;})||null;
-  ptRenderMenzioni(_ptCurDen?_ptCurDen.tip:[]);
-  // Tipologia: splitta in colore+base+menzione
-  var tip=analiticaP.tipologia||'';
-  var basi=['Fermo','Frizzante','Spumante'];
-  var colori=['Bianco','Rosato','Rosso'];
-  _ptSelBase=''; _ptSelColore=''; _ptSelMenzione='';
-  basi.forEach(function(b){if(tip.indexOf(b)>-1)_ptSelBase=b;});
-  colori.forEach(function(co){if(tip.indexOf(co)>-1)_ptSelColore=co;});
-  // Menzione: tutto il resto
-  var leftover=tip.replace(_ptSelBase,'').replace(_ptSelColore,'').trim();
-  if(leftover&&_ptCurDen&&_ptCurDen.tip&&_ptCurDen.tip.indexOf(leftover)>-1) _ptSelMenzione=leftover;
-  // Aggiorna chip UI con le classi corrette
-  var upChipsReal=function(groupId,sel,cls){
-    var w=document.getElementById(groupId);
-    if(!w) return;
-    w.querySelectorAll('.tc-chip').forEach(function(c){
-      c.classList.remove('on-base','on-colore','on-menzione');
-      if(c.textContent===sel) c.classList.add(cls);
-    });
-  };
-  upChipsReal('pt-tipolBase',_ptSelBase,'on-base');
-  upChipsReal('pt-tipolColore',_ptSelColore,'on-colore');
-  // Vitigni
-  ptRenderVitigni(analiticaP.denominazione||'');
-  ptPrev();
-}
+// (blocco funzioni pt- rimosso — consolidato su campi condivisi, vedi loadS/gd/up)
 
 // ─── PRODUTTORI — RICERCA CONTESTUALE + AUTO-ALIMENTAZIONE ─────────────────
 var _prodCache=null; // cache locale per evitare troppe query
@@ -4079,7 +3770,9 @@ function caricaDaAnalitica(){
   // Eredita anche nota_degustazione dall'analitica
   var ndp=document.getElementById('nota-degustazione-pt');
   if(ndp && !ndp.value && analiticaP && analiticaP.nota_degustazione) ndp.value=analiticaP.nota_degustazione;
-  popolaCampiPunti();
+  // Gli identificativi condivisi (Produttore, Nome, Tipologia...) sono già
+  // stati popolati da loadS(), chiamata prima di questa funzione da
+  // sincronizzaConAnalitica() — non serve più popolarli una seconda volta.
 }
 
 function modalitaManuale(){
@@ -4098,8 +3791,8 @@ function aggiornaTestataVino(){
   var ta=document.getElementById('t-autore');
   if(ta) ta.textContent=(analiticaP&&analiticaP.autore)||nomeDisplay()||'—';
   // Sincronizza il toggle N.G. con lo stato salvato sulla scheda collegata
-  var pNg=document.getElementById('p-ng');
-  var pNgMotivo=document.getElementById('p-ng-motivo');
+  var pNg=document.getElementById('w-ng');
+  var pNgMotivo=document.getElementById('w-ng-motivo');
   if(pNg){
     pNg.checked=!!(analiticaP && analiticaP.ng);
     if(pNgMotivo){
@@ -4109,33 +3802,32 @@ function aggiornaTestataVino(){
   }
 }
 
-// Mostra/nasconde il campo motivo in base al checkbox N.G., per ciascuna
-// delle tre schermate (rp=Guida VITAE, w=scheda analitica, p=scheda a punti).
+// Mostra/nasconde il campo motivo in base al checkbox N.G. — un solo
+// blocco condiviso tra Analitica e Punti (stesso nodo DOM, non più tre
+// varianti con prefissi diversi). Scrive sempre su analiticaP.
 // Sulla scheda a punti il toggle scrive SUBITO sulla scheda analitica
 // collegata: non è un campo di un form da salvare dopo, è uno stato che
 // deve riflettersi ovunque (home, altri degustatori) appena cambia.
-async function toggleNG(prefix){
-  var chk=document.getElementById(prefix+'-ng');
-  var motivo=document.getElementById(prefix+'-ng-motivo');
+async function toggleNG(){
+  var chk=document.getElementById('w-ng');
+  var motivo=document.getElementById('w-ng-motivo');
   if(!chk) return;
   if(motivo) motivo.style.display=chk.checked?'block':'none';
-  if(prefix==='p'){
-    if(!analiticaP) return;
-    var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
-    var idx=schede.findIndex(function(s){return s.id===analiticaP.id;});
-    if(idx>-1){
-      schede[idx].ng=chk.checked;
-      schede[idx].ng_motivo=motivo?motivo.value.trim():'';
-      localStorage.setItem('ais_s', JSON.stringify(schede));
-      analiticaP=schede[idx];
-      var _okNG=true;
-      if(typeof salvaSuDB==='function') _okNG=await salvaSuDB(schede[idx]);
-      if(!_okNG) addPendingSync('ais_s_pending_sync', schede[idx].id);
-      if(chk.checked) rimuoviPunteggioCollegato(schede[idx].id); // un campione N.G. non deve avere un punteggio in archivio
-      if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
-      if(typeof mostraScheda==='function') mostraScheda(); // riflette subito il nuovo stato sui chip e sul totale
-      toast(chk.checked?'🚫 Campione segnato N.G.':'✓ Segnalazione N.G. rimossa');
-    }
+  if(!analiticaP) return;
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var idx=schede.findIndex(function(s){return s.id===analiticaP.id;});
+  if(idx>-1){
+    schede[idx].ng=chk.checked;
+    schede[idx].ng_motivo=motivo?motivo.value.trim():'';
+    localStorage.setItem('ais_s', JSON.stringify(schede));
+    analiticaP=schede[idx];
+    var _okNG=true;
+    if(typeof salvaSuDB==='function') _okNG=await salvaSuDB(schede[idx]);
+    if(!_okNG) addPendingSync('ais_s_pending_sync', schede[idx].id);
+    if(chk.checked) rimuoviPunteggioCollegato(schede[idx].id); // un campione N.G. non deve avere un punteggio in archivio
+    if(typeof aggiornaHomeSchede==='function') aggiornaHomeSchede();
+    if(typeof mostraScheda==='function') mostraScheda(); // riflette subito il nuovo stato sui chip e sul totale
+    toast(chk.checked?'🚫 Campione segnato N.G.':'✓ Segnalazione N.G. rimossa');
   }
 }
 
@@ -4220,26 +3912,20 @@ function aggiornaStatoPunti(){
 
 // ─── SALVATAGGIO ─────────────────────────────────────────────────────────
 async function salvaPunti(){
-  // ── NUOVA SCHEDA: crea analitica da campi pt- e salva come bozza ────────
+  // ── NUOVA SCHEDA: crea l'analitica dai campi condivisi e salva come bozza ──
   if(!analiticaP && !editingId){
-    var g=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
-    var nomeVal=g('pt-nome')||g('pt-produttore');
+    var nomeVal=(document.getElementById('wN')||{value:''}).value.trim()||(document.getElementById('wP')||{value:''}).value.trim();
     if(!nomeVal){toastP('⛔ Inserisci almeno il nome o codice campione prima di salvare');return;}
-    var id=Date.now();
-    var tip=[_ptSelColore,_ptSelBase,_ptSelMenzione].filter(Boolean).join(' ');
+    var nuova=gd(); // stessi campi condivisi letti ovunque — un solo punto di verità
+    nuova.id=Date.now();
+    nuova.tipo='bozza';
     var dtNow=new Date().toLocaleDateString('it-IT');
-    var nuova={
-      id:id, tipo:'bozza', autore:nomeDisplay()||'',
-      produttore:g('pt-produttore'), nome:g('pt-nome'),
-      annata:g('pt-annata'), denominazione:g('pt-dS'),
-      tipologia:tip, regione:(document.getElementById('pt-wR')||{value:'Sardegna'}).value,
-      vitigni:g('pt-vitigni'), gradazione:g('pt-gradazione'), lotto:g('pt-lotto'),
-      dt:dtNow, dt_crea:dtNow
-    };
+    nuova.dt=dtNow; nuova.dt_crea=dtNow;
     var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
     schede.unshift(nuova);
     localStorage.setItem('ais_s',JSON.stringify(schede));
-    editingId=id; analiticaP=nuova;
+    editingId=nuova.id; analiticaP=nuova;
+    _bloccoIdentPopolatoPer=nuova.id;
     aggiornaTestataVino();
     var _okBozza=true;
     if(typeof salvaSuDB==='function') _okBozza=await salvaSuDB(nuova);
@@ -4409,7 +4095,6 @@ function loadP(id){
       if(m.el && !m.el.value && analiticaP[m.key]) m.el.value=analiticaP[m.key];
     });
   }
-  popolaCampiPunti();
   editingIdP=typeof id==="string"?parseInt(id):id;
   mostraScheda();
   if(analiticaP){
