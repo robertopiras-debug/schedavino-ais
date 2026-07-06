@@ -320,16 +320,13 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   .prev{font-size:13px!important}
   #wLotto{font-size:18px!important;font-weight:700!important;text-align:center}
 
-  /* Hero orizzontale — prima impilava 4 blocchi in verticale (nome vino,
-     punteggio+numero, fascia, breakdown), sprecando altezza su schermi
-     larghi dove la larghezza non manca. Un'unica riga, come da mockup. */
-  #hero{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:12px 70px;text-align:left}
-  #heroVino{flex:1;text-align:left;padding:0;margin-bottom:0;font-size:20px;min-width:0}
-  .hero-punteggio-group{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
-  .hero-punteggio-group .hero-label{margin-bottom:0}
-  #heroNum{font-size:48px;margin:0;line-height:1}
-  #heroFascia{margin-bottom:0;flex-shrink:0;white-space:nowrap}
-  #heroBreak{text-align:left;flex-shrink:0;max-width:240px;font-size:12px}
+  /* Hero: abbandonato il layout orizzontale (stesso pattern fragile che ha
+     già dato due problemi consecutivi su Annata/Gradazione — non vale la
+     pena rischiarne un terzo su un elemento così centrale). Resta il
+     layout verticale impilato originale, mai stato causa di un solo
+     problema in tutta la giornata; riduciamo solo il padding verticale
+     per guadagnare un po' di altezza, senza toccare la struttura. */
+  #hero{padding-top:8px;padding-bottom:8px}
   /* Etichetta e campo affiancati orizzontalmente invece di impilati —
      usata per Annata/Gradazione/Lotto, dove la label è corta e impilarla
      sopra il campo spreca altezza senza necessità su schermi larghi */
@@ -891,10 +888,8 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
   <button onclick="vediAnaliticaCollegata()" title="Apri scheda analitica collegata" style="position:absolute;top:6px;left:6px;width:30px;height:30px;border-radius:50%;border:1px solid var(--b);background:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:1">📋</button>
   <button id="heroAggiorna" onclick="salvaPunti()" title="Salva" style="position:absolute;top:8px;right:8px;border:none;background:var(--m);color:#fff;font-size:12px;font-weight:800;cursor:pointer;padding:6px 12px;border-radius:20px;z-index:1;letter-spacing:.04em">💾 SALVA</button>
   <div class="hero-vino" id="heroVino">—</div>
-  <div class="hero-punteggio-group">
-    <div class="hero-label">Punteggio totale</div>
-    <div class="hero-num" id="heroNum">—</div>
-  </div>
+  <div class="hero-label">Punteggio totale</div>
+  <div class="hero-num" id="heroNum">—</div>
   <div class="hero-fascia" id="heroFascia">—</div>
   <div class="hero-breakdown" id="heroBreak"></div>
 </div>
