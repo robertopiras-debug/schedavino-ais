@@ -28,9 +28,17 @@ già trovato per `VIT`.
 Fase 1 completata: tabella `vitigni_sardegna` su Supabase, 108 varietà,
 fonte: Regione Autonoma della Sardegna — Assessorato Agricoltura,
 Allegato 1 alla Determinazione n. 6361/186 del 23/04/2020 (discende da
-Delib. G.R. 27/19 dell'8/06/2004). 5 voci con nota di incertezza esplicita
-di estrazione dal PDF (vedi colonna `nota_incertezza` nella tabella:
-Aglianico, Ansonica, Garganega, Marselan, Traminer Aromatico).
+Delib. G.R. 27/19 dell'8/06/2004). Inizialmente 5 voci con nota di
+incertezza esplicita di estrazione dal PDF (Aglianico, Ansonica, Garganega,
+Marselan, Traminer Aromatico) — vedi colonna `nota_incertezza` nella
+tabella.
+
+**Aggiornamento 7/07/2026**: la voce Garganega (092) è stata verificata e
+corretta — la sinonimia con Grecanico Dorato B. (094) è confermata da
+fonte primaria (Registro Nazionale delle Varietà di Vite, MASAF/CREA;
+Decreto Ministeriale 30/05/2018, G.U. n. 133 dell'11/06/2018). Nota di
+incertezza rimossa per questa voce. Restano da verificare le altre 4:
+Aglianico, Ansonica, Marselan, Traminer Aromatico.
 
 Fase 2 da fare: regole di composizione per ciascuna DOP sarda (percentuale
 minima del vitigno principale, soglia dei complementari ammessi) — fonte:
