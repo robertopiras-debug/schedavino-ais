@@ -33,25 +33,32 @@ incertezza esplicita di estrazione dal PDF (Aglianico, Ansonica, Garganega,
 Marselan, Traminer Aromatico) — vedi colonna `nota_incertezza` nella
 tabella.
 
-**Aggiornamento 7/07/2026**: la voce Garganega (092) è stata verificata e
-corretta — la sinonimia con Grecanico Dorato B. (094) è confermata da
-fonte primaria (Registro Nazionale delle Varietà di Vite, MASAF/CREA;
-Decreto Ministeriale 30/05/2018, G.U. n. 133 dell'11/06/2018). Nota di
-incertezza rimossa. Rifetchando il documento per intero (stesso URL,
-NON un aggiornamento — verificato: contenuto identico), risolta anche
-Aglianico (002): l'attribuzione dei sinonimi era corretta fin dall'inizio,
-il dubbio era un limite della mia prima estrazione parziale, non del dato.
+**Aggiornamento 7/07/2026, seconda parte**: Rob ha scovato che la Regione
+pubblica le determinazioni anche su sardegnaambiente.it, con l'elenco
+completo delle Determinazioni successive separate dai loro allegati
+(`sardegnaambiente.it/index.php?xsl=2425&c=229&s=385220&v=2&tb=13769`).
+Questo ha rivelato che mancavano **Viognier** (riconosciuto con Determ.
+n. 80/2627 del 17/02/2022, codice 346) e **Ciliegiolo** (Determ. n. 256
+prot. 6622 del 05/04/2023, codice 062, sinonimo "Morettone") — entrambi
+ora aggiunti. **Totale attuale: 110 varietà**, non più 108.
 
-Restano 3 voci con nota di incertezza, questa volta per lacune genuine
-del documento ufficiale stesso, non della lettura:
-- **Ansonica (013)**: il PDF mostra letteralmente "A" invece di "I"/"IC"
-  nella colonna classificazione — refuso della fonte, mai corretto
-- **Marselan (485)**: nessuna lettera di colore nella colonna dedicata
-  (a differenza di ogni altra voce) — lacuna della fonte
-- **Traminer Aromatico (238)**: nessuna classificazione I/IC assegnata
-  — lacuna della fonte
+La fonte di riferimento della tabella è stata spostata alla versione più
+recente e cumulativa (Allegato alla Determinazione n. 256/6622 del
+05/04/2023: `sardegnaambiente.it/documenti/1_38_20230407091439.pdf`),
+che contiene tutte le 110 voci in un solo documento coerente.
 
-Query per ritrovarle: `SELECT * FROM vitigni_sardegna WHERE nota_incertezza <> ''`.
+Verificando il contenuto su **tre versioni diverse del documento** (2020,
+2022, 2023), confermato che Ansonica e Marselan hanno le stesse identiche
+anomalie in ognuna — non refusi isolati mai corretti, ma caratteristiche
+persistenti della fonte nel tempo:
+- **Ansonica (013)**: "A" invece di "I"/"IC" in tutte e tre le versioni
+- **Marselan (485)**: nessuna lettera di colore in nessuna delle tre versioni
+
+Traminer Aromatico (238), invece, risulta ora chiaramente leggibile e
+confermato ("Rs. I") in due versioni pulite del documento — nota di
+incertezza rimossa, non era un problema reale.
+
+Restano 2 voci con nota di incertezza (non più 3): Ansonica, Marselan.
 
 Fase 2 da fare: regole di composizione per ciascuna DOP sarda (percentuale
 minima del vitigno principale, soglia dei complementari ammessi) — fonte:
