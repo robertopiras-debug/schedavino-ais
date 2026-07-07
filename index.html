@@ -462,7 +462,10 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
       </div>
     </div>
   </div>
-  <div class="row"><div class="f">
+  <!-- Base ampelografica: nascosta in attesa del dataset vitigni_sardegna
+       completo (vedi TODO.md) — da riprendere probabilmente con una
+       finestra di consultazione dedicata, non questo blocco inline. -->
+  <div class="row" style="display:none"><div class="f">
     <div class="lbl">Base ampelografica</div>
     <div id="vitigni-wrap">
       <div id="vitigni-chips" class="tipol-chips"><span class="tc-ph">seleziona prima la denominazione</span></div>
@@ -3148,7 +3151,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v252-refactor';
+const APP_VERSION='v253-refactor';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
