@@ -424,7 +424,10 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
       </div>
     </div>
   </div>
-  <div class="row"><div class="f">
+  <!-- Base ampelografica: nascosta in attesa del dataset vitigni_sardegna
+       completo (vedi TODO.md) — da riprendere probabilmente con una
+       finestra di consultazione dedicata, non questo blocco inline. -->
+  <div class="row" style="display:none"><div class="f">
     <div class="lbl">Base ampelografica</div>
     <div id="vitigni-wrap">
       <div id="vitigni-chips" class="tipol-chips"><span class="tc-ph">seleziona prima la denominazione</span></div>
@@ -882,8 +885,10 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
       </div>
     </div>
 
-    <!-- Vitigni -->
-    <div class="row" style="margin-bottom:4px">
+    <!-- Vitigni: nascosta in attesa del dataset vitigni_sardegna completo
+         (vedi TODO.md) — da riprendere probabilmente con una finestra
+         di consultazione dedicata, non questo blocco inline. -->
+    <div class="row" style="margin-bottom:4px;display:none">
       <div class="f"><div class="lbl">Base ampelografica</div>
         <div id="pt-vitigni-chips" class="tipol-chips" style="margin-bottom:4px"><span class="tc-ph">seleziona prima la denominazione</span></div>
         <input id="pt-vitigni" type="text" placeholder="Indica i vitigni…" oninput="ptSyncUp()" style="display:none">
@@ -3149,7 +3154,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v239';
+const APP_VERSION='v240';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
