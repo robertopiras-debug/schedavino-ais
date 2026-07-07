@@ -3153,7 +3153,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v256-refactor';
+const APP_VERSION='v257-refactor';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4369,18 +4369,22 @@ function filtraHomeSchede(){
   var pendingSyncS=getPendingSync('ais_s_pending_sync').map(String);
   var pendingSyncP=getPendingSync('ais_punti_pending_sync').map(String);
   aggiornaBadgeSync();
-  // ── Ordinamento: giorno discendente, dentro il giorno id ascendente (cronologico)
+  // ── Ordinamento: giorno discendente (sessione di degustazione, dt_crea —
+  // coerente col raggruppamento sotto), dentro il giorno id ascendente (cronologico)
   lista.sort(function(a,b){
     function toISO(d){var p=(d||'').split('/');return p.length===3?p[2]+'-'+('0'+p[1]).slice(-2)+'-'+('0'+p[0]).slice(-2):d;}
-    var da=toISO(a.dt||''), db=toISO(b.dt||'');
+    var da=toISO(a.dt_crea||a.dt||''), db=toISO(b.dt_crea||b.dt||'');
     if(da!==db) return db.localeCompare(da);
     return (a.id||0)-(b.id||0);
   });
 
-  // ── Raggruppa per giornata
+  // ── Raggruppa per giornata — usa dt_crea (sessione di degustazione
+  // originale), non dt (ultima modifica): altrimenti riaprire e completare
+  // una scheda vecchia la sposta silenziosamente al gruppo di oggi,
+  // facendola "sparire" dal giorno dove il degustatore la cerca davvero.
   var groups=[], groupMap={};
   lista.forEach(function(s){
-    var key=(s.dt||'—').split(' ')[0]; // solo data, ignora eventuale orario
+    var key=(s.dt_crea||s.dt||'—').split(' ')[0]; // solo data, ignora eventuale orario
     if(!groupMap[key]){groupMap[key]=[];groups.push(key);}
     groupMap[key].push(s);
   });
