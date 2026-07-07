@@ -2012,7 +2012,7 @@ function onLogin(user){
   if(_ab) _ab.style.display=(user.email===ADMIN_EMAIL)?'inline':'none';
   var _ak=document.getElementById('apikey-btn');
   if(_ak) _ak.style.display=(user.email===ADMIN_EMAIL)?'':'none';
-  if(user.email===ADMIN_EMAIL) caricaApiKeyDaSupa();
+  caricaApiKeyDaSupa(); // ora universale: chiave condivisa per tutto il panel
   caricaSchedeDB();
   mostraHome();
 }
@@ -3153,7 +3153,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v254-refactor';
+const APP_VERSION='v255-refactor';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4962,15 +4962,21 @@ function salvaFotoSolo(){
 // ─── CHIAVE API ANTHROPIC su Supabase admin_settings ─────────────────────────
 async function caricaApiKeyDaSupa(){
   if(!currentUser) return;
+  // Chiave UNICA condivisa da tutto il panel, gestita solo dall'amministratore.
+  // Ogni utente, chiunque sia, legge SEMPRE la riga dell'amministratore — non
+  // la propria — e la mette in cache locale. Solo l'amministratore può
+  // scriverla (vedi il ramo "altrimenti" più sotto, ristretto a ADMIN_EMAIL).
   try{
-    var r=await fetch(SUPA_URL+'/rest/v1/admin_settings?user_email=eq.'+encodeURIComponent(currentUser.email),{headers:supaHeaders()});
+    var r=await fetch(SUPA_URL+'/rest/v1/admin_settings?user_email=eq.'+encodeURIComponent(ADMIN_EMAIL),{headers:supaHeaders()});
     if(!r.ok) return;
     var rows=await r.json();
     if(rows&&rows.length&&rows[0].anthropic_key){
-      // Cloud ha la chiave → la cacha in localStorage
+      // Cloud ha la chiave condivisa → la cacha in locale per questo dispositivo
       localStorage.setItem('ais_anthropic_key',rows[0].anthropic_key);
-    } else {
-      // Cloud è vuoto → se localStorage ha già la chiave, la salva su cloud automaticamente
+    } else if(currentUser.email===ADMIN_EMAIL){
+      // Solo l'amministratore può inizializzare la chiave condivisa se il
+      // cloud è ancora vuoto — un utente qualunque non deve poter scrivere
+      // lì per errore con un residuo locale.
       var local=localStorage.getItem('ais_anthropic_key');
       if(local) await salvaApiKeyOnSupa(local);
     }
@@ -5004,12 +5010,17 @@ async function generaNotaPunti(){
     alert('⛔ Note insufficienti — scrivi almeno la nota olfattiva e quella gusto-olfattiva prima di generare.\n\nSenza le tue osservazioni descrittive la nota AI non ha contenuto su cui lavorare.');
     return;
   }
-  // ── Guardia 2: API key ───────────────────────────────────────────────────
+  // ── Guardia 2: API key condivisa del panel ────────────────────────────────
   var key=getAnthropicKey();
   if(!key){
-    var k=prompt('Inserisci la chiave API Anthropic (sk-ant-...):\n(salvata solo nel browser)');
-    if(!k||!k.trim()){toastP('Chiave API non inserita');return;}
-    setAnthropicKey(k); key=k.trim();
+    if(currentUser && currentUser.email===ADMIN_EMAIL){
+      var k=prompt('Inserisci la chiave API Anthropic condivisa (sk-ant-...):\n(usata da tutto il panel, salvata su cloud)');
+      if(!k||!k.trim()){toastP('Chiave API non inserita');return;}
+      setAnthropicKeyAsync(k); key=k.trim();
+    } else {
+      alert('⛔ Chiave AI non ancora configurata — contatta l\'amministratore del panel.');
+      return;
+    }
   }
   // ── Costruzione prompt ───────────────────────────────────────────────────
   var tot=parseFloat(document.getElementById('heroNum').textContent)||0;
@@ -5106,10 +5117,15 @@ async function generaNotaPunti(){
 async function generaNota(){
   var key=getAnthropicKey();
   if(!key){
-    var k=prompt('Inserisci la tua chiave API Anthropic (sk-ant-...):\n(viene salvata solo nel browser, mai online)');
-    if(!k||!k.trim()){ toast('Chiave API non inserita — operazione annullata'); return; }
-    setAnthropicKey(k);
-    key=k.trim();
+    if(currentUser && currentUser.email===ADMIN_EMAIL){
+      var k=prompt('Inserisci la chiave API Anthropic condivisa (sk-ant-...):\n(usata da tutto il panel, salvata su cloud)');
+      if(!k||!k.trim()){ toast('Chiave API non inserita — operazione annullata'); return; }
+      setAnthropicKeyAsync(k);
+      key=k.trim();
+    } else {
+      alert('⛔ Chiave AI non ancora configurata — contatta l\'amministratore del panel.');
+      return;
+    }
   }
 
   // ── Guardia 1: campione N.G. ─────────────────────────────────────────────
