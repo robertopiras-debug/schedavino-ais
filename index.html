@@ -2004,7 +2004,7 @@ function onLogin(user){
   if(hd) hd.textContent=nomeDisplay();
   // Mostra pulsante admin solo per l'email amministratore
   var _ab=document.getElementById('admin-btn');
-  if(_ab) _ab.style.display='inline'; // visibile a tutti gli utenti loggati
+  if(_ab) _ab.style.display=(user.email===ADMIN_EMAIL)?'inline':'none';
   var _ak=document.getElementById('apikey-btn');
   if(_ak) _ak.style.display=(user.email===ADMIN_EMAIL)?'':'none';
   if(user.email===ADMIN_EMAIL) caricaApiKeyDaSupa();
@@ -3148,7 +3148,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v251-refactor';
+const APP_VERSION='v252-refactor';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -5263,6 +5263,10 @@ async function generaNota(){
 var _adminSchede=[],_adminPunti=[],_adminTab='deg';
 
 function mostraAdmin(){
+  if(!currentUser || currentUser.email!==ADMIN_EMAIL){
+    toast('⛔ Accesso riservato all\'amministratore');
+    return;
+  }
   document.getElementById('home-overlay').style.display='none';
   document.getElementById('admin-overlay').style.display='block';
   document.getElementById('admin-overlay').scrollTop=0;
