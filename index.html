@@ -3153,7 +3153,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v257-refactor';
+const APP_VERSION='v258-refactor';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4372,7 +4372,7 @@ function filtraHomeSchede(){
   // ── Ordinamento: giorno discendente (sessione di degustazione, dt_crea —
   // coerente col raggruppamento sotto), dentro il giorno id ascendente (cronologico)
   lista.sort(function(a,b){
-    function toISO(d){var p=(d||'').split('/');return p.length===3?p[2]+'-'+('0'+p[1]).slice(-2)+'-'+('0'+p[0]).slice(-2):d;}
+    function toISO(d){var p=(d||'').split(' ')[0].split('/');return p.length===3?p[2]+'-'+('0'+p[1]).slice(-2)+'-'+('0'+p[0]).slice(-2):d;}
     var da=toISO(a.dt_crea||a.dt||''), db=toISO(b.dt_crea||b.dt||'');
     if(da!==db) return db.localeCompare(da);
     return (a.id||0)-(b.id||0);
