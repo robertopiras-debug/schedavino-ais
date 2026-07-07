@@ -37,8 +37,21 @@ tabella.
 corretta — la sinonimia con Grecanico Dorato B. (094) è confermata da
 fonte primaria (Registro Nazionale delle Varietà di Vite, MASAF/CREA;
 Decreto Ministeriale 30/05/2018, G.U. n. 133 dell'11/06/2018). Nota di
-incertezza rimossa per questa voce. Restano da verificare le altre 4:
-Aglianico, Ansonica, Marselan, Traminer Aromatico.
+incertezza rimossa. Rifetchando il documento per intero (stesso URL,
+NON un aggiornamento — verificato: contenuto identico), risolta anche
+Aglianico (002): l'attribuzione dei sinonimi era corretta fin dall'inizio,
+il dubbio era un limite della mia prima estrazione parziale, non del dato.
+
+Restano 3 voci con nota di incertezza, questa volta per lacune genuine
+del documento ufficiale stesso, non della lettura:
+- **Ansonica (013)**: il PDF mostra letteralmente "A" invece di "I"/"IC"
+  nella colonna classificazione — refuso della fonte, mai corretto
+- **Marselan (485)**: nessuna lettera di colore nella colonna dedicata
+  (a differenza di ogni altra voce) — lacuna della fonte
+- **Traminer Aromatico (238)**: nessuna classificazione I/IC assegnata
+  — lacuna della fonte
+
+Query per ritrovarle: `SELECT * FROM vitigni_sardegna WHERE nota_incertezza <> ''`.
 
 Fase 2 da fare: regole di composizione per ciascuna DOP sarda (percentuale
 minima del vitigno principale, soglia dei complementari ammessi) — fonte:
