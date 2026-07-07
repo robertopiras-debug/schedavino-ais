@@ -500,6 +500,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
         </div>
       </div>
 
+      <div style="display:none">
       <div id="lbl-menzione" style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:7px;margin-bottom:3px">Menzione da disciplinare</div>
       <div class="tipol-chips" id="tipolMenzione"><span class="tc-ph">seleziona prima la denominazione</span></div>
       <div style="margin-top:5px">
@@ -507,6 +508,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
         <div id="notaTipolWrap" style="display:none;margin-top:4px">
           <input id="notaTipol" type="text" placeholder="es. vendemmia tardiva, affinato in legno, metodo classico 24 mesi, fortificato..." style="font-size:11px">
         </div>
+      </div>
       </div>
 
     </div>
@@ -3151,7 +3153,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v253-refactor';
+const APP_VERSION='v254-refactor';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
