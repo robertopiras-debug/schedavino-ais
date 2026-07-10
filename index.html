@@ -1711,6 +1711,11 @@ function nuovaScheda(){
   if(typeof aggiornaColoreVisivo==='function') aggiornaColoreVisivo('');
   if(typeof aggiornaTannicita==='function') aggiornaTannicita('');
   if(typeof up==='function') up();
+  // aggiornaTestataVino() va chiamata ESPLICITAMENTE qui: up() la richiama
+  // solo dentro "if(analiticaP){...}", ma per una scheda nuova analiticaP
+  // è appena stato azzerato a null — senza questa riga l'hero resta con
+  // il testo della scheda precedente (nessuno lo sovrascrive mai).
+  if(typeof aggiornaTestataVino==='function') aggiornaTestataVino();
   window.scrollTo({top:0,behavior:'smooth'});
   v('notaTipol','');
   var ntw=document.getElementById('notaTipolWrap'); if(ntw) ntw.style.display='none';
@@ -3154,7 +3159,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v261';
+const APP_VERSION='v262';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3709,12 +3714,12 @@ function calcolaTotale(){
   document.getElementById('heroNum').textContent=haVoti?tot.toFixed(1):'—';
   document.getElementById('heroFascia').textContent=haVoti?fasciaP(tot):'';
   var cf=document.getElementById('colFascia'); if(cf) cf.textContent=haVoti?fasciaP(tot):'';
-  document.getElementById('heroBreak').innerHTML=
-    'Visivo: '+subV.toFixed(1)+' · Olfattivo: '+subO.toFixed(1)+' · Gusto: '+subG.toFixed(1)+' · Finale: '+subF.toFixed(1);
-  document.getElementById('subV').textContent=subV.toFixed(1);
-  document.getElementById('subO').textContent=subO.toFixed(1);
-  document.getElementById('subG').textContent=subG.toFixed(1);
-  document.getElementById('subF').textContent=subF.toFixed(1);
+  document.getElementById('heroBreak').innerHTML=haVoti?
+    ('Visivo: '+subV.toFixed(1)+' · Olfattivo: '+subO.toFixed(1)+' · Gusto: '+subG.toFixed(1)+' · Finale: '+subF.toFixed(1)):'';
+  document.getElementById('subV').textContent=haVoti?subV.toFixed(1):'—';
+  document.getElementById('subO').textContent=haVoti?subO.toFixed(1):'—';
+  document.getElementById('subG').textContent=haVoti?subG.toFixed(1):'—';
+  document.getElementById('subF').textContent=haVoti?subF.toFixed(1):'—';
   aggiornaColonnaPiena();
   // Label qualitative di sezione (media voti pesati → fascia)
   // Soglie proporzionali a fasciaP (70/80/85/90/94 diviso 10): un voto
