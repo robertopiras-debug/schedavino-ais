@@ -1716,6 +1716,11 @@ function nuovaScheda(){
   // è appena stato azzerato a null — senza questa riga l'hero resta con
   // il testo della scheda precedente (nessuno lo sovrascrive mai).
   if(typeof aggiornaTestataVino==='function') aggiornaTestataVino();
+  // Data: per una scheda nuova nessun altro punto del codice la imposta
+  // (caricaDaAnalitica/loadP la leggono da analiticaP, che qui è null) —
+  // senza questa riga il campo resta vuoto o con un valore residuo della
+  // scheda precedentemente visualizzata.
+  var _td=document.getElementById('t-data'); if(_td) _td.textContent=new Date().toLocaleDateString('it-IT');
   window.scrollTo({top:0,behavior:'smooth'});
   v('notaTipol','');
   var ntw=document.getElementById('notaTipolWrap'); if(ntw) ntw.style.display='none';
@@ -3159,7 +3164,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v263';
+const APP_VERSION='v264';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
