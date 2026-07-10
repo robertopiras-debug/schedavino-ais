@@ -1111,7 +1111,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 </div>
 </div>
 
-<div class="nav-bar">
+<div class="nav-bar" style="display:none">
   <button class="nav-btn" id="btn-home" onclick="mostraHome()" style="font-size:11px">🏠 Home</button>
   <button class="nav-btn pt attivo" id="btn-pt" onclick="nascondiHome();mostraVista('punti')">🎯 Punti</button>
   <button class="nav-btn an" id="btn-an" onclick="nascondiHome();mostraVista('analitica')">📋 Analitica</button>
@@ -3212,7 +3212,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v271';
+const APP_VERSION='v272';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
