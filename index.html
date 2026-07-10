@@ -3159,7 +3159,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v262';
+const APP_VERSION='v263';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3635,6 +3635,7 @@ function dirtyModalAnnulla(){
 }
 
 function aggiornaColonnaPiena(){
+  var haVoti=Object.keys(voti).some(function(k){return voti[k]>0;});
   var tot=0;
   PARAMS.forEach(function(p){ tot+=voti[p.id]*p.peso; });
   tot=parseFloat(tot.toFixed(1));
@@ -3642,7 +3643,7 @@ function aggiornaColonnaPiena(){
   [10,9,8,7].forEach(function(n){
     var el=document.getElementById('cp'+n);
     if(!el) return;
-    if(n===col){ el.textContent=tot.toFixed(1); el.style.color='var(--m)'; }
+    if(haVoti && n===col){ el.textContent=tot.toFixed(1); el.style.color='var(--m)'; }
     else { el.textContent=''; el.style.color='transparent'; }
   });
 }
