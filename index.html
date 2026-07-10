@@ -1921,8 +1921,9 @@ function doLogout(){
   var va=document.getElementById('vista-analitica');
   if(va) va.classList.add('attiva');
   var ls=document.getElementById('login-screen');
-  ls.style.display='flex';
-  ls.style.zIndex='1000';
+  ls.style.display='none'; // dopo logout si passa dalla landing, non dritti al login
+  var lpLogout=document.getElementById('landing-screen');
+  if(lpLogout) lpLogout.style.display='flex';
   document.getElementById('login-email').value='';
   document.getElementById('login-pwd').value='';
   var lm=document.getElementById('login-msg');
@@ -3211,7 +3212,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v270';
+const APP_VERSION='v271';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3272,7 +3273,9 @@ async function supaRefreshToken(){
         document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva');});
         var vaLogin=document.getElementById('vista-analitica');
         if(vaLogin) vaLogin.classList.add('attiva');
-        document.getElementById('login-screen').style.display='flex';
+        document.getElementById('login-screen').style.display='none';
+        var lpExpired=document.getElementById('landing-screen');
+        if(lpExpired) lpExpired.style.display='flex';
         document.getElementById('app-screen').style.display='none';
         var vp=document.getElementById('vista-punti');if(vp)vp.style.display='none';
         var ho=document.getElementById('home-overlay');if(ho)ho.style.display='none';
