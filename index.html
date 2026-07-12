@@ -1184,6 +1184,25 @@ function _mostraVistaInner(v){
     // il campo unico condiviso questo autosave non serve più, ma va
     // evitato di sovrascrivere quanto l'utente sta ancora scrivendo).
     loadS(analiticaP.id);
+  } else if(v==='analitica' && !analiticaP && editingId!==_analiticaResetPerPuntiId){
+    // Scheda punti che NON ha ancora un record analitica collegato (es.
+    // creata direttamente da +Nuova Scheda in Punti): loadS() qui sopra
+    // non scatta mai in questo caso, perché non c'è nessun id di record
+    // analitica da caricare. Senza questo ramo, i campi specifici di
+    // Analitica (note, stelle, riconoscimenti, NG) restavano con i
+    // residui dell'ultima scheda aperta nella sessione del browser,
+    // invece di essere vuoti per il vino nuovo.
+    ['nolf','ngus','nfin','nota-degustazione','nota-vis'].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.value='';
+    });
+    var afc=document.getElementById('an-foto-calice'); if(afc) afc.value='';
+    if(typeof aggiornaFotoAnalitica==='function') aggiornaFotoAnalitica();
+    var wng=document.getElementById('w-ng'); if(wng) wng.checked=false;
+    var wngm=document.getElementById('w-ng-motivo'); if(wngm){ wngm.value=''; wngm.style.display='none'; }
+    sv=0;
+    document.querySelectorAll('#stars .st').forEach(function(st){st.classList.remove('lit');});
+    sc={}; mx={dolf:[],sfumatura:[],desc_vis:[]}; riconoscimenti={};
+    _analiticaResetPerPuntiId=editingId;
   }
   if(v==='analitica'){
     // Riallinea il punteggio nella testata anche quando NON scatta il
@@ -2819,6 +2838,7 @@ let editingId = null;
 // attualmente popolato — evita ricariche non necessarie che
 // cancellerebbero modifiche digitate ma non ancora salvate.
 var _bloccoIdentPopolatoPer=null;
+var _analiticaResetPerPuntiId=null;
 let isSaving = false; // blocca doppi click
 
 async function savLocal(){
@@ -3207,7 +3227,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v281';
+const APP_VERSION='v282';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
