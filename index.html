@@ -2819,7 +2819,13 @@ function validaScheda(){
     return true; // bozza ok — il resto può restare incompleto
   }
 
-  // Scheda completa: valida tutto (comportamento invariato)
+  // Scheda "completa": le sezioni sensoriali mancanti non bloccano più il
+  // salvataggio — un'analitica può essere compilata in più sessioni senza
+  // ricevere un errore ogni volta che non è ancora finita. Restano
+  // evidenziate visivamente (classe .op) per orientare l'utente su cosa
+  // manca, ma il salvataggio procede comunque. Resta bloccante solo la
+  // mancanza del nome/codice campione (mId) — l'unico dato che identifica
+  // univocamente il vino.
   var sezioni=['vis','olf','gus','fin'];
   var tuttiMancanti=[];
   sezioni.forEach(function(s){
@@ -2832,11 +2838,10 @@ function validaScheda(){
     }
   });
   aggiornaBarre();
-  if(mId.length) righeErrore=righeErrore.concat(mId.map(function(m){return'<span style="color:#888">Identificativi:</span> '+m;}));
-  if(tuttiMancanti.length) righeErrore=righeErrore.concat(tuttiMancanti.map(function(m){return m;}));
-  if(righeErrore.length){
+  if(mId.length){
+    righeErrore=righeErrore.concat(mId.map(function(m){return'<span style="color:#888">Identificativi:</span> '+m;}));
     mostraModaleErrore('Compila i campi obbligatori prima di salvare', righeErrore);
-    if(mId.length) window.scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo({top:0,behavior:'smooth'});
     return false;
   }
   return true;
@@ -3236,7 +3241,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v283';
+const APP_VERSION='v284';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4380,6 +4385,19 @@ function analiticaSembraCompilata(s){
   return false;
 }
 
+// Livello di completezza dell'analitica per il badge in home: 'vuota',
+// 'parziale' o 'completa'. Usa i quattro giudizi di sezione (qvis/qolf/
+// qgus/qtot) come indicatore — sono sempre presenti a livello root del
+// record quando quella sezione è stata effettivamente valutata, a
+// differenza dei singoli parametri descrittivi che dipendono da tipologia
+// e colore e sarebbero più complessi da verificare qui in modo affidabile.
+function analiticaLivelloCompletezza(s){
+  var sezioniValutate=[s.qvis,s.qolf,s.qgus,s.qtot].filter(Boolean).length;
+  if(sezioniValutate===0) return 'vuota';
+  if(sezioniValutate===4) return 'completa';
+  return 'parziale';
+}
+
 async function aggiornaLottoLista(id,val){
   var idNum=typeof id==='string'?parseInt(id,10):id;
   var val2=(val||'').trim();
@@ -4493,8 +4511,14 @@ function filtraHomeSchede(){
     var isBozza=s.tipo==='bozza';
     var badgeBozza=isBozza?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#e65100;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Scheda analitica da completare</span>':'';
     var badgeNG=s.ng?'<span title="'+(s.ng_motivo?'Motivo: '+s.ng_motivo:'Campione difettato')+'" style="font-size:9px;font-weight:800;text-transform:uppercase;background:#a00;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">N.G.</span>':'';
-    var daCompletare=!isBozza&&!s.ng&&!analiticaSembraCompilata(s);
-    var badgeDaCompletare=daCompletare?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Scheda analitica da completare</span>':'';
+    var livelloAnalitica=(!isBozza&&!s.ng)?analiticaLivelloCompletezza(s):'completa';
+    var badgeDaCompletare='';
+    if(livelloAnalitica==='vuota'){
+      badgeDaCompletare='<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:var(--s);color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Scheda analitica da completare</span>';
+    } else if(livelloAnalitica==='parziale'){
+      badgeDaCompletare='<span style="font-size:9px;font-weight:800;text-transform:uppercase;background:#e6a817;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📋 Analitica da completare in parte</span>';
+    }
+    var daCompletare=(livelloAnalitica!=='completa');
     var badgeNota=(s.nota_degustazione&&s.nota_degustazione.trim())?'<span style="font-size:9px;font-weight:700;background:#e8eaf6;color:#3949ab;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">✍ nota</span>':'';
     var badgeFoto=(s.foto_calice&&s.foto_calice.trim())?'<span style="font-size:9px;font-weight:700;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle">📷</span>':'';
     var sub=[s.annata,s.tipologia,s.denominazione].filter(Boolean).join(' · ');
