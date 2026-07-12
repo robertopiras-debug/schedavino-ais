@@ -583,7 +583,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     </div>
 
     <!-- Dosaggio -->
-    <div class="ph2">Dosaggio</div>
+    <div class="ph2" id="dosaggio-titolo">Dosaggio</div>
     <div class="og c4" id="dosaggio-wrap">
       <div class="o" data-g="dosaggio">Pas Dosé / Zero</div>
       <div class="o" data-g="dosaggio">Extra Brut</div>
@@ -2500,6 +2500,8 @@ function aggiornaSezioniVisive(tipol){
   var bspu=document.getElementById('blk-spumante');
   var bmet=document.getElementById('blk-metodo');
   var bliev=document.getElementById('blk-lieviti');
+  var bdosT=document.getElementById('dosaggio-titolo');
+  var bdosW=document.getElementById('dosaggio-wrap');
 
   if(!tipol){
     bc.classList.add('blocked'); be.classList.add('blocked'); bg.classList.add('blocked');
@@ -2507,6 +2509,7 @@ function aggiornaSezioniVisive(tipol){
     ne.innerHTML='<div class="block-note">Seleziona modalità</div>';
     ng.innerHTML='<div class="block-note">Seleziona modalità</div>';
     bspu.style.display='none';
+    bdosT.style.display='none'; bdosW.style.display='none';
   } else if(t==='fermo'){
     bc.classList.remove('blocked'); be.classList.add('blocked'); bg.classList.add('blocked');
     nc.innerHTML='';
@@ -2514,6 +2517,7 @@ function aggiornaSezioniVisive(tipol){
     ng.innerHTML='<div class="block-note">Non pertinente — vino fermo</div>';
     ['ncat','vasc','grb','pb','effg','metodo','dosaggio','lieviti'].forEach(function(g){delete sc[g];});
     bspu.style.display='none';
+    bdosT.style.display='none'; bdosW.style.display='none';
   } else if(t==='spumante'){
     bc.classList.add('blocked'); be.classList.remove('blocked'); bg.classList.remove('blocked');
     nc.innerHTML='<div class="block-note">Non pertinente — vino spumante</div>';
@@ -2521,6 +2525,7 @@ function aggiornaSezioniVisive(tipol){
     delete sc['consistenza'];
     bspu.style.display='block';
     bmet.style.display='block';
+    bdosT.style.display='block'; bdosW.style.display='block';
     // mostra lieviti solo se metodo classico già selezionato
     if(sc.metodo==='Metodo Classico') bliev.style.display='block';
     else bliev.style.display='none';
@@ -2533,7 +2538,8 @@ function aggiornaSezioniVisive(tipol){
     bspu.style.display='block';
     bmet.style.display='none'; // no metodo per frizzante
     bliev.style.display='none';
-    delete sc['metodo']; delete sc['lieviti'];
+    bdosT.style.display='none'; bdosW.style.display='none'; // dosaggio riservato allo spumante
+    delete sc['metodo']; delete sc['lieviti']; delete sc['dosaggio'];
   }
 }
 
@@ -3241,7 +3247,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v284';
+const APP_VERSION='v285';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
