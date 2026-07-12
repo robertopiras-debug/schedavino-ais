@@ -1202,6 +1202,15 @@ function _mostraVistaInner(v){
     sv=0;
     document.querySelectorAll('#stars .st').forEach(function(st){st.classList.remove('lit');});
     sc={}; mx={dolf:[],sfumatura:[],desc_vis:[]}; riconoscimenti={};
+    // La tipologia (Fermo/Frizzante/Spumante) è già corretta nel blocco
+    // condiviso — non va azzerata, ma le sezioni che dipendono da essa
+    // (Metodo, Effervescenza) restano bloccate finché non gliela si
+    // comunica esplicitamente: senza questa chiamata, un vino "Spumante"
+    // arrivato qui per la prima volta mostra il chip giusto selezionato,
+    // ma Metodo/Effervescenza restano non selezionabili come se nessuna
+    // modalità fosse mai stata scelta.
+    var chipBaseAttivo=document.querySelector('#tipolBase .tc-chip.on-base');
+    if(typeof aggiornaSezioniVisive==='function') aggiornaSezioniVisive(chipBaseAttivo?chipBaseAttivo.textContent:'');
     _analiticaResetPerPuntiId=editingId;
   }
   if(v==='analitica'){
@@ -3227,7 +3236,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v282';
+const APP_VERSION='v283';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
