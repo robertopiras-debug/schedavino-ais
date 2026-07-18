@@ -479,8 +479,8 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 <div class="bar">Dati identificativi</div>
 <div class="wf">
   <div class="row2col">
-    <div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200);controllaDuplicato()"><div class="prod-drop" id="wP-drop"></div></div></div>
-    <div class="f"><div class="lbl">Nome del vino</div><div style="position:relative"><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="cercaVini(this,'wN-drop');up()" onblur="setTimeout(function(){document.getElementById('wN-drop').style.display='none'},200);controllaDuplicato()"><div class="prod-drop" id="wN-drop"></div></div></div>
+    <div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200);controllaEreditaTipologia();controllaDuplicato()"><div class="prod-drop" id="wP-drop"></div></div></div>
+    <div class="f"><div class="lbl">Nome del vino</div><div style="position:relative"><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="cercaVini(this,'wN-drop');up()" onblur="setTimeout(function(){document.getElementById('wN-drop').style.display='none'},200);controllaEreditaTipologia();controllaDuplicato()"><div class="prod-drop" id="wN-drop"></div></div></div>
     <div class="f f-lotto"><div class="lbl">Lotto</div><input id="wLotto" type="text" placeholder="es. Batteria 1" oninput="up()"></div>
   </div>
   <div class="f"><div class="lbl">Sede e occasione degustazione</div><input id="wOccasione" type="text" placeholder="es. Ristorante da Mario, cena di lavoro" oninput="up()"></div>
@@ -2648,6 +2648,50 @@ function aggiornaPunteggioTestataAnalitica(){
   el.textContent='—';
 }
 
+// Eredita Colore e Modalità da schede esistenti con stesso produttore+nome —
+// stesso principio del controllo duplicato, un passo prima. Due vincoli
+// decisi esplicitamente con Rob: (1) eredita SOLO sui campi ancora vuoti,
+// mai sovrascrive una scelta già fatta dall'utente; (2) eredita SOLO se
+// tutte le schede esistenti concordano tra loro — se un produttore ha
+// cambiato tipologia tra un'annata e l'altra (caso raro ma reale), non
+// impone nulla e lascia scegliere l'utente.
+function controllaEreditaTipologia(){
+  var p=(document.getElementById('wP').value||'').trim().toLowerCase();
+  var n=(document.getElementById('wN').value||'').trim().toLowerCase();
+  if(!p || !n) return;
+  var giaColore=!!document.querySelector('#tipolColore .tc-chip.on-colore');
+  var giaBase=!!document.querySelector('#tipolBase .tc-chip.on-base');
+  if(giaColore && giaBase) return; // entrambi già scelti, niente da fare
+
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var corrispondenti=schede.filter(function(s){
+    if(editingId && s.id==editingId) return false;
+    return (s.produttore||'').trim().toLowerCase()===p && (s.nome||'').trim().toLowerCase()===n;
+  });
+  if(!corrispondenti.length) return;
+
+  var COLORI=['Bianco','Rosato','Rosso'];
+  var BASI=['Fermo','Frizzante','Spumante'];
+  function estrai(tipologiaStr, lista){
+    tipologiaStr=tipologiaStr||'';
+    for(var i=0;i<lista.length;i++){ if(tipologiaStr.indexOf(lista[i])>-1) return lista[i]; }
+    return null;
+  }
+  var coloriTrovati=corrispondenti.map(function(s){return estrai(s.tipologia,COLORI);}).filter(Boolean);
+  var basiTrovate=corrispondenti.map(function(s){return estrai(s.tipologia,BASI);}).filter(Boolean);
+  var coloreConcorde=coloriTrovati.length && coloriTrovati.every(function(c){return c===coloriTrovati[0];})?coloriTrovati[0]:null;
+  var baseConcorde=basiTrovate.length && basiTrovate.every(function(b){return b===basiTrovate[0];})?basiTrovate[0]:null;
+
+  if(!giaColore && coloreConcorde){
+    var chipColore=Array.from(document.querySelectorAll('#tipolColore .tc-chip')).find(function(c){return c.textContent.trim()===coloreConcorde;});
+    if(chipColore) pickColore(chipColore);
+  }
+  if(!giaBase && baseConcorde){
+    var chipBase=Array.from(document.querySelectorAll('#tipolBase .tc-chip')).find(function(c){return c.textContent.trim()===baseConcorde;});
+    if(chipBase) pickBase(chipBase);
+  }
+}
+
 var _idSchedaDuplicataTrovata=null;
 
 // Confronta Produttore+Nome correnti contro le schede già in archivio.
@@ -3317,7 +3361,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v291';
+const APP_VERSION='v292';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
