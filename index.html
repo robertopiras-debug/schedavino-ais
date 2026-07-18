@@ -480,7 +480,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 <div class="wf">
   <div class="row2col">
     <div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200);controllaDuplicato()"><div class="prod-drop" id="wP-drop"></div></div></div>
-    <div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="up()" onblur="controllaDuplicato()"></div>
+    <div class="f"><div class="lbl">Nome del vino</div><div style="position:relative"><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="cercaVini(this,'wN-drop');up()" onblur="setTimeout(function(){document.getElementById('wN-drop').style.display='none'},200);controllaDuplicato()"><div class="prod-drop" id="wN-drop"></div></div></div>
     <div class="f f-lotto"><div class="lbl">Lotto</div><input id="wLotto" type="text" placeholder="es. Batteria 1" oninput="up()"></div>
   </div>
   <div class="f"><div class="lbl">Sede e occasione degustazione</div><input id="wOccasione" type="text" placeholder="es. Ristorante da Mario, cena di lavoro" oninput="up()"></div>
@@ -2263,6 +2263,7 @@ async function salvaSuDB(scheda){
     dt_crea: scheda.dt_crea||scheda.dt||''
   };
   if(typeof registraProduttore==='function' && scheda.produttore) registraProduttore(scheda.produttore);
+  if(typeof registraVino==='function' && scheda.produttore && scheda.nome) registraVino(scheda.produttore, scheda.nome);
   var ok=await supaInsertOrUpdate('schede_analitiche', row);
   if(!ok){
     console.error('[DB] salvaSuDB: scrittura su Supabase fallita per scheda', scheda.id);
@@ -3308,7 +3309,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v287';
+const APP_VERSION='v288';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3676,6 +3677,52 @@ function impostaTuttiVoti(v){
 
 // ─── PRODUTTORI — RICERCA CONTESTUALE + AUTO-ALIMENTAZIONE ─────────────────
 var _prodCache=null; // cache locale per evitare troppe query
+
+// Autocomplete vini: a differenza del produttore, il nome del vino da solo
+// non è univoco (nomi comuni come "Rosso" ricorrono presso più aziende) —
+// il filtro è sempre sulla COPPIA produttore+nome, leggendo il produttore
+// già scritto nel campo wP. Se wP è vuoto non ha senso suggerire nulla:
+// mostrerebbe vini di produttori diversi mescolati, inutile per lo scopo
+// (prevenire refusi come "Sassicaia" scritto "Sassica" dello STESSO produttore).
+async function cercaVini(input, dropId){
+  var q=(input.value||'').trim();
+  var prod=(document.getElementById('wP').value||'').trim();
+  var drop=document.getElementById(dropId);
+  if(!drop) return;
+  if(q.length<1 || !prod){drop.style.display='none';return;}
+  try{
+    var url=SUPA_URL+'/rest/v1/vini_registro?produttore_norm=eq.'+encodeURIComponent(prod.toLowerCase())+'&nome=ilike.*'+encodeURIComponent(q)+'*&order=conteggio.desc&limit=10';
+    var res=await fetch(url,{headers:supaHeaders()});
+    if(!res.ok){drop.style.display='none';return;}
+    var rows=await res.json();
+    if(!rows.length){drop.style.display='none';return;}
+    drop.innerHTML=rows.map(function(r){
+      var enc=r.nome.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+      return '<div onmousedown="selezionaVino(this)" data-nome="'+enc+'" data-inp="'+input.id+'" data-drop="'+dropId+'">'+r.nome+'</div>';
+    }).join('');
+    drop.style.display='block';
+  }catch(e){ drop.style.display='none'; }
+}
+
+function selezionaVino(el){
+  var nome=el.dataset.nome, inputId=el.dataset.inp, dropId=el.dataset.drop;
+  var inp=document.getElementById(inputId);
+  if(inp){ inp.value=nome; inp.dispatchEvent(new Event('input')); }
+  var drop=document.getElementById(dropId);
+  if(drop) drop.style.display='none';
+}
+
+async function registraVino(produttore, nome){
+  if(!produttore||!produttore.trim()||!nome||!nome.trim()||!accessToken) return;
+  try{
+    // Il trigger fn_normalizza_vino gestisce dedup case-insensitive sulla coppia
+    await fetch(SUPA_URL+'/rest/v1/vini_registro',{
+      method:'POST',
+      headers:Object.assign(supaHeaders(),{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify({produttore:produttore.trim(), nome:nome.trim(), conteggio:1})
+    });
+  }catch(e){ /* silenzioso */ }
+}
 
 async function cercaProduttori(input, dropId){
   var q=(input.value||'').trim();
