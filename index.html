@@ -2072,6 +2072,8 @@ function onLogin(user){
   }
 
   document.getElementById('login-screen').style.display='none';
+  var lpLoginOk=document.getElementById('landing-screen');
+  if(lpLoginOk) lpLoginOk.style.display='none';
   document.getElementById('app-screen').style.display='block';
   var nb=document.querySelector('.nav-bar');
   if(nb) nb.style.display='flex';
@@ -3368,7 +3370,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v298';
+const APP_VERSION='v299';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
