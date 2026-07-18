@@ -3368,7 +3368,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v297';
+const APP_VERSION='v298';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3410,50 +3410,66 @@ function jwtScaduto(token){
   }catch(e){return true;}
 }
 
+var _refreshInCorso=null; // Promise condivisa: evita refresh concorrenti con lo stesso token
+
 async function supaRefreshToken(){
   if(!refreshToken) return false;
-  try{
-    var r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token',{
-      method:'POST',headers:supaHeaders(),
-      body:JSON.stringify({refresh_token:refreshToken})
-    });
-    if(!r.ok){
-      // 400 = token scaduto/corrotto — pulisci sessione e mostra login
-      if(r.status===400){
-        console.warn('Refresh token non valido (400) — sessione rimossa');
-        localStorage.removeItem('supa_session');
-        accessToken=null; refreshToken=null; currentUser=null;
-        // vista-analitica avvolge login-screen: senza riattivarla, login-screen
-        // resta invisibile dietro un antenato con display:none se si era nella
-        // vista Punti — stesso bug che doLogout() già corregge altrove.
-        document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva');});
-        var vaLogin=document.getElementById('vista-analitica');
-        if(vaLogin) vaLogin.classList.add('attiva');
-        document.getElementById('login-screen').style.display='none';
-        var lpExpired=document.getElementById('landing-screen');
-        if(lpExpired) lpExpired.style.display='flex';
-        document.getElementById('app-screen').style.display='none';
-        var vp=document.getElementById('vista-punti');if(vp)vp.style.display='none';
-        var ho=document.getElementById('home-overlay');if(ho)ho.style.display='none';
-        var nb=document.querySelector('.nav-bar');if(nb)nb.style.display='none';
-        var msg=document.getElementById('login-msg');
-        if(msg){msg.textContent='Sessione scaduta — effettua di nuovo il login.';msg.style.color='#c00';}
+  // Se un refresh è già in corso, aspetta QUELLO invece di avviarne un
+  // secondo in parallelo con lo stesso token — se Supabase ruota i
+  // refresh token (ogni uso lo invalida e ne genera uno nuovo), due
+  // richieste simultanee con lo stesso token vecchio fanno fallire la
+  // seconda con 400 anche se la sessione è valida: la prima vince e
+  // rinnova, la seconda arriva tardi e trova il token già consumato.
+  if(_refreshInCorso) return _refreshInCorso;
+  _refreshInCorso=(async function(){
+    try{
+      var r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token',{
+        method:'POST',headers:supaHeaders(),
+        body:JSON.stringify({refresh_token:refreshToken})
+      });
+      if(!r.ok){
+        // 400 = token scaduto/corrotto — pulisci sessione e mostra login
+        if(r.status===400){
+          console.warn('Refresh token non valido (400) — sessione rimossa');
+          localStorage.removeItem('supa_session');
+          accessToken=null; refreshToken=null; currentUser=null;
+          // vista-analitica avvolge login-screen: senza riattivarla, login-screen
+          // resta invisibile dietro un antenato con display:none se si era nella
+          // vista Punti — stesso bug che doLogout() già corregge altrove.
+          document.querySelectorAll('.vista').forEach(function(el){el.classList.remove('attiva');});
+          var vaLogin=document.getElementById('vista-analitica');
+          if(vaLogin) vaLogin.classList.add('attiva');
+          document.getElementById('login-screen').style.display='none';
+          var lpExpired=document.getElementById('landing-screen');
+          if(lpExpired) lpExpired.style.display='flex';
+          document.getElementById('app-screen').style.display='none';
+          var vp=document.getElementById('vista-punti');if(vp)vp.style.display='none';
+          var ho=document.getElementById('home-overlay');if(ho)ho.style.display='none';
+          var nb=document.querySelector('.nav-bar');if(nb)nb.style.display='none';
+          var msg=document.getElementById('login-msg');
+          if(msg){msg.textContent='Sessione scaduta — effettua di nuovo il login.';msg.style.color='#c00';}
+        }
+        return false;
+      }
+      var res=await r.json();
+      if(res.access_token){
+        accessToken=res.access_token;
+        if(res.refresh_token) refreshToken=res.refresh_token;
+        localStorage.setItem('supa_session',JSON.stringify({
+          access_token:accessToken,
+          refresh_token:refreshToken,
+          user:currentUser
+        }));
+        return true;
       }
       return false;
+    }catch(e){
+      return false;
+    }finally{
+      _refreshInCorso=null; // libera il lock: la prossima chiamata potrà rifare un refresh reale
     }
-    var res=await r.json();
-    if(res.access_token){
-      accessToken=res.access_token;
-      if(res.refresh_token) refreshToken=res.refresh_token;
-      localStorage.setItem('supa_session',JSON.stringify({
-        access_token:accessToken,
-        refresh_token:refreshToken,
-        user:currentUser
-      }));
-      return true;
-    }
-  }catch(e){}
-  return false;
+  })();
+  return await _refreshInCorso;
 }
 
 // Garantisce che il token sia valido prima di ogni chiamata API
