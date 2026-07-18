@@ -2919,6 +2919,7 @@ function validaScheda(){
       window.scrollTo({top:0,behavior:'smooth'});
       return false;
     }
+    _ultimaValidazioneCompleta=false;
     return true; // bozza ok — il resto può restare incompleto
   }
 
@@ -2940,6 +2941,10 @@ function validaScheda(){
       r.mancanti.forEach(function(m){tuttiMancanti.push(m);});
     }
   });
+  // Espone se TUTTE le sezioni sono davvero complete — savLocal() lo usa
+  // per impostare analitica_compilata correttamente (true solo se
+  // realmente completa, non ad ogni salvataggio riuscito).
+  _ultimaValidazioneCompleta=(tuttiMancanti.length===0);
   aggiornaBarre();
   if(mId.length){
     righeErrore=righeErrore.concat(mId.map(function(m){return'<span style="color:#888">Identificativi:</span> '+m;}));
@@ -2956,6 +2961,7 @@ let editingId = null;
 // cancellerebbero modifiche digitate ma non ancora salvate.
 var _bloccoIdentPopolatoPer=null;
 var _analiticaResetPerPuntiId=null;
+var _ultimaValidazioneCompleta=false;
 let isSaving = false; // blocca doppi click
 
 async function savLocal(){
@@ -2971,7 +2977,7 @@ async function savLocal(){
   // punteggio confermato da una scheda DAVVERO completa anche di descrizione.
   // Nome snake_case fin da subito (lezione di ng_motivo): niente camelCase
   // nei campi che vanno su Supabase, Postgres lo appiattirebbe in minuscolo.
-  d.analitica_compilata=true;
+  d.analitica_compilata=_ultimaValidazioneCompleta;
   var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
   var now=new Date();
   var dt=now.toLocaleDateString('it-IT')+' '+now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
@@ -3362,7 +3368,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v295';
+const APP_VERSION='v296';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4614,16 +4620,21 @@ function analiticaSembraCompilata(s){
 }
 
 // Livello di completezza dell'analitica per il badge in home: 'vuota',
-// 'parziale' o 'completa'. Usa i quattro giudizi di sezione (qvis/qolf/
-// qgus/qtot) come indicatore — sono sempre presenti a livello root del
-// record quando quella sezione è stata effettivamente valutata, a
-// differenza dei singoli parametri descrittivi che dipendono da tipologia
-// e colore e sarebbero più complessi da verificare qui in modo affidabile.
+// 'parziale' o 'completa'. CORRETTO (18/07/2026): la versione precedente
+// leggeva s.qvis/s.qolf/s.qgus/s.qtot credendoli colonne dirette del
+// record -- non lo sono mai stati, sono sempre stati dentro il campo
+// jsonb "parametri", quindi la funzione restituiva sempre 'vuota' anche
+// per un'analitica completa. Ora usa analitica_compilata (booleano reale,
+// impostato da savLocal solo quando tutte le 4 sezioni sono davvero
+// complete) come indicatore principale, e la presenza di dati concreti
+// (parametri, note, stelle) per il livello intermedio 'parziale'.
 function analiticaLivelloCompletezza(s){
-  var sezioniValutate=[s.qvis,s.qolf,s.qgus,s.qtot].filter(Boolean).length;
-  if(sezioniValutate===0) return 'vuota';
-  if(sezioniValutate===4) return 'completa';
-  return 'parziale';
+  if(s.analitica_compilata) return 'completa';
+  var haQualcosa=(s.parametri && Object.keys(s.parametri).length>0) ||
+    (s.nota_vis||'').trim() || (s.nota_olf||'').trim() ||
+    (s.nota_gus||'').trim() || (s.nota_fin||'').trim() ||
+    (s.stelle>0);
+  return haQualcosa ? 'parziale' : 'vuota';
 }
 
 async function aggiornaLottoLista(id,val){
