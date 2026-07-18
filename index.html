@@ -219,7 +219,7 @@ select.t-inp{appearance:auto;padding-right:4px;}
 .voto-chip.sel .vc-num{color:#5a3c00;font-weight:900}
 .voto-chip.sel .vc-lbl{color:rgba(90,60,0,.8)}
 /* Hero sticky */
-.hero{position:-webkit-sticky;position:sticky;top:0;z-index:100;background:#fff;border:2px solid var(--m);border-radius:0;margin:0;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.hero{position:-webkit-sticky;position:sticky;top:0;z-index:100;background:#fff;border:2px solid var(--m);border-radius:0;margin:0;box-shadow:0 2px 6px rgba(0,0,0,.12);-webkit-transform:translateZ(0);transform:translateZ(0);will-change:transform}
 .testata-fissa{position:-webkit-sticky;position:sticky;top:0;z-index:100;background:#fff;border-bottom:2px solid var(--m);padding:8px 34px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.12)}
 /* Param compatto */
 .param{padding:3px 10px;border-bottom:1px solid #f0f0e8}
@@ -3362,7 +3362,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v294';
+const APP_VERSION='v295';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
