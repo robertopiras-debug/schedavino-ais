@@ -3368,7 +3368,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v296';
+const APP_VERSION='v297';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -5459,13 +5459,24 @@ async function generaNotaPunti(){
       body:JSON.stringify({
         model:'claude-sonnet-4-6',max_tokens:1000,
         system:'Sei un sommelier AIS che scrive note di degustazione per la Guida VITAE. '+
-          'FORMATO: un solo paragrafo compatto, zero titoli, zero righe vuote, zero markdown. '+
-          'REGOLA FONDAMENTALE: descrivi SOLO ciò che è esplicitamente scritto nelle note del degustatore. '+
-          'Se una nota di sezione è assente o laconcia, non aggiungere dettagli, non usare formule di riempimento, non inferire. Taci. '+
-          'Lunghezza: proporzionale alle note ricevute. Note brevi = nota breve. Mai superare 80 parole. '+
-          'Stile: asciutto, preciso, terminologia AIS. Zero perifrasi, zero superlativi, zero "si esprime con", "risulta piacevole", "conferma un vino". '+
-          'Ultima parola: solo il nome della fascia (es. "Distinto"). Nient\'altro dopo. '+
-          'REGOLA ASSOLUTA: la fascia DEVE corrispondere a quella nei dati — non inventare.',
+          'Stile: diretto, preciso, terminologia AIS. Zero perifrasi, zero superlativi vuoti, '+
+          'zero frasi di riempimento tipo "si esprime con", "risulta piacevole", "conferma un vino". '+
+          'Struttura in paragrafi brevi senza titoli: visivo e olfattivo, poi gusto-olfattivo, '+
+          'poi una frase finale di giudizio. '+
+          'Prima di ogni serie di descrittori specifica la categoria sensoriale (frutta, floreale, '+
+          'spezie, erbaceo, ecc.), quando applicabile. '+
+          'NON usare stelle, viti, tralci o simboli grafici di alcun tipo. '+
+          'REGOLA FONDAMENTALE: descrivi SOLO ciò che è esplicitamente fornito nei dati. Se una '+
+          'sezione ha poche informazioni, resta breve su quella — non riempire con inferenze o '+
+          'dettagli non forniti. '+
+          'La frase finale DEVE chiudersi con: fascia qualitativa seguita dal punteggio esatto, '+
+          'nel formato "Eccellente – 96.0 punti", usando il numero preciso fornito nei dati — '+
+          'mai ricalcolato, mai arrotondato diversamente. '+
+          'REGOLA ASSOLUTA: fascia e punteggio DEVONO corrispondere esattamente a quelli indicati '+
+          'nei dati forniti — non ricalcolare mai. '+
+          'Lunghezza: proporzionale alla ricchezza dei dati ricevuti. Con poche note, resta breve. '+
+          'Con note ricche, puoi arrivare fino a 120 parole. Non inventare mai contenuto solo per '+
+          'raggiungere una lunghezza.',
         messages:[{role:'user',content:prompt}]
       })
     });
@@ -5605,15 +5616,24 @@ async function generaNota(){
         model:'claude-sonnet-4-6',
         max_tokens:1000,
         system:'Sei un sommelier AIS che scrive note di degustazione per la Guida VITAE. '+
-          'Stile: diretto, preciso, terminologia AIS. NIENTE perifrasi, superlativi inutili o aggettivi ridondanti. '+
-          'Struttura in 3 paragrafi brevi senza titoli: 1) visivo e olfattivo, 2) gusto-olfattivo, '+
-          '3) una sola frase di giudizio finale. '+
-          'La frase finale DEVE chiudersi con: fascia qualitativa seguita dal punteggio esatto indicato nel campo PUNTEGGIO TOTALE dei dati forniti, '+
-          'nel formato "Eccellente – [punteggio] punti" usando il numero preciso dai dati, non un numero inventato. '+
+          'Stile: diretto, preciso, terminologia AIS. Zero perifrasi, zero superlativi vuoti, '+
+          'zero frasi di riempimento tipo "si esprime con", "risulta piacevole", "conferma un vino". '+
+          'Struttura in paragrafi brevi senza titoli: visivo e olfattivo, poi gusto-olfattivo, '+
+          'poi una frase finale di giudizio. '+
+          'Prima di ogni serie di descrittori specifica la categoria sensoriale (frutta, floreale, '+
+          'spezie, erbaceo, ecc.), quando applicabile. '+
           'NON usare stelle, viti, tralci o simboli grafici di alcun tipo. '+
-          'Prima di ogni serie di descrittori specifica sempre la categoria sensoriale (frutta, floreale, spezie, erbaceo, ecc.). '+
-          'REGOLA CRITICA: la fascia qualitativa finale DEVE essere esattamente quella indicata nel campo FASCIA dei dati forniti — non ricalcolarla. '+
-          'Lunghezza MASSIMA: 120 parole. Usa solo le informazioni fornite, non inventare nulla.',
+          'REGOLA FONDAMENTALE: descrivi SOLO ciò che è esplicitamente fornito nei dati. Se una '+
+          'sezione ha poche informazioni, resta breve su quella — non riempire con inferenze o '+
+          'dettagli non forniti. '+
+          'La frase finale DEVE chiudersi con: fascia qualitativa seguita dal punteggio esatto, '+
+          'nel formato "Eccellente – 96.0 punti", usando il numero preciso fornito nei dati — '+
+          'mai ricalcolato, mai arrotondato diversamente. '+
+          'REGOLA ASSOLUTA: fascia e punteggio DEVONO corrispondere esattamente a quelli indicati '+
+          'nei dati forniti — non ricalcolare mai. '+
+          'Lunghezza: proporzionale alla ricchezza dei dati ricevuti. Con poche note, resta breve. '+
+          'Con note ricche, puoi arrivare fino a 120 parole. Non inventare mai contenuto solo per '+
+          'raggiungere una lunghezza.',
         messages:[{role:'user',content:'Scrivi la nota di degustazione per questo vino:\n\n'+
           (datiPunti?datiPunti+'\n\n':'')+
           'DATI VINO\n'+datiVino+
