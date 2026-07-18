@@ -3309,7 +3309,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v288';
+const APP_VERSION='v289';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4707,7 +4707,22 @@ function toggleHomeDay(gid){
 
 async function homeElimina(id, e){
   e.stopPropagation();
-  if(!confirm('Eliminare questa scheda?')) return;
+  // Recupera i dati del record PRIMA di chiedere conferma — senza questo,
+  // chi cancella non sa di chi sia la scheda né quale vino sia, lo stesso
+  // punto cieco che ha portato a cancellare per errore la degustazione di
+  // un collega (vedi caso Argiolas Cardanera, 18/07/2026).
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var s=schede.find(function(x){return x.id==id;});
+  if(!s && typeof _homeSchede!=='undefined') s=_homeSchede.find(function(x){return x.id==id;});
+  var msg='Eliminare questa scheda?';
+  if(s){
+    var chiVino=(s.produttore||'')+' '+(s.nome||'');
+    var chiAutore=s.autore||s.user_email||'autore sconosciuto';
+    var quando=s.dt_crea||s.dt||'data sconosciuta';
+    msg='Stai per eliminare:\n\n'+chiVino.trim()+'\ndi '+chiAutore+'\ndel '+quando+
+        '\n\nQuesta azione non si può annullare. Procedere?';
+  }
+  if(!confirm(msg)) return;
   // Rimuovi subito dalla vista locale (risposta immediata)
   var l=JSON.parse(localStorage.getItem('ais_s')||'[]');
   l=l.filter(function(s){return s.id!=id;});
