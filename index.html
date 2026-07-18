@@ -479,10 +479,11 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 <div class="bar">Dati identificativi</div>
 <div class="wf">
   <div class="row2col">
-    <div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200)"><div class="prod-drop" id="wP-drop"></div></div></div>
-    <div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="up()"></div>
+    <div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200);controllaDuplicato()"><div class="prod-drop" id="wP-drop"></div></div></div>
+    <div class="f"><div class="lbl">Nome del vino</div><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="up()" onblur="controllaDuplicato()"></div>
     <div class="f f-lotto"><div class="lbl">Lotto</div><input id="wLotto" type="text" placeholder="es. Batteria 1" oninput="up()"></div>
   </div>
+  <div class="f"><div class="lbl">Sede e occasione degustazione</div><input id="wOccasione" type="text" placeholder="es. Ristorante da Mario, cena di lavoro" oninput="up()"></div>
   <div class="row">
     <div class="f" style="max-width:145px;flex:none"><div class="lbl">Regione</div>
       <select id="wR" onchange="onReg()">
@@ -1751,7 +1752,7 @@ function nuovaScheda(){
   // interrompere il reset a metà.
   var v=function(id,val){var el=document.getElementById(id);if(el)el.value=val;};
   v('wAutore',(typeof nomeDisplay==='function')?nomeDisplay():'');
-  v('wP',''); v('wN',''); v('wY',''); v('wV',''); v('wLotto','');
+  v('wP',''); v('wN',''); v('wY',''); v('wV',''); v('wLotto',''); v('wOccasione','');
   v('nolf',''); v('nota-vis',''); v('ngus',''); v('nfin',''); v('nota-degustazione','');
   v('nota-degustazione-pt','');
   ['nota-vis-pt','nota-olf-pt','nota-gus-pt','nota-fin-pt','nota-degustazione-pt'].forEach(function(id){
@@ -2258,6 +2259,7 @@ async function salvaSuDB(scheda){
     ng_motivo: scheda.ng_motivo||'',
     analitica_compilata: scheda.analitica_compilata||false,
     lotto: scheda.lotto||'',
+    occasione: scheda.occasione||'',
     dt_crea: scheda.dt_crea||scheda.dt||''
   };
   if(typeof registraProduttore==='function' && scheda.produttore) registraProduttore(scheda.produttore);
@@ -2297,7 +2299,8 @@ async function salvaValutazioneDB(val){
     nota_degustazione: val.nota_degustazione||'',
     dt:             val.dt||'',
     dt_crea:        val.dt_crea||val.dt||'',
-    lotto:          val.lotto||''
+    lotto:          val.lotto||'',
+    occasione:      val.occasione||''
   };
   var ok=await supaInsertOrUpdate('valutazioni_punti', row);
   if(!ok){
@@ -2636,13 +2639,53 @@ function aggiornaPunteggioTestataAnalitica(){
   el.textContent='—';
 }
 
+var _idSchedaDuplicataTrovata=null;
+
+// Confronta Produttore+Nome correnti contro le schede già in archivio.
+// NON blocca mai il salvataggio — è solo un promemoria: degustare lo
+// stesso vino in occasioni diverse (ristorante, casa, un evento) è un
+// caso d'uso legittimo, non un errore da impedire. Esclude la scheda
+// che si sta già modificando (editingId), altrimenti troverebbe sempre
+// se stessa come falso duplicato.
+function controllaDuplicato(){
+  var p=(document.getElementById('wP').value||'').trim().toLowerCase();
+  var n=(document.getElementById('wN').value||'').trim().toLowerCase();
+  if(!p || !n) return; // serve entrambi i campi compilati per un confronto sensato
+  var schede=JSON.parse(localStorage.getItem('ais_s')||'[]');
+  var trovata=schede.find(function(s){
+    if(editingId && s.id==editingId) return false; // non confrontare con se stessa
+    return (s.produttore||'').trim().toLowerCase()===p && (s.nome||'').trim().toLowerCase()===n;
+  });
+  if(!trovata) return;
+  _idSchedaDuplicataTrovata=trovata.id;
+  var dataEsistente=trovata.dt_crea||trovata.dt||'data sconosciuta';
+  var annataTxt=trovata.annata?(' '+trovata.annata):'';
+  var occasioneTxt=trovata.occasione?('<br><span style="color:#888">Occasione: '+trovata.occasione+'</span>'):'';
+  document.getElementById('modale-duplicato-msg').innerHTML=
+    'Hai già una scheda per <strong>'+trovata.produttore+' '+trovata.nome+annataTxt+'</strong> del '+dataEsistente+'.'+occasioneTxt+
+    '<br><br>Puoi aprire quella esistente, oppure proseguire comunque — utile se stai degustando lo stesso vino in un\'altra occasione.';
+  document.getElementById('modale-duplicato').style.display='flex';
+}
+
+function chiudiModaleDuplicato(){
+  document.getElementById('modale-duplicato').style.display='none';
+  _idSchedaDuplicataTrovata=null;
+}
+
+function apriSchedaDuplicata(){
+  var id=_idSchedaDuplicataTrovata;
+  chiudiModaleDuplicato();
+  if(id && typeof homeApriScheda==='function') homeApriScheda(id);
+}
+
 function gd(){
   var notaLib=(document.getElementById('notaTipol').value||'').trim();
   var vitigniStr=getVitigni();
   var tipCombinata=[selColore,selMenzione,selBase,notaLib].filter(Boolean).join(' ');
   var _autoreVal=document.getElementById('wAutore').value; salvaNomeUtente(_autoreVal);
   var _wLotto=document.getElementById('wLotto');
-  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,lotto:_wLotto?_wLotto.value:'',parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],riconoscimenti:Object.assign({},riconoscimenti),nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:(document.getElementById('nota-degustazione-pt')||{value:''}).value||(document.getElementById('nota-degustazione')||{value:''}).value,foto_calice:document.getElementById('an-foto-calice')?document.getElementById('an-foto-calice').value:'',stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
+  var _wOccasione=document.getElementById('wOccasione');
+  return{autore:_autoreVal,produttore:document.getElementById('wP').value,nome:document.getElementById('wN').value,regione:document.getElementById('wR').value,denominazione:document.getElementById('dS').value,tipologia:tipCombinata,annata:document.getElementById('wY').value,gradazione:document.getElementById('wV').value,lotto:_wLotto?_wLotto.value:'',occasione:_wOccasione?_wOccasione.value:'',parametri:Object.assign({},sc),descrittori:mx.dolf||[],sfumature:mx.sfumatura||[],desc_vis:mx.desc_vis||[],riconoscimenti:Object.assign({},riconoscimenti),nota_olf:document.getElementById('nolf').value,nota_gus:document.getElementById('ngus').value,vitigni:vitigniStr,nota_vis:document.getElementById('nota-vis').value,nota_fin:document.getElementById('nfin').value,nota_degustazione:(document.getElementById('nota-degustazione-pt')||{value:''}).value||(document.getElementById('nota-degustazione')||{value:''}).value,foto_calice:document.getElementById('an-foto-calice')?document.getElementById('an-foto-calice').value:'',stelle:sv,ng:document.getElementById('w-ng').checked,ng_motivo:document.getElementById('w-ng-motivo').value.trim()};
 }
 
 /* toast(m) già definita sopra — duplicato rimosso (stesso comportamento, debito tecnico) */
@@ -2924,7 +2967,7 @@ async function savLocal(){
   var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
   var idxP=lp.findIndex(function(p){return p.analiticaId==d.id;});
   if(idxP>-1){
-    ['produttore','nome','regione','tipologia','annata','gradazione','lotto'].forEach(function(k){
+    ['produttore','nome','regione','tipologia','annata','gradazione','lotto','occasione'].forEach(function(k){
       if(d[k]!==undefined) lp[idxP][k]=d[k];
     });
     localStorage.setItem('ais_punti',JSON.stringify(lp));
@@ -2972,6 +3015,7 @@ function loadS(id){
   document.getElementById('wY').value=s.annata||'';
   document.getElementById('wV').value=s.gradazione||'';
   var _wLotto2=document.getElementById('wLotto'); if(_wLotto2) _wLotto2.value=s.lotto||'';
+  var _wOcc2=document.getElementById('wOccasione'); if(_wOcc2) _wOcc2.value=s.occasione||'';
   document.getElementById('nolf').value=s.nota_olf||'';
   document.getElementById('ngus').value=s.nota_gus||'';
   document.getElementById('nfin').value=s.nota_fin||'';
@@ -3264,7 +3308,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v286';
+const APP_VERSION='v287';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4173,6 +4217,7 @@ async function salvaPunti(){
     annata:analiticaP?analiticaP.annata:'',
     tipologia:analiticaP?analiticaP.tipologia:'',
     lotto:analiticaP?(analiticaP.lotto||''):'',
+    occasione:analiticaP?(analiticaP.occasione||''):'',
     punteggio:parseFloat(tot.toFixed(1)),
     fascia:fasciaP(parseFloat(tot.toFixed(1))),
     voti:Object.assign({},voti),
@@ -4208,7 +4253,7 @@ async function salvaPunti(){
       // VECCHI letti da localStorage, sovrascrivendo su Supabase modifiche
       // recenti a Produttore/Nome/Annata/Regione/ecc. fatte dalla vista
       // Punti prima di questo salvataggio.
-      ['produttore','nome','regione','denominazione','tipologia','vitigni','annata','gradazione','lotto'].forEach(function(k){
+      ['produttore','nome','regione','denominazione','tipologia','vitigni','annata','gradazione','lotto','occasione'].forEach(function(k){
         if(analiticaP && analiticaP[k]!==undefined) schedeA[idxA][k]=analiticaP[k];
       });
       ['nota_vis','nota_olf','nota_gus','nota_fin'].forEach(function(k){
@@ -5665,6 +5710,29 @@ function renderAdminVino(){
     </div>
     <div style="padding:0 16px 16px">
       <button onclick="chiudiModaleErrore()" style="width:100%;padding:12px;background:#c0006a;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">✓ Ho capito — correggo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Avviso NON bloccante: possibile scheda duplicata (stesso produttore+nome
+     già presente). Non impedisce mai di proseguire — a differenza di un
+     campione difettato, degustare lo stesso vino in occasioni diverse
+     (ristorante, casa, eventi) è un caso d'uso legittimo, non un errore. -->
+<div id="modale-duplicato" onclick="chiudiModaleDuplicato()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:20px">
+  <div onclick="event.stopPropagation()" style="background:#fff;border-radius:8px;max-width:380px;width:100%;margin:0 auto;box-shadow:0 12px 40px rgba(0,0,0,.4);overflow:hidden">
+    <div style="background:#e6a817;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:28px;line-height:1">💡</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Vino già in archivio</div>
+        <div style="font-size:10px;opacity:.9;margin-top:2px">Solo un promemoria — puoi proseguire comunque</div>
+      </div>
+    </div>
+    <div style="padding:16px">
+      <div id="modale-duplicato-msg" style="font-size:12px;color:#3d3d3d;line-height:1.6"></div>
+    </div>
+    <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:8px">
+      <button onclick="apriSchedaDuplicata()" style="width:100%;padding:12px;background:var(--d);color:#fff;border:none;border-radius:4px;font-size:12.5px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em">Apri quella esistente</button>
+      <button onclick="chiudiModaleDuplicato()" style="width:100%;padding:12px;background:#f0f0e8;color:var(--d);border:1px solid var(--b);border-radius:4px;font-size:12.5px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.04em">Crea comunque una nuova scheda</button>
     </div>
   </div>
 </div>
