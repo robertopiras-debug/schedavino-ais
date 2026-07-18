@@ -2103,6 +2103,7 @@ function onLogin(user){
 // ─── SYNC SUPABASE — v20 ─────────────────────────────────────────────────
 async function caricaSchedeDB(){
   if(!currentUser) return;
+  if(typeof purgaCestino==='function') purgaCestino(); // silenzioso, non bloccante
   // Ritenta eventuali cancellazioni cloud rimaste in sospeso da un sync precedente
   await flushPendingDeletes('ais_s_pending_del','schede_analitiche');
   var data=await supaSelect('schede_analitiche',{user_email:currentUser.email});
@@ -2143,7 +2144,7 @@ async function caricaSchedeDB(){
     locale.forEach(function(s){
       if(!dbMap[String(s.id)]) dbMap[String(s.id)]=s;
     });
-    var merged=Object.values(dbMap).sort(function(a,b){
+    var merged=Object.values(dbMap).filter(function(s){return !s.deleted_at;}).sort(function(a,b){
       return (b.dt||'').localeCompare(a.dt||'');
     });
     localStorage.setItem('ais_s', JSON.stringify(merged));
@@ -2206,12 +2207,14 @@ async function caricaValutazioniDB(){
         nota_degustazione: r.nota_degustazione||'',
         dt:           r.dt||'',
         dt_crea:      r.dt_crea||r.dt||'',
-        lotto:        r.lotto||''
+        lotto:        r.lotto||'',
+        occasione:    r.occasione||'',
+        deleted_at:   r.deleted_at||null
       };
       dbMap[r.id]=mapped;
     });
     locale.forEach(function(s){if(!dbMap[String(s.id)]) dbMap[String(s.id)]=s;});
-    var merged=Object.values(dbMap).sort(function(a,b){
+    var merged=Object.values(dbMap).filter(function(s){return !s.deleted_at;}).sort(function(a,b){
       return (b.dt||'').localeCompare(a.dt||'');
     });
     localStorage.setItem('ais_punti', JSON.stringify(merged));
@@ -2316,11 +2319,16 @@ async function salvaValutazioneDB(val){
 
 async function eliminaSchemaDB(id){
   if(!currentUser) return false;
-  return await supaDelete('schede_analitiche', id);
+  // Elimina anche il record punti collegato, se esiste — altrimenti
+  // resterebbe visibile come orfano dopo aver cestinato l'analitica.
+  var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var puntiCollegato=lp.find(function(p){return p.analiticaId==id;});
+  if(puntiCollegato) await supaSoftDelete('valutazioni_punti', puntiCollegato.id);
+  return await supaSoftDelete('schede_analitiche', id);
 }
 async function eliminaValutazioneDB(id){
   if(!currentUser) return false;
-  return await supaDelete('valutazioni_punti', id);
+  return await supaSoftDelete('valutazioni_punti', id);
 }
 
 // ─── CANCELLAZIONI IN SOSPESO (anti-resurrezione) ─────────────────────────
@@ -3309,7 +3317,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v289';
+const APP_VERSION='v290';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3504,6 +3512,56 @@ async function supaDelete(table, id){
     console.error('Supabase delete error '+r.status+' ['+table+']:', err);
   }
   return r.ok;
+}
+
+// Cestino: marca il record con deleted_at invece di rimuoverlo fisicamente.
+// Recuperabile per 30 giorni (vedi purgaCestino) — protegge da errori come
+// la cancellazione per sbaglio della scheda di un collega (18/07/2026).
+async function supaSoftDelete(table, id){
+  var ok=await supaEnsureToken();
+  if(!ok) return false;
+  var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{
+    method:'PATCH',
+    headers:Object.assign(supaHeaders(),{'Content-Type':'application/json','Prefer':'return=minimal'}),
+    body:JSON.stringify({deleted_at:new Date().toISOString()})
+  });
+  if(!r.ok){
+    var err=await r.text();
+    console.error('Supabase soft-delete error '+r.status+' ['+table+']:', err);
+  }
+  return r.ok;
+}
+
+// Ripristina una scheda dal cestino (annulla deleted_at)
+async function supaRipristina(table, id){
+  var ok=await supaEnsureToken();
+  if(!ok) return false;
+  var r=await fetch(SUPA_URL+'/rest/v1/'+table+'?id=eq.'+id,{
+    method:'PATCH',
+    headers:Object.assign(supaHeaders(),{'Content-Type':'application/json','Prefer':'return=minimal'}),
+    body:JSON.stringify({deleted_at:null})
+  });
+  return r.ok;
+}
+
+// Pulizia automatica del cestino: elimina DAVVERO (DELETE fisico, non più
+// recuperabile) i record cestinati da più di 30 giorni. Senza questo, il
+// cestino accumulerebbe per sempre — non è un problema di spazio (il
+// database è piccolissimo), ma di igiene dei dati: un cestino che non si
+// svuota mai non è un cestino, è solo disordine permanente. Gira in modo
+// silenzioso a ogni login — il volume di dati è talmente contenuto che il
+// costo è trascurabile anche se eseguito spesso.
+async function purgaCestino(){
+  var ok=await supaEnsureToken();
+  if(!ok) return;
+  var sogliaISO=new Date(Date.now()-30*24*60*60*1000).toISOString();
+  for(const tabella of ['schede_analitiche','valutazioni_punti']){
+    try{
+      await fetch(SUPA_URL+'/rest/v1/'+tabella+'?deleted_at=lt.'+encodeURIComponent(sogliaISO),{
+        method:'DELETE', headers:supaHeaders()
+      });
+    }catch(e){ console.warn('purgaCestino: errore su '+tabella, e); }
+  }
 }
 
 var _explicitLogout=false; // flag: l'utente ha fatto logout esplicito
@@ -5583,18 +5641,64 @@ async function loadAdminData(){
 
 function adminSetTab(tab){
   _adminTab=tab;
-  var isDeg=tab==='deg';
   var s1='flex:1;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;border:none;';
-  document.getElementById('admin-tab-deg').style.cssText=s1+(isDeg?'background:var(--m);color:#fff;border-radius:3px 0 0 3px':'background:#ddd;color:#666;border-radius:3px 0 0 3px');
-  document.getElementById('admin-tab-vino').style.cssText=s1+(!isDeg?'background:var(--m);color:#fff;border-radius:0 3px 3px 0':'background:#ddd;color:#666;border-radius:0 3px 3px 0');
-  document.getElementById('admin-ct-deg').style.display=isDeg?'block':'none';
-  document.getElementById('admin-ct-vino').style.display=!isDeg?'block':'none';
-  if(isDeg) renderAdminDeg(); else renderAdminVino();
+  var attivo='background:var(--m);color:#fff;';
+  var inattivo='background:#ddd;color:#666;';
+  document.getElementById('admin-tab-deg').style.cssText=s1+(tab==='deg'?attivo:inattivo)+'border-radius:3px 0 0 0';
+  document.getElementById('admin-tab-vino').style.cssText=s1+(tab==='vino'?attivo:inattivo)+'border-radius:0';
+  document.getElementById('admin-tab-cestino').style.cssText=s1+(tab==='cestino'?attivo:inattivo)+'border-radius:0 3px 0 0';
+  document.getElementById('admin-ct-deg').style.display=tab==='deg'?'block':'none';
+  document.getElementById('admin-ct-vino').style.display=tab==='vino'?'block':'none';
+  document.getElementById('admin-ct-cestino').style.display=tab==='cestino'?'block':'none';
+  if(tab==='deg') renderAdminDeg();
+  else if(tab==='vino') renderAdminVino();
+  else if(tab==='cestino') renderAdminCestino();
 }
 
 // Lookup punti per una scheda admin — raw Supabase restituisce analitica_id
 // (snake_case), non analiticaId. Controlla entrambi per retrocompatibilità.
 function _adminPt(sid){return _adminPunti.find(function(p){return (p.analitica_id||p.analiticaId)==sid;});}
+
+async function renderAdminCestino(){
+  var el=document.getElementById('admin-ct-cestino');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:#aaa;font-size:13px">Caricamento cestino...</div>';
+  var ok=await supaEnsureToken();
+  if(!ok){ el.innerHTML='<div style="text-align:center;padding:20px;color:#c0006a">Sessione non valida</div>'; return; }
+  try{
+    var r=await fetch(SUPA_URL+'/rest/v1/schede_analitiche?deleted_at=not.is.null&order=deleted_at.desc',{headers:supaHeaders()});
+    var cestinate=r.ok?await r.json():[];
+  }catch(e){ cestinate=[]; }
+  if(!cestinate.length){
+    el.innerHTML='<div style="text-align:center;padding:30px;color:#aaa;font-size:13px">🗑 Il cestino è vuoto</div>';
+    return;
+  }
+  el.innerHTML='<div style="font-size:10px;color:#888;margin-bottom:8px">Le schede restano qui 30 giorni, poi vengono eliminate definitivamente.</div>'+
+    cestinate.map(function(s){
+      var scadenza=new Date(new Date(s.deleted_at).getTime()+30*24*60*60*1000).toLocaleDateString('it-IT');
+      return '<div style="background:#fff;border-radius:6px;padding:10px 12px;margin-bottom:8px;border-left:3px solid #c0006a">'+
+        '<div style="font-size:13px;font-weight:700">'+(s.produttore||'')+' '+(s.nome||'')+'</div>'+
+        '<div style="font-size:10.5px;color:#888;margin:2px 0 6px">di '+(s.autore||s.user_email||'—')+' · cancellata il '+new Date(s.deleted_at).toLocaleDateString('it-IT')+' · eliminata definitivamente il '+scadenza+'</div>'+
+        '<button onclick="adminRipristinaScheda(\''+s.id+'\')" style="font-size:11px;padding:5px 12px;background:var(--s);color:#fff;border:none;border-radius:3px;cursor:pointer;font-weight:700">↺ Ripristina</button>'+
+        '</div>';
+    }).join('');
+}
+
+async function adminRipristinaScheda(id){
+  var ok=await supaRipristina('schede_analitiche', id);
+  // Ripristina anche il record punti collegato, se cestinato insieme
+  try{
+    var rp=await fetch(SUPA_URL+'/rest/v1/valutazioni_punti?analitica_id=eq.'+id+'&deleted_at=not.is.null',{headers:supaHeaders()});
+    var collegati=rp.ok?await rp.json():[];
+    for(const p of collegati) await supaRipristina('valutazioni_punti', p.id);
+  }catch(e){ /* non bloccante */ }
+  if(ok){
+    toast('✓ Scheda ripristinata');
+    renderAdminCestino();
+    if(typeof caricaSchedeDB==='function') caricaSchedeDB();
+  } else {
+    toast('⚠ Ripristino non riuscito, riprova');
+  }
+}
 
 function renderAdminDeg(){
   var el=document.getElementById('admin-ct-deg');
@@ -5927,11 +6031,13 @@ function renderAdminVino(){
   </div>
   <div style="display:flex;gap:0;padding:12px 12px 4px">
     <button id="admin-tab-deg" onclick="adminSetTab('deg')" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:var(--m);color:#fff;border-radius:3px 0 0 3px">👤 Per Degustatore</button>
-    <button id="admin-tab-vino" onclick="adminSetTab('vino')" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:#ddd;color:#666;border-radius:0 3px 3px 0">🍷 Per Vino</button>
+    <button id="admin-tab-vino" onclick="adminSetTab('vino')" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:#ddd;color:#666;border-radius:0" >🍷 Per Vino</button>
+    <button id="admin-tab-cestino" onclick="adminSetTab('cestino')" style="flex:1;padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:#ddd;color:#666;border-radius:0 3px 3px 0">🗑 Cestino</button>
   </div>
   <div style="padding:0 12px">
     <div id="admin-loading" style="text-align:center;padding:30px;color:#aaa;font-size:13px">Caricamento dati...</div>
     <div id="admin-ct-deg" style="display:none"></div>
+    <div id="admin-ct-cestino" style="display:none"></div>
 
     <!-- Modal sola lettura scheda collega -->
     <div id="modal-lettura" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);overflow-y:auto">
