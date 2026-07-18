@@ -481,7 +481,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
 <div class="wf">
   <div class="row2col">
     <div class="f"><div class="lbl">Produttore / Azienda</div><div style="position:relative"><input id="wP" type="text" placeholder="es. Argiolas, Santadi..." autocomplete="off" oninput="cercaProduttori(this,'wP-drop');up()" onblur="setTimeout(function(){document.getElementById('wP-drop').style.display='none'},200);controllaEreditaTipologia();controllaDuplicato()"><div class="prod-drop" id="wP-drop"></div></div></div>
-    <div class="f"><div class="lbl">Nome del vino</div><div style="position:relative"><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." list="dl-vini" oninput="cercaVini(this,'wN-drop');up()" onblur="setTimeout(function(){document.getElementById('wN-drop').style.display='none'},200);controllaEreditaTipologia();controllaDuplicato()"><div class="prod-drop" id="wN-drop"></div></div></div>
+    <div class="f"><div class="lbl">Nome del vino</div><div style="position:relative"><input id="wN" type="text" placeholder="es. Turriga, Terre Brune..." oninput="cercaVini(this,'wN-drop');up()" onblur="setTimeout(function(){document.getElementById('wN-drop').style.display='none'},200);controllaEreditaTipologia();controllaDuplicato()"><div class="prod-drop" id="wN-drop"></div></div></div>
     <div class="f f-lotto"><div class="lbl">Lotto</div><input id="wLotto" type="text" placeholder="es. Batteria 1" oninput="up()"></div>
   </div>
   <div class="f"><div class="lbl">Sede e occasione degustazione</div><input id="wOccasione" type="text" placeholder="es. Ristorante da Mario, cena di lavoro" oninput="up()"></div>
@@ -3362,7 +3362,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v293';
+const APP_VERSION='v294';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
