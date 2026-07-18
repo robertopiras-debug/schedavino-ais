@@ -2915,6 +2915,23 @@ async function savLocal(){
   var _okSav=true;
   if(typeof salvaSuDB==='function') _okSav=await salvaSuDB(d);
   if(!_okSav){ addPendingSync('ais_s_pending_sync', d.id); toast('⚠ Salvata in locale — sync cloud non riuscita, verrà ritentata'); }
+  // Analitica → Punti: propaga i campi identificativi condivisi al record
+  // punti collegato, se esiste. Senza questo, modificare Produttore/Nome/
+  // Annata/ecc. dalla vista Analitica e salvare lì lasciava il record
+  // punti gemello con i valori VECCHI su Supabase — bug simmetrico a
+  // quello corretto in salvaPunti() (che sincronizzava nella direzione
+  // opposta, Punti → Analitica, ma non in questa).
+  var lp=JSON.parse(localStorage.getItem('ais_punti')||'[]');
+  var idxP=lp.findIndex(function(p){return p.analiticaId==d.id;});
+  if(idxP>-1){
+    ['produttore','nome','regione','tipologia','annata','gradazione','lotto'].forEach(function(k){
+      if(d[k]!==undefined) lp[idxP][k]=d[k];
+    });
+    localStorage.setItem('ais_punti',JSON.stringify(lp));
+    var _okSyncP=true;
+    if(typeof salvaValutazioneDB==='function') _okSyncP=await salvaValutazioneDB(lp[idxP]);
+    if(!_okSyncP) addPendingSync('ais_punti_pending_sync', lp[idxP].id);
+  }
   if(d.ng && typeof rimuoviPunteggioCollegato==='function') rimuoviPunteggioCollegato(d.id); // un campione N.G. non deve avere un punteggio in archivio
   aggiornaPunteggioTestataAnalitica(); // riflette subito un eventuale N.G. appena salvato, senza richiedere un cambio vista
   if(typeof aggiornaDatalistViniProduttori==='function') aggiornaDatalistViniProduttori();
@@ -3247,7 +3264,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v285';
+const APP_VERSION='v286';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -4184,6 +4201,16 @@ async function salvaPunti(){
     var schedeA=JSON.parse(localStorage.getItem('ais_s')||'[]');
     var idxA=schedeA.findIndex(function(x){return x.id==aId;});
     if(idxA>-1){
+      // Sincronizza ANCHE gli identificativi condivisi correnti, non solo le
+      // note: analiticaP è sempre la fonte di verità aggiornata (up() la
+      // tiene sincronizzata a ogni tasto premuto sul blocco condiviso).
+      // Senza questo, il record analitica veniva risalvato con i valori
+      // VECCHI letti da localStorage, sovrascrivendo su Supabase modifiche
+      // recenti a Produttore/Nome/Annata/Regione/ecc. fatte dalla vista
+      // Punti prima di questo salvataggio.
+      ['produttore','nome','regione','denominazione','tipologia','vitigni','annata','gradazione','lotto'].forEach(function(k){
+        if(analiticaP && analiticaP[k]!==undefined) schedeA[idxA][k]=analiticaP[k];
+      });
       ['nota_vis','nota_olf','nota_gus','nota_fin'].forEach(function(k){
         if(d[k]) schedeA[idxA][k]=d[k]; // note sezione: scrive solo se non vuote
       });
