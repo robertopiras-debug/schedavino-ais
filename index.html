@@ -410,6 +410,7 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <button onclick="doLogin()" style="width:100%;padding:11px;background:var(--m);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em">Accedi</button>
     <div style="text-align:center;margin-top:10px">
       <span style="font-size:11px;color:var(--m);cursor:pointer;font-weight:600" onclick="mostraReg()">Prima volta? Registrati →</span>
+      <div style="text-align:center;margin-top:6px"><span style="font-size:11px;color:#888;cursor:pointer" onclick="mostraReset()">Password dimenticata?</span></div>
     </div>
   </div>
 </div>
@@ -442,6 +443,42 @@ body{padding-bottom:calc(54px + env(safe-area-inset-bottom))}
     <div style="text-align:center">
       <span style="font-size:11px;color:var(--m);cursor:pointer;font-weight:600" onclick="nascondiReg()">← Torna al login</span>
     </div>
+  </div>
+</div>
+
+<div id="reset-req-screen" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f0f0e8;padding:20px;position:fixed;top:0;left:0;width:100%;z-index:600">
+  <div style="background:#fff;border-radius:6px;border:2px solid var(--m);padding:24px 20px;max-width:340px;width:100%">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:800;color:var(--m)">Recupera password</div>
+      <div style="font-size:10px;color:#888;margin-top:3px">Ti mandiamo un link via email per impostarne una nuova</div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--d);letter-spacing:.05em">Email</label>
+      <input id="reset-req-email" type="email" placeholder="la-tua@email.it" style="width:100%;margin-top:3px;padding:8px;border:1px solid var(--b);border-radius:3px;font-size:13px">
+    </div>
+    <button onclick="doResetRequest()" style="width:100%;padding:11px;background:var(--m);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Invia link</button>
+    <div id="reset-req-msg" style="display:none;font-size:11px;padding:8px;border-radius:3px;text-align:center;margin-bottom:8px"></div>
+    <div style="text-align:center">
+      <span style="font-size:11px;color:var(--m);cursor:pointer;font-weight:600" onclick="nascondiReset()">← Torna al login</span>
+    </div>
+  </div>
+</div>
+
+<div id="reset-new-screen" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f0f0e8;padding:20px;position:fixed;top:0;left:0;width:100%;z-index:601">
+  <div style="background:#fff;border-radius:6px;border:2px solid var(--m);padding:24px 20px;max-width:340px;width:100%">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:800;color:var(--m)">Imposta nuova password</div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--d);letter-spacing:.05em">Nuova password</label>
+      <input id="reset-new-pwd" type="password" placeholder="minimo 6 caratteri" style="width:100%;margin-top:3px;padding:8px;border:1px solid var(--b);border-radius:3px;font-size:13px">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--d);letter-spacing:.05em">Conferma password</label>
+      <input id="reset-new-pwd2" type="password" placeholder="ripeti la password" style="width:100%;margin-top:3px;padding:8px;border:1px solid var(--b);border-radius:3px;font-size:13px">
+    </div>
+    <button onclick="doSetNewPassword()" style="width:100%;padding:11px;background:var(--m);color:#fff;border:none;border-radius:3px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Salva nuova password</button>
+    <div id="reset-new-msg" style="display:none;font-size:11px;padding:8px;border-radius:3px;text-align:center;margin-bottom:8px"></div>
   </div>
 </div>
 
@@ -1885,6 +1922,108 @@ async function doRegister(){
     }
   } catch(e){
     showRegMsg('Errore di connessione: '+e.message,'#c0006a');
+  }
+}
+
+function mostraReset(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('reset-req-screen').style.display='flex';
+  document.getElementById('reset-req-email').value=document.getElementById('login-email').value||'';
+  document.getElementById('reset-req-msg').style.display='none';
+}
+
+function nascondiReset(){
+  document.getElementById('reset-req-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+
+function showResetReqMsg(msg,color){
+  var el=document.getElementById('reset-req-msg');
+  el.textContent=msg;
+  el.style.display='block';
+  el.style.background=color==='#c0006a'?'#fff0f5':color==='#2e6b2e'?'#eef5e8':'#f5f5f0';
+  el.style.color=color;
+  el.style.border='1px solid '+color;
+}
+
+async function doResetRequest(){
+  var email=document.getElementById('reset-req-email').value.trim();
+  if(!email){showResetReqMsg('Inserisci la tua email','#e0a030');return;}
+  showResetReqMsg('Invio in corso...','#888');
+  try{
+    var redirectTo=location.origin+location.pathname;
+    var r=await fetch(SUPA_URL+'/auth/v1/recover?redirect_to='+encodeURIComponent(redirectTo),{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY},
+      body:JSON.stringify({email:email})
+    });
+    // Supabase risponde 200 anche se l'email non e registrata, per non rivelare
+    // quali indirizzi esistono - il messaggio quindi e sempre lo stesso.
+    if(r.ok){
+      showResetReqMsg('Se l\'indirizzo e registrato, riceverai a breve un\'email con il link per reimpostare la password.','#2e6b2e');
+    } else {
+      var j=await r.json().catch(function(){return{};});
+      showResetReqMsg('Errore: '+(j.error_description||j.message||'riprova piu tardi'),'#c0006a');
+    }
+  }catch(e){
+    showResetReqMsg('Errore di connessione: '+e.message,'#c0006a');
+  }
+}
+
+// Recupero password: il link dall'email arriva con #access_token=...&type=recovery
+// nell'hash dell'URL. Va intercettato al load PRIMA che initSupabase() decida
+// quale schermata mostrare, altrimenti il normale flusso di sessione vince.
+var _recoveryToken=null;
+function checkRecoveryHash(){
+  if(location.hash.indexOf('type=recovery')===-1) return false;
+  var params=new URLSearchParams(location.hash.substring(1));
+  var token=params.get('access_token');
+  if(!token) return false;
+  _recoveryToken=token;
+  // Pulisce l'hash dall'URL: il token non deve restare visibile/riusabile in barra indirizzi
+  history.replaceState(null,'',location.pathname+location.search);
+  document.getElementById('landing-screen').style.display='none';
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('reset-new-screen').style.display='flex';
+  document.getElementById('reset-new-msg').style.display='none';
+  return true;
+}
+
+function showResetNewMsg(msg,color){
+  var el=document.getElementById('reset-new-msg');
+  el.textContent=msg;
+  el.style.display='block';
+  el.style.background=color==='#c0006a'?'#fff0f5':color==='#2e6b2e'?'#eef5e8':'#f5f5f0';
+  el.style.color=color;
+  el.style.border='1px solid '+color;
+}
+
+async function doSetNewPassword(){
+  var pwd=document.getElementById('reset-new-pwd').value;
+  var pwd2=document.getElementById('reset-new-pwd2').value;
+  if(!pwd||pwd.length<6){showResetNewMsg('Password di almeno 6 caratteri','#e0a030');return;}
+  if(pwd!==pwd2){showResetNewMsg('Le password non coincidono','#c0006a');return;}
+  if(!_recoveryToken){showResetNewMsg('Link scaduto o non valido, richiedine uno nuovo','#c0006a');return;}
+  showResetNewMsg('Salvataggio in corso...','#888');
+  try{
+    var r=await fetch(SUPA_URL+'/auth/v1/user',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+_recoveryToken},
+      body:JSON.stringify({password:pwd})
+    });
+    var j=await r.json().catch(function(){return{};});
+    if(r.ok){
+      showResetNewMsg('Password aggiornata! Ora puoi accedere.','#2e6b2e');
+      _recoveryToken=null;
+      setTimeout(function(){
+        document.getElementById('reset-new-screen').style.display='none';
+        document.getElementById('login-screen').style.display='flex';
+      },1800);
+    } else {
+      showResetNewMsg('Errore: '+(j.error_description||j.msg||j.message||'riprova'),'#c0006a');
+    }
+  }catch(e){
+    showResetNewMsg('Errore di connessione: '+e.message,'#c0006a');
   }
 }
 
@@ -3370,7 +3509,7 @@ document.addEventListener('click', function(e){
 
 
 
-const APP_VERSION='v299';
+const APP_VERSION='v300';
 
 // ─── SUPABASE via fetch REST (no CDN) — v20 ──────────────────────────────
 const SUPA_URL='https://rstxncushrlvjhlxulty.supabase.co';
@@ -3646,6 +3785,7 @@ function initSupabase(){
 }
 
 window.addEventListener('load', function(){
+  if(checkRecoveryHash()) return;
   document.querySelectorAll('.app-version').forEach(function(el){ el.textContent=APP_VERSION; });
   // ── Migrazione one-shot v96: fascia ricalcolata su tutti i record ais_punti ──
   // Versioni pre-v55 salvavano la fascia con soglie diverse (es. 88→'Ottimo'
